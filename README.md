@@ -5,7 +5,8 @@ Neosmart Pen SDK for Windows Universal Platform(UWP)
 
 Neo smartpen is a pen designed to capture your handwritten notes into our digital app with our N notebooks.
 
-You can see more information at http://www.neolab.net/
+You can see more information at http://neosmartpen.com
+
 
 ## Introduction
 
@@ -51,6 +52,10 @@ At first, download the zip file containing the current version. You can unzip th
 
 Add the NeosmartpenSDK dll to you project and the MarkerMetro.Unity.Ionic.Zlib dll in the Nuget Package
 Let's getting started using the API
+
+## Api References
+
+SDK API references page : [References](https://neosmartpen.github.io/UWPSDK/)
 
 ## Sample Code
 
