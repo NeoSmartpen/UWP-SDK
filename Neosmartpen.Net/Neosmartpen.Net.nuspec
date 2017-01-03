@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Neosmartpen.Net</id>
+    <version>2.1.114</version>
+    <title>Neosmartpen.Net.NeosmartpenSDK</title>
+    <authors>Neo.Lab Convergence</authors>
+    <owners>Neo.Lab Convergence</owners>
+    <licenseUrl>https://github.com/NeoSmartpen/UWPSDK/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/NeoSmartpen/UWPSDK</projectUrl>
+    <iconUrl>http://www.neolab.kr/</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Neo SmartPen SDK for UWP</description>
+    <copyright>Copyright 2016</copyright>
+    <tags>SDK UWP</tags>
+    <dependencies>
+        <dependency id="MarkerMetro.Unity.Ionic.Zlib" version="2.0.0.14" />
+        <dependency id="Microsoft.NETCore.UniversalWindowsPlatform" version="5.2.2" />
+    </dependencies> 
+  </metadata>
+  <files>
+    <file src="bin\Release\Neosmartpen.Net.dll" target="lib\uap10.0" />
+  </files>
+</package>
