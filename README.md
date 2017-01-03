@@ -10,7 +10,7 @@ You can see more information at http://neosmartpen.com
 
 ## Introduction
 
-SDK was made to use Neo smartpen for Windows 10 (UWP). [SDK library is built and published to [Nuget](link)]
+SDK was made to use Neo smartpen for Windows 10 (UWP). SDK library is built and published to [Nuget](https://www.nuget.org/packages/Neosmartpen.Net/)
 
 This Repository is composed of SDK and sample app project. So you can use and test all neosmartpen SDK feature in sample app
 
@@ -55,7 +55,7 @@ Let's getting started using the API
 
 ## Api References
 
-SDK API references page : [References](https://neosmartpen.github.io/UWPSDK/)
+SDK API references page : [References](https://neosmartpen.github.io/UWPSDK/docs)
 
 ## Sample Code
 
