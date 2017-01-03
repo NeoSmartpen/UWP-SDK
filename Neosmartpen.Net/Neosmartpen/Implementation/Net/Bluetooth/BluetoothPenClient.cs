@@ -236,7 +236,7 @@ namespace Neosmartpen.Net.Bluetooth
 		{
 			return await SearchDevicesWithoutWatcher(BluetoothDevice.GetDeviceSelector());
 		}
-		private async Task<PenInformation> FindUnpairedDevice(string macAddress)
+		public async Task<PenInformation> FindUnpairedDevice(string macAddress)
 		{
 			return await SearchDeviceWithoutWatcher(macAddress);
 		}
