@@ -125,6 +125,8 @@ namespace Neosmartpen.Net.Bluetooth
 				{
 					case (0x80070490): // ERROR_ELEMENT_NOT_FOUND
 						return false;
+					case (0x800710DF): // ERROR_DEVICE_NOT_AVAILABLE
+						return false;
 					default:
 						Debug.WriteLine($"Exception : {ex.Message}");
 						Debug.WriteLine($"Exception : {ex.StackTrace}");
@@ -212,8 +214,11 @@ namespace Neosmartpen.Net.Bluetooth
 			semaphreSlime.Wait();
 
 			// disconnect 할때 소켓을 릴리즈 함
-			streamSocket.Dispose();
-			streamSocket = null;
+			if (streamSocket != null)
+			{
+				streamSocket.Dispose();
+				streamSocket = null;
+			}
 
 			semaphreSlime.Release();
 		}

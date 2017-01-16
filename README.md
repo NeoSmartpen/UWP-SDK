@@ -1,9 +1,9 @@
-Neosmart Pen SDK for Windows Universal Platform(UWP)
+Neo smartpen SDK for Windows Universal Platform(UWP)
 ===================
 
-## What is Neosmart Pen
+## What is Neo smartpen
 
-Neo smartpen is a pen designed to capture your handwritten notes into our digital app with our N notebooks.
+Neo smartpen is a pen designed to capture your handwritten notes into our digital app with our Ncode notebooks.
 
 You can see more information at http://neosmartpen.com
 
@@ -12,7 +12,7 @@ You can see more information at http://neosmartpen.com
 
 SDK was made to use Neo smartpen for Windows 10 (UWP). SDK library is built and published to [Nuget](https://www.nuget.org/packages/Neosmartpen.Net/)
 
-This Repository is composed of SDK and sample app project. So you can use and test all neosmartpen SDK feature in sample app
+This Repository is composed of SDK and sample app project. So you can use and test all SDK feature in sample app
 
 Directory Structure:
 
@@ -23,13 +23,13 @@ You can see pen protocol information at [Link](https://github.com/NeoSmartpen/Do
 
 
 
-## Supported Neo Smartpen
+## Supported Neo smartpen
 
 - F110 (N2)
 - F50, F120
 
 
-## Requierments
+## Requirements
 
  - Visual Studio 2015
  - Install the Universal Windows Platform tools provided by Microsoft
@@ -63,7 +63,7 @@ SDK API references page : [References](https://neosmartpen.github.io/UWPSDK/docs
 
 SDK handle data and commucation with peer device in other thread. So if you want data get from pen to appear in UI,  than you have to execute in UI thread.
 
-#### Create BluetoothPenClient and PenController  instance
+#### Create BluetoothPenClient and PenController instance
 ```cs
 // create PenController instance.
 // PenController control all pen event method
@@ -77,11 +77,11 @@ BluetoothPenClient _client = new BluetoothPenClient(_controller);
 
 You can find bluetooth device using below methods. And get **PenInformation** object that has bluetooth device information.
 
-###### 1. find device
+###### Find device
 ```cs
 List<PenInformation> penList = await _client.FindDevices();
 ```
-###### 2. using watcher
+###### Using watcher
 
 ```cs
 // bluetooth watcher event
