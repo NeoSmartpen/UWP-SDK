@@ -35,6 +35,7 @@ You can see pen protocol information at [Link](https://github.com/NeoSmartpen/Do
  - Install the Universal Windows Platform tools provided by Microsoft
  - Min version [10.0; build 10586]
  - need to MarkerMrtro.Unity.Ionic.Zlib library (Nuget Package)
+ - Standard Bluetooth Dongles ( Bluetooth Specification Version 2.1 + EDR or later with Microsoft Bluetooth stack )
 
 ## Dependencies
 
@@ -233,4 +234,4 @@ Please reports bugs or issues to [link](https://github.com/NeoSmartpen/UWPSDK/is
 
 ## LICENSE
 
-
+https://github.com/NeoSmartpen/AndroidSDK2.0/blob/master/LICENSE
