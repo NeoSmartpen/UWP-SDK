@@ -913,6 +913,12 @@ namespace Neosmartpen.Net
 			if (newPassword.Equals(DEFAULT_PASSWORD))
 				return false;
 
+			if (oldPassword.Equals(string.Empty))
+				oldPassword = DEFAULT_PASSWORD;
+			if (newPassword.Equals(string.Empty))
+				newPassword = DEFAULT_PASSWORD;
+
+
 			byte[] oPassByte = Encoding.UTF8.GetBytes(oldPassword);
 			byte[] nPassByte = Encoding.UTF8.GetBytes(newPassword);
 
