@@ -80,6 +80,7 @@ namespace Neosmartpen.Net
 		private readonly int PKT_LENGTH_POS2 = 3;
 		private readonly int PKT_MAX_LEN = 8200;
 
+		private readonly string DEFAULT_PASSWORD = "0000";
 
 		private IPacket mPrevPacket;
 		private int mOwnerId = 0, mSectionId = 0, mNoteId = 0, mPageId = 0;
@@ -449,7 +450,10 @@ namespace Neosmartpen.Net
 
 						Debug.WriteLine("[PenCommCore] A_PasswordRequest ( " + countRetry + " / " + countReset + " )");
 
-						PenController.onPenPasswordRequest(new PasswordRequestedEventArgs(countRetry, countReset));
+						if (countRetry == 0)
+							ReqInputPassword(DEFAULT_PASSWORD);
+						else if (countRetry > 0)
+							PenController.onPenPasswordRequest(new PasswordRequestedEventArgs(countRetry-1, countReset-1));
 					}
 					break;
 
@@ -904,6 +908,9 @@ namespace Neosmartpen.Net
 		public bool ReqSetUpPassword(string oldPassword, string newPassword)
 		{
 			if (oldPassword == null || newPassword == null)
+				return false;
+
+			if (newPassword.Equals(DEFAULT_PASSWORD))
 				return false;
 
 			byte[] oPassByte = Encoding.UTF8.GetBytes(oldPassword);
