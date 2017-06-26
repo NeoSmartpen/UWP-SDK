@@ -130,7 +130,7 @@ namespace Neosmartpen.Net.Bluetooth
 					default:
 						Debug.WriteLine($"Exception : {ex.Message}");
 						Debug.WriteLine($"Exception : {ex.StackTrace}");
-						throw;
+						return false;
 				}
 			}
 			finally
