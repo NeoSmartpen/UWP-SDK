@@ -130,7 +130,7 @@ namespace Neosmartpen.Net.Bluetooth
 					default:
 						Debug.WriteLine($"Exception : {ex.Message}");
 						Debug.WriteLine($"Exception : {ex.StackTrace}");
-						throw;
+						return false;
 				}
 			}
 			finally
@@ -360,7 +360,6 @@ namespace Neosmartpen.Net.Bluetooth
 			{
 				deviceWatcher.Stop();
 			}
-			DeleteWatcher();
 		}
 
 		public event TypedEventHandler<BluetoothPenClient, PenInformation> onAddPenController;
@@ -408,6 +407,8 @@ namespace Neosmartpen.Net.Bluetooth
 		private void DeviceWatcher_Stopped(DeviceWatcher sender, object args)
 		{
 			onStopSearch(this, BluetoothError.Success);
+
+			DeleteWatcher();
 		}
 
 		private void DeviceWatcher_EnumerationCompleted(DeviceWatcher sender, object args)

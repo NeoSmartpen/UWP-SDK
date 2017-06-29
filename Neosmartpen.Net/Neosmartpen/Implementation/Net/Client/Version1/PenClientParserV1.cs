@@ -882,6 +882,9 @@ namespace Neosmartpen.Net
 			if (password == null)
 				return false;
 
+			if (password.Equals(DEFAULT_PASSWORD))
+				return false;
+
 			byte[] bStrByte = Encoding.UTF8.GetBytes(password);
 
 			ByteUtil bf = new ByteUtil();
@@ -910,6 +913,8 @@ namespace Neosmartpen.Net
 			if (oldPassword == null || newPassword == null)
 				return false;
 
+			if (oldPassword.Equals(DEFAULT_PASSWORD))
+				return false;
 			if (newPassword.Equals(DEFAULT_PASSWORD))
 				return false;
 

@@ -129,6 +129,8 @@ namespace Neosmartpen.Net
 
 		private Dot previousDot = null;
 
+		private readonly string DEFAULT_PASSWORD = "0000";
+
 		public bool HoverMode
 		{
 			get;
@@ -705,6 +707,11 @@ namespace Neosmartpen.Net
 			if (oldPassword == null || newPassword == null)
 				return false;
 
+			if (oldPassword.Equals(DEFAULT_PASSWORD))
+				return false;
+			if (newPassword.Equals(DEFAULT_PASSWORD))
+				return false;
+
 			byte[] oPassByte = Encoding.UTF8.GetBytes(oldPassword);
 			byte[] nPassByte = Encoding.UTF8.GetBytes(newPassword);
 
@@ -728,6 +735,9 @@ namespace Neosmartpen.Net
 		public bool ReqInputPassword(string password)
 		{
 			if (password == null)
+				return false;
+
+			if (password.Equals(DEFAULT_PASSWORD))
 				return false;
 
 			byte[] bStrByte = Encoding.UTF8.GetBytes(password);
