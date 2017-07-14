@@ -451,7 +451,7 @@ namespace Neosmartpen.Net
 						Debug.WriteLine("[PenCommCore] A_PasswordRequest ( " + countRetry + " / " + countReset + " )");
 
 						if (countRetry == 0)
-							ReqInputPassword(DEFAULT_PASSWORD);
+							_ReqInputPassword(DEFAULT_PASSWORD);
 						else if (countRetry > 0)
 							PenController.onPenPasswordRequest(new PasswordRequestedEventArgs(countRetry-1, countReset-1));
 					}
@@ -883,6 +883,28 @@ namespace Neosmartpen.Net
 				return false;
 
 			if (password.Equals(DEFAULT_PASSWORD))
+				return false;
+
+			byte[] bStrByte = Encoding.UTF8.GetBytes(password);
+
+			ByteUtil bf = new ByteUtil();
+			bf.Put((byte)0xC0)
+			  .Put((byte)Cmd.P_PasswordResponse)
+			  .PutShort(16)
+			  .Put(bStrByte, 16)
+			  .Put((byte)0xC1);
+
+            PenController.PenClient.Write(bf.ToArray());
+
+            bf.Clear();
+            bf = null;
+
+            return true;
+        }
+
+		public bool _ReqInputPassword(string password)
+		{
+			if (password == null)
 				return false;
 
 			byte[] bStrByte = Encoding.UTF8.GetBytes(password);
