@@ -519,7 +519,7 @@ namespace SampleApp
 
             Debug.WriteLine("btnSubmitPassword_Click");
 
-            string oldPass = txtOldPassword.Text == string.Empty ? "0000" : txtOldPassword.Text;
+			string oldPass = txtOldPassword.Text;
             string newPass = txtNewPassword.Text;
 
             _controller?.SetPassword(oldPass, newPass);
