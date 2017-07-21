@@ -93,6 +93,7 @@ namespace Neosmartpen.Net
 		private short mOfflinePacketCount, mOfflinePacketSize;
 		private OfflineDataSerializer mOfflineDataBuilder;
 		private bool Authenticated = false;
+		private bool isFirstPassword = false;
 		private int mOfflineTotalDataSize = 0, mOfflineTotalFileCount = 0, mOfflineRcvDataSize = 0;
 		private List<OfflineDataInfo> mOfflineNotes = new List<OfflineDataInfo>();
 		private bool IsStartOfflineTask = false;
@@ -266,6 +267,7 @@ namespace Neosmartpen.Net
 						SendRTCData();
 
                         PenController.onConnected(new ConnectedEventArgs(SW_VER, FORCE_MAX));
+						isFirstPassword = true;
 						PenMaxForce = FORCE_MAX;
 						mOfflineworker.PenMaxForce = FORCE_MAX;
 					}
@@ -450,10 +452,13 @@ namespace Neosmartpen.Net
 
 						Debug.WriteLine("[PenCommCore] A_PasswordRequest ( " + countRetry + " / " + countReset + " )");
 
-						if (countRetry == 0)
+						if (isFirstPassword)
+						{
 							_ReqInputPassword(DEFAULT_PASSWORD);
-						else if (countRetry > 0)
-							PenController.onPenPasswordRequest(new PasswordRequestedEventArgs(countRetry-1, countReset-1));
+							isFirstPassword = false;
+						}
+						else
+							PenController.onPenPasswordRequest(new PasswordRequestedEventArgs(countRetry, countReset));
 					}
 					break;
 
@@ -885,6 +890,9 @@ namespace Neosmartpen.Net
 			if (password.Equals(DEFAULT_PASSWORD))
 				return false;
 
+			if (password.Equals(string.Empty))
+				password = DEFAULT_PASSWORD;
+
 			byte[] bStrByte = Encoding.UTF8.GetBytes(password);
 
 			ByteUtil bf = new ByteUtil();
@@ -902,7 +910,7 @@ namespace Neosmartpen.Net
             return true;
         }
 
-		public bool _ReqInputPassword(string password)
+		private bool _ReqInputPassword(string password)
 		{
 			if (password == null)
 				return false;
