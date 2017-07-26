@@ -1228,7 +1228,6 @@ namespace Neosmartpen.Net
             }
         }
         
-        
         public void ProtocolParse1(byte[] buff, int size)
 		{
 			for (int i = 0; i < size; i++)
