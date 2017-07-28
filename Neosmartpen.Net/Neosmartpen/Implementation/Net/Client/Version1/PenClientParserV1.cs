@@ -330,7 +330,9 @@ namespace Neosmartpen.Net
 
 					mOfflineworker.onFinishDownload();
 
-					break;
+                    mOfflineRcvDataSize = 0;
+
+                    break;
 
 				// 오프라인 파일 정보
 				case Cmd.A_OfflineFileInfo:
