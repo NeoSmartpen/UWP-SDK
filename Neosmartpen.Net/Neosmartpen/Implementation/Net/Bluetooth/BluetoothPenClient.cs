@@ -57,7 +57,7 @@ namespace Neosmartpen.Net.Bluetooth
 				find = await FindUnpairedDevice(macAddress);
 			}
 
-			if (find != null)
+			if (find == null)
 			{
 				return false;
 			}
