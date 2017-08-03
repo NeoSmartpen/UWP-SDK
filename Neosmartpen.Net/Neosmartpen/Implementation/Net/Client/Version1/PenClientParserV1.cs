@@ -76,8 +76,8 @@ namespace Neosmartpen.Net
 		private readonly int PKT_END = 0xC1;
 		private readonly int PKT_EMPTY = 0x00;
 		private readonly int PKT_HEADER_LEN = 3;
-		private readonly int PKT_LENGTH_POS1 = 2;
-		private readonly int PKT_LENGTH_POS2 = 3;
+		private readonly int PKT_LENGTH_POS1 = 1;
+		private readonly int PKT_LENGTH_POS2 = 2;
 		private readonly int PKT_MAX_LEN = 8200;
 
 		private readonly string DEFAULT_PASSWORD = "0000";
@@ -330,7 +330,9 @@ namespace Neosmartpen.Net
 
 					mOfflineworker.onFinishDownload();
 
-					break;
+                    mOfflineRcvDataSize = 0;
+
+                    break;
 
 				// 오프라인 파일 정보
 				case Cmd.A_OfflineFileInfo:
@@ -1218,8 +1220,17 @@ namespace Neosmartpen.Net
 			return true;
 		}
 
-		#region Protocol Parse
-		public void ProtocolParse(byte[] buff, int size)
+        #region Protocol Parse
+        
+        public void ProtocolParse(byte[] buff, int size)
+        {
+            for (int i = 0; i < size; i++)
+            {
+                ParseOneByte(buff[i]);
+            }
+        }
+        
+        public void ProtocolParse1(byte[] buff, int size)
 		{
 			for (int i = 0; i < size; i++)
 			{
@@ -1243,7 +1254,77 @@ namespace Neosmartpen.Net
 				i += PKT_HEADER_LEN + length;
 			}
 		}
+        
+        private bool isStart = true;
 
-		#endregion
-	}
+        private int counter = 0;
+
+        private ByteUtil mBuffer = null;
+
+        private int dataLength = 0;
+
+        // length
+        private byte[] lbuffer = new byte[2];
+
+        private void ParseOneByte(byte data)
+        {
+            int int_data = (int)(data & 0xFF);
+
+            if (int_data == PKT_START && isStart)
+            {
+                mBuffer = new ByteUtil();
+
+                counter = 0;
+                isStart = false;
+            }
+            else if (int_data == PKT_END && counter == dataLength + PKT_HEADER_LEN)
+            {
+                Packet.Builder builder = new Packet.Builder();
+                
+                // 커맨드를 뽑는다.
+                int cmd = mBuffer.GetByteToInt();
+
+                // 길이를 뽑는다.
+                int length = mBuffer.GetShort();
+
+                // 커맨드, 길이를 제외한 나머지 바이트를 컨텐트로 지정
+                byte[] content = mBuffer.GetBytes();
+
+                Packet packet = builder.cmd(cmd).data(content).Build();
+
+                ParsePacket(packet);
+
+                dataLength = 0;
+                counter = 10;
+                mBuffer.Clear();
+                isStart = true;
+            }
+            else if (counter > PKT_MAX_LEN)
+            {
+                counter = 10;
+                dataLength = 0;
+                isStart = true;
+            }
+            else
+            {
+                if (counter == PKT_LENGTH_POS1)
+                {
+                    lbuffer[0] = data;
+                }
+                else if (counter == PKT_LENGTH_POS2)
+                {
+                    lbuffer[1] = data;
+                    dataLength = ByteConverter.ByteToShort(lbuffer);
+                }
+
+                if (!isStart)
+                {
+                    mBuffer.Put(data);
+                    counter++;
+                }
+            }
+        }
+
+        #endregion
+    }
 }
