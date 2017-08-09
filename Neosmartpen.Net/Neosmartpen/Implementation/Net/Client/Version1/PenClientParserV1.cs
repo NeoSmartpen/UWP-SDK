@@ -196,7 +196,7 @@ namespace Neosmartpen.Net
 
 						byte[] cbyte = packet.GetBytes(3);
 
-						mCurrentColor = ByteConverter.ByteToInt(new byte[] { cbyte[2], cbyte[1], cbyte[0], (byte)0 });
+						mCurrentColor = ByteConverter.ByteToInt(new byte[] { cbyte[2], cbyte[1], cbyte[0], (byte)0xFF });
 
 						if (updown == 0x00)
 						{
