@@ -99,7 +99,8 @@ namespace Neosmartpen.Net
 		private Chunk mFwChunk;
 		private bool IsUploading = false;
 		private OfflineWorker mOfflineworker = null;
-		private int PenMaxForce = 0;		// 상수로 박아도 될것같지만 혹시 모르니 connection시 받는다.
+		private int PenMaxForce = 0;        // 상수로 박아도 될것같지만 혹시 모르니 connection시 받는다.
+		private bool needToInputDefaultPassword;
 
 		public PenClientParserV1(PenController penClient) 
 		{
@@ -196,7 +197,7 @@ namespace Neosmartpen.Net
 
 						byte[] cbyte = packet.GetBytes(3);
 
-						mCurrentColor = ByteConverter.ByteToInt(new byte[] { cbyte[2], cbyte[1], cbyte[0], (byte)0 });
+						mCurrentColor = ByteConverter.ByteToInt(new byte[] { cbyte[2], cbyte[1], cbyte[0], (byte)0xFF });
 
 						if (updown == 0x00)
 						{
@@ -265,6 +266,7 @@ namespace Neosmartpen.Net
 						SendPenOnOffData();
 						SendRTCData();
 
+						needToInputDefaultPassword = true;
                         PenController.onConnected(new ConnectedEventArgs(SW_VER, FORCE_MAX));
 						PenMaxForce = FORCE_MAX;
 						mOfflineworker.PenMaxForce = FORCE_MAX;
@@ -280,6 +282,7 @@ namespace Neosmartpen.Net
 					if (!Authenticated)
 					{
 						Authenticated = true;
+						needToInputDefaultPassword = false;
                         PenController.onPenAuthenticated();
 					}
 
@@ -452,9 +455,12 @@ namespace Neosmartpen.Net
 
 						Debug.WriteLine("[PenCommCore] A_PasswordRequest ( " + countRetry + " / " + countReset + " )");
 
-						if (countRetry == 0)
+						if (needToInputDefaultPassword)
+						{
 							_ReqInputPassword(DEFAULT_PASSWORD);
-						else if (countRetry > 0)
+							needToInputDefaultPassword = false;
+						}
+						else 
 							PenController.onPenPasswordRequest(new PasswordRequestedEventArgs(countRetry-1, countReset-1));
 					}
 					break;
@@ -465,6 +471,8 @@ namespace Neosmartpen.Net
 						int setResult = packet.GetByteToInt();
 
 						//System.Console.WriteLine( "[PenCommCore] A_PasswordSetResponse => " + setResult );
+						if (setResult == 0x00)
+							needToInputDefaultPassword = true;
 
 						PenController.onPenPasswordSetupResponse(new SimpleResultEventArgs(setResult == 0x00));
 					}
