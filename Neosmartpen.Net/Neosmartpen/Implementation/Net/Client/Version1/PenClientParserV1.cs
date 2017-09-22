@@ -1189,14 +1189,8 @@ namespace Neosmartpen.Net
 
 		private void ResponseChunkRequest(short index)
 		{
-			if (mFwChunk == null)
-			{
-				return;
-			}
-
-			byte[] data = mFwChunk.Get(index);
-
-			if (data == null)
+			byte[] data = null;
+			if (mFwChunk == null || (data=mFwChunk.Get(index)) == null)
 			{
 				return;
 			}
