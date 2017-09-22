@@ -1192,6 +1192,7 @@ namespace Neosmartpen.Net
 			byte[] data = null;
 			if (mFwChunk == null || (data=mFwChunk.Get(index)) == null)
 			{
+				IsUploading = false;
 				return;
 			}
 
