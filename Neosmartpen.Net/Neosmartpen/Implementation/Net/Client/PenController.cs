@@ -43,6 +43,7 @@ namespace Neosmartpen.Net
         public event TypedEventHandler<IPenClient, ConnectedEventArgs> Connected;
 		internal void onConnected(ConnectedEventArgs args)
 		{
+			Support.PressureCalibration.Instance.Clear();
 			Connected?.Invoke(PenClient, args);
 		}
 
@@ -52,6 +53,7 @@ namespace Neosmartpen.Net
 		public event TypedEventHandler<IPenClient, object> Disconnected;
 		internal void onDisconnected()
 		{
+			Support.PressureCalibration.Instance.Clear();
 			Disconnected?.Invoke(PenClient, new object());
 		}
 
@@ -493,9 +495,19 @@ namespace Neosmartpen.Net
             }
         }
 
-
-
         #endregion
+		
+		public void SetPressureCalibrateFactor(int cPX1, int cPY1, int cPX2, int cPY2, int cPX3, int cPY3)
+		{
+			Support.PressureCalibration.Instance.MakeFactor(cPX1, cPY1, cPX2, cPY2, cPX3, cPY3);
+		}
+
+		public float GetPressureCalibrationFactor(int index)
+		{
+			if (index < 0 || index > Support.PressureCalibration.Instance.MAX_FACTOR)
+				return -1;
+			return Support.PressureCalibration.Instance.Factor[index];
+		}
     }
 
     /// <summary>

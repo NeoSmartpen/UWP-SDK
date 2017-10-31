@@ -218,9 +218,14 @@ namespace Neosmartpen.Net
 				if ( maxForce == -1 )
 					mDot.Force = force;
 				else
+				{
 					mDot.Force = (int)((force * scale)+0.5); // 반올림
 
-                return this;
+					if (Support.PressureCalibration.Instance.Factor != null)
+						mDot.Force = (int)Support.PressureCalibration.Instance.Factor[mDot.Force];
+				}
+
+				return this;
             }
 
             public Builder dotType( DotTypes dotType )
