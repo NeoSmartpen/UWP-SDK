@@ -541,7 +541,7 @@ namespace Neosmartpen.Net
 
 		private void ProcessDot(int ownerId, int sectionId, int noteId, int pageId, long timeLong, int x, int y, int fx, int fy, int force, DotTypes type, int color)
 		{
-			Dot.Builder builder = null; new Dot.Builder();
+			Dot.Builder builder = null;
 			if (PenMaxForce == 0)
 				builder = new Dot.Builder();
 			else builder = new Dot.Builder(PenMaxForce);

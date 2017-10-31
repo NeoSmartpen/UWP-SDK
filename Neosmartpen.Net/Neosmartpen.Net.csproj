@@ -140,6 +140,7 @@
     <Compile Include="Neosmartpen\Framework\Net\Data\Stroke.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Support\ByteConverter.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Support\ByteUtil.cs" />
+    <Compile Include="Neosmartpen\Implementation\Net\Support\PressureCalibration.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Support\PressureFilter.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Support\Time.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
