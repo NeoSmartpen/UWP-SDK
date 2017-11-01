@@ -9,7 +9,7 @@
 		// TODO Check
 		// for v1
 		internal PenStatusReceivedEventArgs(int timeoffset, long timetick, int maxForce, int battery, int usedMem, int penColor, bool autoPowerMode, bool accelerationMode, bool hoverMode, bool beep
-			, short autoShutdownTime, short penSensitivity)
+			, short autoShutdownTime, short penSensitivity, string modelName)
 		{
 			TimeOffset = timeoffset;
 			Timestamp = timetick;
@@ -23,6 +23,7 @@
 			Beep = beep;
 			AutoShutdownTime = autoShutdownTime;
 			PenSensitivity = penSensitivity;
+			ModelName = modelName;
 		}
 		// for v2
 		internal PenStatusReceivedEventArgs(bool locked, int passwordMaxRetryCount, int passwordRetryCount, long timestamp, short autoShutdownTime
@@ -131,5 +132,6 @@
         /// Gets the property that can be control by cap of pen
         /// </summary>
         public bool PenCapPower { get; internal set; }
+		public string ModelName { get; internal set; }
 	}
 }
