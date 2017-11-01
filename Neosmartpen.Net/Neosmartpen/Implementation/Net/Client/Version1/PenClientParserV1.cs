@@ -303,7 +303,14 @@ namespace Neosmartpen.Net
 					short stat_autoshutdowntime = packet.GetShort();
 					short stat_pensensitivity = packet.GetShort();
 
-                    PenController.onReceivePenStatus(new PenStatusReceivedEventArgs(stat_timezone, stat_timetick, stat_forcemax, stat_battery, stat_usedmem, stat_pencolor, stat_autopower, stat_accel, stat_hovermode, stat_beep, stat_autoshutdowntime, stat_pensensitivity));
+					string model_name = string.Empty;
+					if (packet.CheckMoreData())
+					{
+						int model_name_length = packet.GetByte();
+						model_name = packet.GetString(model_name_length);
+					}
+
+					PenController.onReceivePenStatus(new PenStatusReceivedEventArgs(stat_timezone, stat_timetick, stat_forcemax, stat_battery, stat_usedmem, stat_pencolor, stat_autopower, stat_accel, stat_hovermode, stat_beep, stat_autoshutdowntime, stat_pensensitivity, model_name));
 					break;
 
 				// 오프라인 데이터 크기,갯수 전송
