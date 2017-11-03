@@ -31,12 +31,12 @@ namespace Neosmartpen.Net
             get;
         }
 
-        /// <summary>
-        /// To bind connected socket instance to PenClient
-        /// </summary>
-        /// <param name="socket">StreamSocket instance</param>
-        /// <param name="name">it can be setted, if you want name a IPenClient</param>
-        void Bind(StreamSocket socket, string name);
+		/// <summary>
+		/// To bind connected socket instance to PenClient
+		/// </summary>
+		/// <param name="socket">StreamSocket instance</param>
+		/// <param name="name">it can be setted, if you want name a IPenClient</param>
+		void Bind(StreamSocket socket);
 
         /// <summary>
         /// unbind a socket instance
