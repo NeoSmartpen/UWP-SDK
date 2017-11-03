@@ -27,12 +27,11 @@ namespace Neosmartpen.Net
 			PenController = penctrl;
 		}
 
-		public void Bind(StreamSocket socket, string name = null)
+		public void Bind(StreamSocket socket)
 		{
             try
             {
                 Socket = socket;
-                Name = name;
 
                 PenController.PenClient = this;
 
