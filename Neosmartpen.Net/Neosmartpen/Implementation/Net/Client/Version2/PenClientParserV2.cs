@@ -9,7 +9,7 @@ using Windows.Storage;
 
 namespace Neosmartpen.Net
 {
-    internal class PenClientParserV2 : IPenClientParser
+	internal class PenClientParserV2 : IPenClientParser
 	{
 		public class Const
 		{
@@ -75,14 +75,14 @@ namespace Neosmartpen.Net
 		public PenClientParserV2(PenController penClient)
 		{
 			this.PenController = penClient;
-        }
+		}
 
 		public PenController PenController { get; private set; }
 
-        /// <summary>
-        /// Gets a name of a device.
-        /// </summary>
-        public string DeviceName { get; private set; }
+		/// <summary>
+		/// Gets a name of a device.
+		/// </summary>
+		public string DeviceName { get; private set; }
 
 		/// <summary>
 		/// Gets a version of a firmware.
@@ -130,6 +130,8 @@ namespace Neosmartpen.Net
 		private Dot previousDot = null;
 
 		private readonly string DEFAULT_PASSWORD = "0000";
+		private bool reCheckPassword = false;
+		private string newPassword;
 
 		public bool HoverMode
 		{
@@ -137,7 +139,7 @@ namespace Neosmartpen.Net
 			private set;
 		}
 
-        public void ParsePacket(Packet packet)
+		public void ParsePacket(Packet packet)
 		{
 			Cmd cmd = (Cmd)packet.Cmd;
 
@@ -155,9 +157,9 @@ namespace Neosmartpen.Net
 						MaxForce = -1;
 						MacAddress = BitConverter.ToString(packet.GetBytes(6)).Replace("-", "");
 
-                        IsUploading = false;
+						IsUploading = false;
 
-                        ReqPenStatus();
+						ReqPenStatus();
 					}
 					break;
 
@@ -173,8 +175,8 @@ namespace Neosmartpen.Net
 					{
 						int battery = (int)(packet.GetByte() & 0xff);
 
-                        PenController.onReceiveBatteryAlarm(new BatteryAlarmReceivedEventArgs(battery));
-                    }
+						PenController.onReceiveBatteryAlarm(new BatteryAlarmReceivedEventArgs(battery));
+					}
 					break;
 
 				case Cmd.ONLINE_PEN_UPDOWN_EVENT:
@@ -238,22 +240,21 @@ namespace Neosmartpen.Net
 
 							var connectedEventArgs = new ConnectedEventArgs();
 
-                            PenController.onConnected(new ConnectedEventArgs(MacAddress, DeviceName, FirmwareVersion, ProtocolVersion, SubName, MaxForce));
+							PenController.onConnected(new ConnectedEventArgs(MacAddress, DeviceName, FirmwareVersion, ProtocolVersion, SubName, MaxForce));
 							PenMaxForce = MaxForce;
 
 							if (lockyn)
 							{
-                                // TODO 여기서 부터 시작
-                                PenController.onPenPasswordRequest(new PasswordRequestedEventArgs(pwdRetryCount, pwdMaxRetryCount));
+								PenController.onPenPasswordRequest(new PasswordRequestedEventArgs(pwdRetryCount, pwdMaxRetryCount));
 							}
 							else
 							{
-                                PenController.onPenAuthenticated();
+								PenController.onPenAuthenticated();
 							}
 						}
 						else
 						{
-                            PenController.onReceivePenStatus(new PenStatusReceivedEventArgs(lockyn, pwdMaxRetryCount, pwdRetryCount, time, autoPowerOffTime, MaxForce, batteryLeft, usedStorage, useOffline, autoPowerON, penCapOff, hover, beep, fsrStep));
+							PenController.onReceivePenStatus(new PenStatusReceivedEventArgs(lockyn, pwdMaxRetryCount, pwdRetryCount, time, autoPowerOffTime, MaxForce, batteryLeft, usedStorage, useOffline, autoPowerON, penCapOff, hover, beep, fsrStep));
 						}
 					}
 					break;
@@ -269,39 +270,39 @@ namespace Neosmartpen.Net
 						switch (stype)
 						{
 							case SettingType.AutoPowerOffTime:
-                                PenController.onPenAutoShutdownTimeSetupResponse(new SimpleResultEventArgs(result));
+								PenController.onPenAutoShutdownTimeSetupResponse(new SimpleResultEventArgs(result));
 								break;
 
 							case SettingType.AutoPowerOn:
-                                PenController.onPenAutoPowerOnSetupResponse(new SimpleResultEventArgs(result));
+								PenController.onPenAutoPowerOnSetupResponse(new SimpleResultEventArgs(result));
 								break;
 
 							case SettingType.Beep:
-                                PenController.onPenBeepSetupResponse(new SimpleResultEventArgs(result));
+								PenController.onPenBeepSetupResponse(new SimpleResultEventArgs(result));
 								break;
 
 							case SettingType.Hover:
-                                PenController.onPenHoverSetupResponse(new SimpleResultEventArgs(result));
+								PenController.onPenHoverSetupResponse(new SimpleResultEventArgs(result));
 								break;
 
 							case SettingType.LedColor:
-                                PenController.onPenColorSetupResponse(new SimpleResultEventArgs(result));
+								PenController.onPenColorSetupResponse(new SimpleResultEventArgs(result));
 								break;
 
 							case SettingType.OfflineData:
-                                PenController.onPenOfflineDataSetupResponse(new SimpleResultEventArgs(result));
+								PenController.onPenOfflineDataSetupResponse(new SimpleResultEventArgs(result));
 								break;
 
 							case SettingType.PenCapOff:
-                                PenController.onPenCapPowerOnOffSetupResponse(new SimpleResultEventArgs(result));
+								PenController.onPenCapPowerOnOffSetupResponse(new SimpleResultEventArgs(result));
 								break;
 
 							case SettingType.Sensitivity:
-                                PenController.onPenSensitivitySetupResponse(new SimpleResultEventArgs(result));
+								PenController.onPenSensitivitySetupResponse(new SimpleResultEventArgs(result));
 								break;
 
 							case SettingType.Timestamp:
-                                PenController.onPenTimestampSetupResponse(new SimpleResultEventArgs(result));
+								PenController.onPenTimestampSetupResponse(new SimpleResultEventArgs(result));
 								break;
 						}
 					}
@@ -317,11 +318,26 @@ namespace Neosmartpen.Net
 
 						if (status == 0)
 						{
-                            PenController.onPenPasswordRequest(new PasswordRequestedEventArgs(cntRetry, cntMax));
+							if (reCheckPassword)
+							{
+								reCheckPassword = false;
+								PenController.onPenPasswordSetupResponse(new SimpleResultEventArgs(false));
+							}
+							else
+							{
+								PenController.onPenPasswordRequest(new PasswordRequestedEventArgs(cntRetry, cntMax));
+							}
 						}
 						else
 						{
-                            PenController.onPenAuthenticated();
+							if (reCheckPassword)
+							{
+								PenController.onPenPasswordSetupResponse(new SimpleResultEventArgs(true));
+								reCheckPassword = false;
+								break;
+							}
+
+							PenController.onPenAuthenticated();
 						}
 					}
 					break;
@@ -331,7 +347,16 @@ namespace Neosmartpen.Net
 						int cntRetry = packet.GetByteToInt();
 						int cntMax = packet.GetByteToInt();
 
-                        PenController.onPenPasswordSetupResponse(new SimpleResultEventArgs(packet.Result == 0x00));
+						if (packet.Result == 0x00)
+						{
+							reCheckPassword = true;
+							ReqInputPassword(newPassword);
+						}
+						else
+						{
+							newPassword = string.Empty;
+							PenController.onPenPasswordSetupResponse(new SimpleResultEventArgs(false));
+						}
 					}
 					break;
 				#endregion
@@ -354,7 +379,7 @@ namespace Neosmartpen.Net
 							result.Add(new OfflineDataInfo(section, owner, note));
 						}
 
-                        PenController.onReceiveOfflineDataList(new OfflineDataListReceivedEventArgs(result.ToArray()));
+						PenController.onReceiveOfflineDataList(new OfflineDataListReceivedEventArgs(result.ToArray()));
 					}
 					break;
 
@@ -377,7 +402,7 @@ namespace Neosmartpen.Net
 
 						OfflineDataInfo info = new OfflineDataInfo(section, owner, note);
 
-                        PenController.onReceiveOfflineDataList(new OfflineDataListReceivedEventArgs(info));
+						PenController.onReceiveOfflineDataList(new OfflineDataListReceivedEventArgs(info));
 					}
 					break;
 
@@ -389,7 +414,7 @@ namespace Neosmartpen.Net
 
 						bool isCompressed = packet.GetByte() == 1;
 
-                        PenController.onStartOfflineDownload();
+						PenController.onStartOfflineDownload();
 					}
 					break;
 
@@ -432,7 +457,7 @@ namespace Neosmartpen.Net
 						byte[] oData = packet.GetBytes(sizeAfter);
 
 						GZipStream gzipStream = new GZipStream(new System.IO.MemoryStream(oData), CompressionLevel.Fastest);
-						
+
 						byte[] strData = Ionic.Zlib.ZlibStream.UncompressBuffer(oData);
 
 						if (strData.Length != sizeBefore)
@@ -520,11 +545,11 @@ namespace Neosmartpen.Net
 
 						SendOfflinePacketResponse(packetId);
 
-                        PenController.onReceiveOfflineStrokes(new OfflineStrokeReceivedEventArgs(mTotalOfflineStroke, mReceivedOfflineStroke, result.ToArray() ));
+						PenController.onReceiveOfflineStrokes(new OfflineStrokeReceivedEventArgs(mTotalOfflineStroke, mReceivedOfflineStroke, result.ToArray()));
 
 						if (location == 2)
 						{
-                            PenController.onFinishedOfflineDownload(new SimpleResultEventArgs(true));
+							PenController.onFinishedOfflineDownload(new SimpleResultEventArgs(true));
 						}
 
 						#endregion
@@ -533,7 +558,7 @@ namespace Neosmartpen.Net
 
 				case Cmd.OFFLINE_DATA_DELETE_RESPONSE:
 					{
-                        PenController.onRemovedOfflineData(new SimpleResultEventArgs(packet.Result == 0x00));
+						PenController.onRemovedOfflineData(new SimpleResultEventArgs(packet.Result == 0x00));
 					}
 					break;
 				#endregion
@@ -544,7 +569,7 @@ namespace Neosmartpen.Net
 						if (packet.Result != 0 || packet.GetByteToInt() != 0)
 						{
 							IsUploading = false;
-                            PenController.onReceiveFirmwareUpdateResult(new SimpleResultEventArgs(false));
+							PenController.onReceiveFirmwareUpdateResult(new SimpleResultEventArgs(false));
 						}
 					}
 					break;
@@ -562,7 +587,7 @@ namespace Neosmartpen.Net
 				case Cmd.ONLINE_DATA_RESPONSE:
 					break;
 
-                  
+
 
 				default:
 					break;
@@ -646,8 +671,8 @@ namespace Neosmartpen.Net
 			int ty = mPack.GetByte();
 
 			int twist = mPack.GetShort();
-			
-            PenController.onReceiveDot(new DotReceivedEventArgs(MakeDot(PenMaxForce, mCurOwner, mCurSection, mCurNote, mCurPage, mTime, x, y, fx, fy, force, type, mPenTipColor)));
+
+			PenController.onReceiveDot(new DotReceivedEventArgs(MakeDot(PenMaxForce, mCurOwner, mCurSection, mCurNote, mCurPage, mTime, x, y, fx, fy, force, type, mPenTipColor)));
 		}
 
 		private byte[] Escape(byte input)
@@ -664,7 +689,7 @@ namespace Neosmartpen.Net
 
 		private bool Send(ByteUtil bf)
 		{
-            PenController.PenClient.Write(bf.ToArray());
+			PenController.PenClient.Write(bf.ToArray());
 
 			bf.Clear();
 			bf = null;
@@ -711,6 +736,8 @@ namespace Neosmartpen.Net
 				return false;
 			if (newPassword.Equals(DEFAULT_PASSWORD))
 				return false;
+
+			this.newPassword = newPassword;
 
 			byte[] oPassByte = Encoding.UTF8.GetBytes(oldPassword);
 			byte[] nPassByte = Encoding.UTF8.GetBytes(newPassword);
@@ -1126,9 +1153,9 @@ namespace Neosmartpen.Net
 
 			mFwChunk = new Chunk(1024);
 
-            bool loaded = await mFwChunk.Load(filepath);
+			bool loaded = await mFwChunk.Load(filepath);
 
-            if (!loaded)
+			if (!loaded)
 			{
 				return;
 			}
@@ -1159,8 +1186,8 @@ namespace Neosmartpen.Net
 
 			Send(bf);
 
-            PenController.onStartFirmwareInstallation();
-        }
+			PenController.onStartFirmwareInstallation();
+		}
 
 		private void ResponseChunkRequest(int offset, bool status = true)
 		{
@@ -1205,7 +1232,7 @@ namespace Neosmartpen.Net
 
 			Send(bf);
 
-            PenController.onReceiveFirmwareUpdateStatus(new ProgressChangeEventArgs(mFwChunk.GetChunkLength(), (int)index));
+			PenController.onReceiveFirmwareUpdateStatus(new ProgressChangeEventArgs(mFwChunk.GetChunkLength(), (int)index));
 		}
 
 		/// <summary>
@@ -1230,7 +1257,7 @@ namespace Neosmartpen.Net
 			return ownerByte;
 		}
 
-        //public Dot( 
+		//public Dot( 
 		private Dot MakeDot(int penMaxForce, int owner, int section, int note, int page, long timestamp, int x, int y, int fx, int fy, int force, DotTypes type, int color)
 		{
 			Dot.Builder builder = null;
