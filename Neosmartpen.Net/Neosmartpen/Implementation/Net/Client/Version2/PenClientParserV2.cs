@@ -316,7 +316,18 @@ namespace Neosmartpen.Net
 						int cntRetry = packet.GetByteToInt();
 						int cntMax = packet.GetByteToInt();
 
-						if (status == 0)
+						if (status == 1)
+						{
+							if (reCheckPassword)
+							{
+								PenController.onPenPasswordSetupResponse(new SimpleResultEventArgs(true));
+								reCheckPassword = false;
+								break;
+							}
+
+							PenController.onPenAuthenticated();
+						}
+						else
 						{
 							if (reCheckPassword)
 							{
@@ -327,17 +338,6 @@ namespace Neosmartpen.Net
 							{
 								PenController.onPenPasswordRequest(new PasswordRequestedEventArgs(cntRetry, cntMax));
 							}
-						}
-						else
-						{
-							if (reCheckPassword)
-							{
-								PenController.onPenPasswordSetupResponse(new SimpleResultEventArgs(true));
-								reCheckPassword = false;
-								break;
-							}
-
-							PenController.onPenAuthenticated();
 						}
 					}
 					break;
