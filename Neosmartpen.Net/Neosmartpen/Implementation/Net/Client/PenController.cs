@@ -9,7 +9,7 @@ namespace Neosmartpen.Net
         private PenClientParserV1 mClientV1;
         private PenClientParserV2 mClientV2;
 
-		internal int Protocol { get; set; }
+		public int Protocol { get; internal set; }
 
         public PenController()
         {

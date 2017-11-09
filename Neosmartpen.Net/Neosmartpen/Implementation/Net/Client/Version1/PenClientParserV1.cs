@@ -468,7 +468,7 @@ namespace Neosmartpen.Net
 							needToInputDefaultPassword = false;
 						}
 						else 
-							PenController.onPenPasswordRequest(new PasswordRequestedEventArgs(countRetry-1, countReset-1));
+							PenController.onPenPasswordRequest(new PasswordRequestedEventArgs(countRetry, countReset));
 					}
 					break;
 
