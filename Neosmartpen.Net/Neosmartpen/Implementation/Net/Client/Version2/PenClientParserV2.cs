@@ -122,12 +122,12 @@ namespace Neosmartpen.Net
 
 		private int mCurSection = -1, mCurOwner = -1, mCurNote = -1, mCurPage = -1;
 
-		private Packet mPrevPacket = null;
+		//private Packet mPrevPacket = null;
 
 		private int mTotalOfflineStroke = -1, mReceivedOfflineStroke = 0, mTotalOfflineDataSize = -1;
 		private int PenMaxForce = 0;
 
-		private Dot previousDot = null;
+		//private Dot previousDot = null;
 
 		private readonly string DEFAULT_PASSWORD = "0000";
 		private bool reCheckPassword = false;
@@ -594,7 +594,11 @@ namespace Neosmartpen.Net
 			}
 		}
 
-		private void ParseDotPacket(Cmd cmd, Packet pk)
+        private Dot mPrevDot = null;
+
+        private bool IsBeforeMiddle = false;
+
+        private void ParseDotPacket(Cmd cmd, Packet pk)
 		{
 			switch (cmd)
 			{
@@ -602,7 +606,9 @@ namespace Neosmartpen.Net
 
 					IsStartWithDown = pk.GetByte() == 0x00;
 
-					mDotCount = 0;
+                    IsBeforeMiddle = false;
+
+                    mDotCount = 0;
 
 					mTime = pk.GetLong();
 
@@ -610,37 +616,67 @@ namespace Neosmartpen.Net
 
 					mPenTipColor = pk.GetInt();
 
-					if (mPrevPacket != null && !IsStartWithDown)
+					if (mPrevDot != null && !IsStartWithDown)
 					{
-						mPrevPacket.Reset();
-						previousDot = null;
-						ParseDot(mPrevPacket, DotTypes.PEN_UP);
-					}
+                        //mPrevPacket.Reset();
+                        //ParseDot(mPrevPacket, DotTypes.PEN_UP);
+                        var udot = mPrevDot.Clone();
+                        udot.DotType = DotTypes.PEN_UP;
+                        PenController.onReceiveDot(new DotReceivedEventArgs(udot));
+                        mPrevDot = null;
+                    }
 
 					break;
 
 				case Cmd.ONLINE_PEN_DOT_EVENT:
 
-					if (HoverMode && !IsStartWithDown)
-					{
-						// 호버모드 처리
-						ParseDot(pk, DotTypes.PEN_HOVER);
-					}
-					else if (IsStartWithDown)
-					{
-						ParseDot(pk, mDotCount == 0 ? DotTypes.PEN_DOWN : DotTypes.PEN_MOVE);
-					}
-					else
-					{
-						//오류
-					}
+                    int timeadd = pk.GetByte();
 
-					mPrevPacket = pk;
+                    mTime += timeadd;
+
+                    int force = pk.GetShort();
+
+                    int x = pk.GetShort();
+                    int y = pk.GetShort();
+
+                    int fx = pk.GetByte();
+                    int fy = pk.GetByte();
+
+                    Dot dot = null;
+
+                    if (HoverMode && !IsStartWithDown)
+                    {
+                        dot = MakeDot(PenMaxForce, mCurOwner, mCurSection, mCurNote, mCurPage, mTime, x, y, fx, fy, force, DotTypes.PEN_HOVER, mPenTipColor);
+                    }
+                    else if (IsStartWithDown)
+                    {
+                        dot = MakeDot(PenMaxForce, mCurOwner, mCurSection, mCurNote, mCurPage, mTime, x, y, fx, fy, force, mDotCount == 0 ? DotTypes.PEN_DOWN : DotTypes.PEN_MOVE, mPenTipColor);
+                    }
+                    else
+                    {
+                        //오류
+                    }
+
+                    if (dot != null)
+                    {
+                        PenController.onReceiveDot(new DotReceivedEventArgs(dot));
+                    }
+                    IsBeforeMiddle = true;
+                    mPrevDot = dot;
+                    //mPrevPacket = pk;
 					mDotCount++;
 
 					break;
 
 				case Cmd.ONLINE_PAPER_INFO_EVENT:
+                    
+                    // 미들도트 중에 페이지가 바뀐다면 강제로 펜업을 만들어 준다.
+                    if (IsBeforeMiddle)
+                    {
+                        var audot = mPrevDot.Clone();
+                        audot.DotType = DotTypes.PEN_UP;
+                        PenController.onReceiveDot(new DotReceivedEventArgs(audot));
+                    }
 
 					byte[] rb = pk.GetBytes(4);
 
@@ -649,7 +685,9 @@ namespace Neosmartpen.Net
 					mCurNote = pk.GetInt();
 					mCurPage = pk.GetInt();
 
-					break;
+                    mDotCount = 0;
+
+                    break;
 			}
 		}
 
