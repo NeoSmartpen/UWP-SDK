@@ -82,7 +82,7 @@ namespace Neosmartpen.Net
 
 		private readonly string DEFAULT_PASSWORD = "0000";
 
-		private IPacket mPrevPacket;
+		//private IPacket mPrevPacket;
 		private int mOwnerId = 0, mSectionId = 0, mNoteId = 0, mPageId = 0;
 		private long mPrevDotTime = 0;
 		private bool IsPrevDotDown = false;
@@ -147,7 +147,11 @@ namespace Neosmartpen.Net
 
 			IsStartOfflineTask = false;
 		}
-		public void ParsePacket(Packet packet)
+
+        Dot mPrevDot;
+        bool IsBeforeMiddle = false;
+
+        public void ParsePacket(Packet packet)
 		{
             //Debug.WriteLine("[PenCommCore] ParsePacket : " + packet.Cmd);
 
@@ -170,21 +174,40 @@ namespace Neosmartpen.Net
 							return;
 						}
 
-						if (IsPrevDotDown)
+                        Dot.Builder builder = null;
+                        if (PenMaxForce == 0)
+                            builder = new Dot.Builder();
+                        else builder = new Dot.Builder(PenMaxForce);
+
+                        builder.owner(mOwnerId)
+                            .section(mSectionId)
+                            .note(mNoteId)
+                            .page(mPageId)
+                            .timestamp(timeLong)
+                            .coord(x + fx * 0.01f, y + fy * 0.01f)
+                            .force(force)
+                            .color(mCurrentColor);
+
+                        if (IsPrevDotDown)
 						{
 							// 펜업의 경우 시작 도트로 저장
-							IsPrevDotDown = false;
-							ProcessDot(mOwnerId, mSectionId, mNoteId, mPageId, timeLong, x, y, fx, fy, force, DotTypes.PEN_DOWN, mCurrentColor);
-						}
+                            builder.dotType(DotTypes.PEN_DOWN);
+                            IsPrevDotDown = false;
+                        }
 						else
 						{
-							// 펜업이 아닌 경우 미들 도트로 저장
-							ProcessDot(mOwnerId, mSectionId, mNoteId, mPageId, timeLong, x, y, fx, fy, force, DotTypes.PEN_MOVE, mCurrentColor);
-						}
+                            // 펜업이 아닌 경우 미들 도트로 저장
+                            builder.dotType(DotTypes.PEN_MOVE);
+                        }
 
-						mPrevDotTime = timeLong;
-						mPrevPacket = packet;
-					}
+                        Dot dot = builder.Build();
+
+                        PenController.onReceiveDot(new DotReceivedEventArgs(dot));
+
+                        mPrevDot = dot;
+                        mPrevDotTime = timeLong;
+                        IsBeforeMiddle = true;
+                    }
 					break;
 
 				case Cmd.A_DotUpDownDataNew:
@@ -205,45 +228,44 @@ namespace Neosmartpen.Net
 							mPrevDotTime = updownTime;
 							IsPrevDotDown = true;
 							IsStartWithDown = true;
-
-							//Callback.onUpDown(this, false);
 						}
 						else if (updown == 0x01)
 						{
-							if (mPrevPacket != null)
+							if (mPrevDot != null)
 							{
-								mPrevPacket.Reset();
-
-								// 펜 업 일 경우 바로 이전 도트를 End Dot로 삽입
-								int time = mPrevPacket.GetByteToInt();
-								int x = mPrevPacket.GetShort();
-								int y = mPrevPacket.GetShort();
-								int fx = mPrevPacket.GetByteToInt();
-								int fy = mPrevPacket.GetByteToInt();
-								int force = mPrevPacket.GetByteToInt();
-
-								ProcessDot(mOwnerId, mSectionId, mNoteId, mPageId, updownTime, x, y, fx, fy, force, DotTypes.PEN_UP, mCurrentColor);
+                                var udot = mPrevDot.Clone();
+                                udot.DotType = DotTypes.PEN_UP;
+                                PenController.onReceiveDot(new DotReceivedEventArgs(udot));
 							}
-
-							//Callback.onUpDown(this, true);
 
 							IsStartWithDown = false;
 						}
 
-						mPrevPacket = null;
-					}
+                        IsBeforeMiddle = false;
+                        mPrevDot = null;
+                    }
 					break;
 
 				case Cmd.A_DotIDChange:
 
-					byte[] rb = packet.GetBytes(4);
+                    // 미들도트 중에 페이지가 바뀐다면 강제로 펜업을 만들어 준다.
+                    if (IsBeforeMiddle)
+                    {
+                        var audot = mPrevDot.Clone();
+                        audot.DotType = DotTypes.PEN_UP;
+                        PenController.onReceiveDot(new DotReceivedEventArgs(audot));
+                    }
+
+                    byte[] rb = packet.GetBytes(4);
 
 					mSectionId = (int)(rb[3] & 0xFF);
 					mOwnerId = ByteConverter.ByteToInt(new byte[] { rb[0], rb[1], rb[2], (byte)0x00 });
 					mNoteId = packet.GetInt();
 					mPageId = packet.GetInt();
 
-					break;
+                    IsPrevDotDown = true;
+
+                    break;
 
 				case Cmd.A_PenOnState:
 

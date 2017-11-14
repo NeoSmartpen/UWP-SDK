@@ -97,8 +97,21 @@ namespace SampleApp
             });
         }
 
+        int CurrNote = -1, CurrPage = -1;
+
         private void ProcessDot(Dot dot)
         {
+            if ( dot.Note != CurrNote || dot.Page != CurrPage)
+            {
+                ClearCanvas(_canvasCurrent, Colors.Transparent);
+                ClearCanvas(_canvasArchived);
+
+                drawableCanvas.Invalidate();
+
+                CurrNote = dot.Note;
+                CurrPage = dot.Page;
+            }
+
             if (_stroke == null)
             {
                 _stroke = new Stroke(dot.Section, dot.Owner, dot.Note, dot.Page);
