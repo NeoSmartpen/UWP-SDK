@@ -29,7 +29,7 @@ namespace Neosmartpen.Net.Filter
 			filteredDot = func;
 		}
 
-		public void Put(Dot dot, int penMaxForce)
+		public void Put(Dot dot)
 		{
 			if (!ValidateCode(dot))
 			{
@@ -111,7 +111,7 @@ namespace Neosmartpen.Net.Filter
 
 					if (!validateStartDot)
 					{
-						makeDownDot = MakeDot(penMaxForce, dot2.Owner, dot2.Section, dot2.Note, dot2.Page, dot2.Timestamp, dot2.X, dot2.Y, dot2.TiltX, dot2.TiltY, dot2.Twist, dot2.Force, DotTypes.PEN_DOWN, dot2.Color);
+						makeDownDot = MakeDot(dot2.Owner, dot2.Section, dot2.Note, dot2.Page, dot2.Timestamp, dot2.X, dot2.Y, dot2.TiltX, dot2.TiltY, dot2.Twist, dot2.Force, DotTypes.PEN_DOWN, dot2.Color);
 						filteredDot(makeDownDot);
 					}
 
@@ -127,12 +127,12 @@ namespace Neosmartpen.Net.Filter
 				{
 					if (!validateStartDot && !validateMiddleDot)
 					{
-						makeDownDot = MakeDot(penMaxForce, dot.Owner, dot.Section, dot.Note, dot.Page, dot.Timestamp, dot.X, dot.Y, dot.TiltX, dot.TiltY, dot.Twist, dot.Force, DotTypes.PEN_DOWN, dot.Color);
+						makeDownDot = MakeDot(dot.Owner, dot.Section, dot.Note, dot.Page, dot.Timestamp, dot.X, dot.Y, dot.TiltX, dot.TiltY, dot.Twist, dot.Force, DotTypes.PEN_DOWN, dot.Color);
 						filteredDot(makeDownDot);
 					}
 					if (thirdCheck && !validateMiddleDot)
 					{
-						makeMoveDot = MakeDot(penMaxForce, dot.Owner, dot.Section, dot.Note, dot.Page, dot.Timestamp, dot.X, dot.Y, dot.TiltX, dot.TiltY, dot.Twist, dot.Force, DotTypes.PEN_MOVE, dot.Color);
+						makeMoveDot = MakeDot(dot.Owner, dot.Section, dot.Note, dot.Page, dot.Timestamp, dot.X, dot.Y, dot.TiltX, dot.TiltY, dot.Twist, dot.Force, DotTypes.PEN_MOVE, dot.Color);
 						filteredDot(makeMoveDot);
 					}
 					filteredDot(dot);
@@ -225,11 +225,9 @@ namespace Neosmartpen.Net.Filter
 			}
 		}
 
-		private Dot MakeDot(int penMaxForce, int owner, int section, int note, int page, long timestamp, float x, float y, int tiltX, int tiltY, int twist , int force, DotTypes type, int color)
+		private Dot MakeDot(int owner, int section, int note, int page, long timestamp, float x, float y, int tiltX, int tiltY, int twist , int force, DotTypes type, int color)
 		{
-			Dot.Builder builder = null;
-			if (penMaxForce == 0) builder = new Dot.Builder();
-			else builder = new Dot.Builder(penMaxForce);
+			Dot.Builder builder = new Dot.Builder();
 
 			builder.owner(owner)
 				.section(section)

@@ -597,7 +597,7 @@ namespace Neosmartpen.Net
 
 		private void ProcessDot(Dot dot)
 		{
-			dotFilterForPaper.Put(dot, PenMaxForce);
+			dotFilterForPaper.Put(dot);
 		}
 
 		private void SendDotReceiveEvent(Dot dot)

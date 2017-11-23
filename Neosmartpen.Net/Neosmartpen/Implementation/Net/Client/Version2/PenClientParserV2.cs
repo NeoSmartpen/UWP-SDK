@@ -543,7 +543,7 @@ namespace Neosmartpen.Net
 									dotType = DotTypes.PEN_MOVE;
 								}
 
-								offlineFilterForPaper.Put(MakeDot(PenMaxForce, owner, section, note, pageId, time, x, y, fx, fy, force, dotType, color), PenMaxForce);
+								offlineFilterForPaper.Put(MakeDot(PenMaxForce, owner, section, note, pageId, time, x, y, fx, fy, force, dotType, color));
 								//stroke.Add(MakeDot(PenMaxForce, owner, section, note, pageId, time, x, y, fx, fy, force, dotType, color));
 							}
 
@@ -703,7 +703,7 @@ namespace Neosmartpen.Net
 
 		private void ProcessDot(Dot dot)
 		{
-			dotFilterForPaper.Put(dot, PenMaxForce);
+			dotFilterForPaper.Put(dot);
 		}
 
 		private void SendDotReceiveEvent(Dot dot)
