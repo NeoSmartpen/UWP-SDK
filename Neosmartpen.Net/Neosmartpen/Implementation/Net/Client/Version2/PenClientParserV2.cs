@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using Neosmartpen.Net.Support;
 using Windows.Storage;
+using Neosmartpen.Net.Filter;
 
 namespace Neosmartpen.Net
 {
@@ -75,6 +76,8 @@ namespace Neosmartpen.Net
 		public PenClientParserV2(PenController penClient)
 		{
 			this.PenController = penClient;
+			dotFilterForPaper = new FilterForPaper(SendDotReceiveEvent);
+			dotFilterForPaperOffline = new FilterForPaper(AddOfflineFilteredDot);
 		}
 
 		public PenController PenController { get; private set; }
@@ -132,6 +135,9 @@ namespace Neosmartpen.Net
 		private readonly string DEFAULT_PASSWORD = "0000";
 		private bool reCheckPassword = false;
 		private string newPassword;
+
+		private FilterForPaper dotFilterForPaper = null;
+		private FilterForPaper dotFilterForPaperOffline = null;
 
 		public bool HoverMode
 		{
@@ -486,7 +492,7 @@ namespace Neosmartpen.Net
 
 							//System.Console.WriteLine( "pageId : {0}, timeStart : {1}, timeEnd : {2}, penTipType : {3}, color : {4}, dotCount : {5}, time : {6},", pageId, timeStart, timeEnd, penTipType, color, dotCount, time );
 
-							Stroke stroke = new Stroke(section, owner, note, pageId);
+							offlineStroke = new Stroke(section, owner, note, pageId);
 
 							for (int j = 0; j < dotCount; j++)
 							{
@@ -537,10 +543,11 @@ namespace Neosmartpen.Net
 									dotType = DotTypes.PEN_MOVE;
 								}
 
-								stroke.Add(MakeDot(PenMaxForce, owner, section, note, pageId, time, x, y, fx, fy, force, dotType, color));
+								dotFilterForPaperOffline.Put(MakeDot(PenMaxForce, owner, section, note, pageId, time, x, y, fx, fy, force, dotType, color));
+								//stroke.Add(MakeDot(PenMaxForce, owner, section, note, pageId, time, x, y, fx, fy, force, dotType, color));
 							}
 
-							result.Add(stroke);
+							result.Add(offlineStroke);
 						}
 
 						SendOfflinePacketResponse(packetId);
@@ -622,7 +629,8 @@ namespace Neosmartpen.Net
                         //ParseDot(mPrevPacket, DotTypes.PEN_UP);
                         var udot = mPrevDot.Clone();
                         udot.DotType = DotTypes.PEN_UP;
-                        PenController.onReceiveDot(new DotReceivedEventArgs(udot));
+						ProcessDot(udot);
+                        //PenController.onReceiveDot(new DotReceivedEventArgs(udot));
                         mPrevDot = null;
                     }
 
@@ -659,7 +667,8 @@ namespace Neosmartpen.Net
 
                     if (dot != null)
                     {
-                        PenController.onReceiveDot(new DotReceivedEventArgs(dot));
+						ProcessDot(dot);
+                        //PenController.onReceiveDot(new DotReceivedEventArgs(dot));
                     }
                     IsBeforeMiddle = true;
                     mPrevDot = dot;
@@ -675,7 +684,8 @@ namespace Neosmartpen.Net
                     {
                         var audot = mPrevDot.Clone();
                         audot.DotType = DotTypes.PEN_UP;
-                        PenController.onReceiveDot(new DotReceivedEventArgs(audot));
+						ProcessDot(audot);
+                        //PenController.onReceiveDot(new DotReceivedEventArgs(audot));
                     }
 
 					byte[] rb = pk.GetBytes(4);
@@ -689,6 +699,22 @@ namespace Neosmartpen.Net
 
                     break;
 			}
+		}
+
+		private void ProcessDot(Dot dot)
+		{
+			dotFilterForPaper.Put(dot);
+		}
+
+		private void SendDotReceiveEvent(Dot dot)
+		{
+			PenController.onReceiveDot(new DotReceivedEventArgs(dot));
+		}
+
+		private Stroke offlineStroke;
+		private void AddOfflineFilteredDot(Dot dot)
+		{
+			offlineStroke.Add(dot);
 		}
 
 		private void ParseDot(Packet mPack, DotTypes type)
@@ -710,7 +736,8 @@ namespace Neosmartpen.Net
 
 			int twist = mPack.GetShort();
 
-			PenController.onReceiveDot(new DotReceivedEventArgs(MakeDot(PenMaxForce, mCurOwner, mCurSection, mCurNote, mCurPage, mTime, x, y, fx, fy, force, type, mPenTipColor)));
+			ProcessDot(MakeDot(PenMaxForce, mCurOwner, mCurSection, mCurNote, mCurPage, mTime, x, y, fx, fy, force, type, mPenTipColor));
+			//PenController.onReceiveDot(new DotReceivedEventArgs(MakeDot(PenMaxForce, mCurOwner, mCurSection, mCurNote, mCurPage, mTime, x, y, fx, fy, force, type, mPenTipColor)));
 		}
 
 		private byte[] Escape(byte input)
