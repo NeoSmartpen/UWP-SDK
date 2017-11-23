@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Neosmartpen.Net.Filter
 {
@@ -19,8 +15,9 @@ namespace Neosmartpen.Net.Filter
 
 		#region Variables
 		private Dot dot1, dot2;
-		private Dot makeDownDot, makeMoveDot;
+		private Dot makeDownDot = null, makeMoveDot = null;
 		private bool secondCheck = true, thirdCheck = true;
+		private int penMaxForce;
 		#endregion
 
 		#region Delegates
@@ -28,9 +25,10 @@ namespace Neosmartpen.Net.Filter
 		private FilteredDot filteredDot;
 		#endregion
 
-		public FilterForPaper(FilteredDot func)
+		public FilterForPaper(FilteredDot func, int maxForce)
 		{
 			filteredDot = func;
+			penMaxForce = maxForce;
 		}
 
 		public void Put(Dot dot)
@@ -115,7 +113,7 @@ namespace Neosmartpen.Net.Filter
 
 					if (!validateStartDot)
 					{
-						makeDownDot = new Dot(dot2.Owner, dot2.Section, dot2.Note, dot2.Page, dot2.Timestamp, dot2.X, dot2.Y, dot2.TiltX, dot2.TiltY, dot2.Twist, dot2.Force, DotTypes.PEN_DOWN, dot2.Color);
+						makeDownDot = MakeDot(penMaxForce, dot2.Owner, dot2.Section, dot2.Note, dot2.Page, dot2.Timestamp, dot2.X, dot2.Y, dot2.TiltX, dot2.TiltY, dot2.Twist, dot2.Force, DotTypes.PEN_DOWN, dot2.Color);
 						filteredDot(makeDownDot);
 					}
 
@@ -131,12 +129,12 @@ namespace Neosmartpen.Net.Filter
 				{
 					if (!validateStartDot && !validateMiddleDot)
 					{
-						makeDownDot = new Dot(dot.Owner, dot.Section, dot.Note, dot.Page, dot.Timestamp, dot.X, dot.Y, dot.TiltX, dot.TiltY, dot.Twist, dot.Force, DotTypes.PEN_DOWN, dot.Color);
+						makeDownDot = MakeDot(penMaxForce, dot.Owner, dot.Section, dot.Note, dot.Page, dot.Timestamp, dot.X, dot.Y, dot.TiltX, dot.TiltY, dot.Twist, dot.Force, DotTypes.PEN_DOWN, dot.Color);
 						filteredDot(makeDownDot);
 					}
 					if (thirdCheck && !validateMiddleDot)
 					{
-						makeDownDot = new Dot(dot.Owner, dot.Section, dot.Note, dot.Page, dot.Timestamp, dot.X, dot.Y, dot.TiltX, dot.TiltY, dot.Twist, dot.Force, DotTypes.PEN_MOVE, dot.Color);
+						makeMoveDot = MakeDot(penMaxForce, dot.Owner, dot.Section, dot.Note, dot.Page, dot.Timestamp, dot.X, dot.Y, dot.TiltX, dot.TiltY, dot.Twist, dot.Force, DotTypes.PEN_MOVE, dot.Color);
 						filteredDot(makeMoveDot);
 					}
 					filteredDot(dot);
@@ -227,6 +225,26 @@ namespace Neosmartpen.Net.Filter
 			{
 				return true;
 			}
+		}
+
+		private Dot MakeDot(int penMaxForce, int owner, int section, int note, int page, long timestamp, float x, float y, int tiltX, int tiltY, int twist , int force, DotTypes type, int color)
+		{
+			Dot.Builder builder = null;
+			if (penMaxForce == 0) builder = new Dot.Builder();
+			else builder = new Dot.Builder(penMaxForce);
+
+			builder.owner(owner)
+				.section(section)
+				.note(note)
+				.page(page)
+				.timestamp(timestamp)
+				.coord(x, y)
+				.tilt(tiltX, tiltY)
+				.twist(twist)
+				.force(force)
+				.dotType(type)
+				.color(color);
+			return builder.Build();
 		}
 	}
 }
