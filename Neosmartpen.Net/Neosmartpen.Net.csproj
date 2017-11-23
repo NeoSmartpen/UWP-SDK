@@ -107,7 +107,7 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Neosmartpen\Implementation\Filter\FilterForPaper.cs" />
+    <Compile Include="Neosmartpen\Implementation\Net\Filter\FilterForPaper.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Bluetooth\BluetoothPenClient.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Bluetooth\PenInfomation.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Client\Chunk.cs" />
