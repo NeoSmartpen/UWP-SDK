@@ -17,7 +17,6 @@ namespace Neosmartpen.Net.Filter
 		private Dot dot1, dot2;
 		private Dot makeDownDot = null, makeMoveDot = null;
 		private bool secondCheck = true, thirdCheck = true;
-		private int penMaxForce;
 		#endregion
 
 		#region Delegates
@@ -25,13 +24,12 @@ namespace Neosmartpen.Net.Filter
 		private FilteredDot filteredDot;
 		#endregion
 
-		public FilterForPaper(FilteredDot func, int maxForce)
+		public FilterForPaper(FilteredDot func)
 		{
 			filteredDot = func;
-			penMaxForce = maxForce;
 		}
 
-		public void Put(Dot dot)
+		public void Put(Dot dot, int penMaxForce)
 		{
 			if (!ValidateCode(dot))
 			{

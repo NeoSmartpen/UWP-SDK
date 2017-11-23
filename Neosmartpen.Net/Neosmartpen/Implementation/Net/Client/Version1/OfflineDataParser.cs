@@ -289,7 +289,7 @@ namespace Neosmartpen.Net
                             .force( force )
                             .color( color )
                             .timestamp( timestamp )
-                            .dotType( dotType ).Build()
+                            .dotType( dotType ).Build(), penMaxForce
                      );
 
                     dotSize += 8;

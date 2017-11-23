@@ -77,7 +77,7 @@ namespace Neosmartpen.Net
 		{
 			this.PenController = penClient;
 			dotFilterForPaper = new FilterForPaper(SendDotReceiveEvent);
-			dotFilterForPaperOffline = new FilterForPaper(AddOfflineFilteredDot);
+			offlineFilterForPaper = new FilterForPaper(AddOfflineFilteredDot);
 		}
 
 		public PenController PenController { get; private set; }
@@ -137,7 +137,7 @@ namespace Neosmartpen.Net
 		private string newPassword;
 
 		private FilterForPaper dotFilterForPaper = null;
-		private FilterForPaper dotFilterForPaperOffline = null;
+		private FilterForPaper offlineFilterForPaper = null;
 
 		public bool HoverMode
 		{
@@ -543,7 +543,7 @@ namespace Neosmartpen.Net
 									dotType = DotTypes.PEN_MOVE;
 								}
 
-								dotFilterForPaperOffline.Put(MakeDot(PenMaxForce, owner, section, note, pageId, time, x, y, fx, fy, force, dotType, color));
+								offlineFilterForPaper.Put(MakeDot(PenMaxForce, owner, section, note, pageId, time, x, y, fx, fy, force, dotType, color), PenMaxForce);
 								//stroke.Add(MakeDot(PenMaxForce, owner, section, note, pageId, time, x, y, fx, fy, force, dotType, color));
 							}
 
@@ -703,7 +703,7 @@ namespace Neosmartpen.Net
 
 		private void ProcessDot(Dot dot)
 		{
-			dotFilterForPaper.Put(dot);
+			dotFilterForPaper.Put(dot, PenMaxForce);
 		}
 
 		private void SendDotReceiveEvent(Dot dot)
