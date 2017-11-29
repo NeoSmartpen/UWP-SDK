@@ -164,6 +164,7 @@ namespace Neosmartpen.Net
 						MacAddress = BitConverter.ToString(packet.GetBytes(6)).Replace("-", "");
 
 						IsUploading = false;
+						ReqSetupTime(Time.GetUtcTimeStamp());
 
 						ReqPenStatus();
 					}
