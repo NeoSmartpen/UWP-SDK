@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using Neosmartpen.Net.Support;
+using Neosmartpen.Net.Filter;
 
 namespace Neosmartpen.Net
 {
@@ -30,9 +31,12 @@ namespace Neosmartpen.Net
         private const int BYTE_DOT_SIZE    = 8;
         private const int BYTE_HEADER_SIZE = 64;
 
+		private FilterForPaper offlineFilterForPaper;
+
         public OfflineDataParser( string fullpath )
         {
             mTarget = fullpath;
+			offlineFilterForPaper = new FilterForPaper(AddOfflineFilteredDot);
         }
 
         public Dot[] Parse(int penMaxFoce)
@@ -197,7 +201,7 @@ namespace Neosmartpen.Net
             int lineColor = 0x000000;
 
             // 현재 라인의 도트
-            List<Dot> tempDots = new List<Dot>();
+            offlineDots = new List<Dot>();
 
             int i = 0;
 
@@ -205,7 +209,7 @@ namespace Neosmartpen.Net
             {
                 if ( ByteConverter.SingleByteToInt( mBody[i] ) == LINE_MARK_1 && ByteConverter.SingleByteToInt( mBody[i + 1] ) == LINE_MARK_2 )
                 {
-                    tempDots = new List<Dot>();
+                    offlineDots = new List<Dot>();
 
                     penDownTime = ByteConverter.ByteToLong( CopyOfRange( mBody, i + 2, 8 ) );
                     penUpTime = ByteConverter.ByteToLong( CopyOfRange( mBody, i + 10, 8 ) );
@@ -275,7 +279,7 @@ namespace Neosmartpen.Net
 					Dot.Builder builder;
 					if (penMaxForce == 0) builder = new Dot.Builder();
 					else builder = new Dot.Builder(penMaxForce);
-                    tempDots.Add(
+                    offlineFilterForPaper.Put(
 							builder
                             .section( mSectionId )
                             .owner( mOwnerId )
@@ -296,9 +300,9 @@ namespace Neosmartpen.Net
 
                         if ( dotCalcCs == lineCheckSum )
                         {
-                            for ( int j = 0; j < tempDots.Count; j++ )
+                            for ( int j = 0; j < offlineDots.Count; j++ )
                             {
-                                mDots.Add( tempDots[j] );
+                                mDots.Add( offlineDots[j] );
                             }
                         }
                         else
@@ -306,12 +310,18 @@ namespace Neosmartpen.Net
                             Debug.WriteLine( "[OfflineDataParser] invalid CheckSum cs : " + lineCheckSum + ", calc : " + dotCalcCs );
                         }
 
-                        tempDots = new List<Dot>();
+                        offlineDots = new List<Dot>();
                     }
 
                     i += BYTE_DOT_SIZE;
                 }
             }
         }
+
+		private List<Dot> offlineDots;
+		private void AddOfflineFilteredDot(Dot dot)
+		{
+			offlineDots.Add(dot);
+		}
     }
 }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Neosmartpen.Net.Support;
 using Windows.Storage;
 using Windows.Storage.Streams;
+using Neosmartpen.Net.Filter;
 
 namespace Neosmartpen.Net
 {
@@ -101,10 +102,13 @@ namespace Neosmartpen.Net
 		private OfflineWorker mOfflineworker = null;
 		private int PenMaxForce = 0;        // 상수로 박아도 될것같지만 혹시 모르니 connection시 받는다.
 		private bool needToInputDefaultPassword;
+		private FilterForPaper dotFilterForPaper = null;
 
 		public PenClientParserV1(PenController penClient) 
 		{
 			this.PenController = penClient;
+
+			dotFilterForPaper = new FilterForPaper(SendDotReceiveEvent);
 
 			if ( mOfflineworker == null )
 			{
@@ -202,7 +206,8 @@ namespace Neosmartpen.Net
 
                         Dot dot = builder.Build();
 
-                        PenController.onReceiveDot(new DotReceivedEventArgs(dot));
+						ProcessDot(dot);
+                        //PenController.onReceiveDot(new DotReceivedEventArgs(dot));
 
                         mPrevDot = dot;
                         mPrevDotTime = timeLong;
@@ -235,7 +240,8 @@ namespace Neosmartpen.Net
 							{
                                 var udot = mPrevDot.Clone();
                                 udot.DotType = DotTypes.PEN_UP;
-                                PenController.onReceiveDot(new DotReceivedEventArgs(udot));
+								ProcessDot(udot);
+                                //PenController.onReceiveDot(new DotReceivedEventArgs(udot));
 							}
 
 							IsStartWithDown = false;
@@ -253,7 +259,8 @@ namespace Neosmartpen.Net
                     {
                         var audot = mPrevDot.Clone();
                         audot.DotType = DotTypes.PEN_UP;
-                        PenController.onReceiveDot(new DotReceivedEventArgs(audot));
+						ProcessDot(audot);
+                        //PenController.onReceiveDot(new DotReceivedEventArgs(audot));
                     }
 
                     byte[] rb = packet.GetBytes(4);
@@ -568,24 +575,34 @@ namespace Neosmartpen.Net
 			}
 		}
 
-		private void ProcessDot(int ownerId, int sectionId, int noteId, int pageId, long timeLong, int x, int y, int fx, int fy, int force, DotTypes type, int color)
+		//private void ProcessDot(int ownerId, int sectionId, int noteId, int pageId, long timeLong, int x, int y, int fx, int fy, int force, DotTypes type, int color)
+		//{
+		//	Dot.Builder builder = null;
+		//	if (PenMaxForce == 0)
+		//		builder = new Dot.Builder();
+		//	else builder = new Dot.Builder(PenMaxForce);
+
+		//	builder.owner(ownerId)
+		//		.section(sectionId)
+		//		.note(noteId)
+		//		.page(pageId)
+		//		.timestamp(timeLong)
+		//		.coord(x + fx * 0.01f, y + fy * 0.01f)
+		//		.force(force)
+		//		.dotType(type)
+		//		.color(color);
+
+		//	PenController.onReceiveDot(new DotReceivedEventArgs(builder.Build()));
+		//}
+
+		private void ProcessDot(Dot dot)
 		{
-			Dot.Builder builder = null;
-			if (PenMaxForce == 0)
-				builder = new Dot.Builder();
-			else builder = new Dot.Builder(PenMaxForce);
+			dotFilterForPaper.Put(dot);
+		}
 
-			builder.owner(ownerId)
-				.section(sectionId)
-				.note(noteId)
-				.page(pageId)
-				.timestamp(timeLong)
-				.coord(x + fx * 0.01f, y + fy * 0.01f)
-				.force(force)
-				.dotType(type)
-				.color(color);
-
-			PenController.onReceiveDot(new DotReceivedEventArgs(builder.Build()));
+		private void SendDotReceiveEvent(Dot dot)
+		{
+			PenController.onReceiveDot(new DotReceivedEventArgs(dot));
 		}
 
 		private void SendPenOnOffData()
