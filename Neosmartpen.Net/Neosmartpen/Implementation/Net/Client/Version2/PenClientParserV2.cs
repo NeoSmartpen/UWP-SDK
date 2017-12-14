@@ -164,7 +164,6 @@ namespace Neosmartpen.Net
 						MacAddress = BitConverter.ToString(packet.GetBytes(6)).Replace("-", "");
 
 						IsUploading = false;
-						ReqSetupTime(Time.GetUtcTimeStamp());
 
 						ReqPenStatus();
 					}
@@ -256,6 +255,7 @@ namespace Neosmartpen.Net
 							}
 							else
 							{
+								ReqSetupTime(Time.GetUtcTimeStamp());
 								PenController.onPenAuthenticated();
 							}
 						}
@@ -332,6 +332,7 @@ namespace Neosmartpen.Net
 								break;
 							}
 
+							ReqSetupTime(Time.GetUtcTimeStamp());
 							PenController.onPenAuthenticated();
 						}
 						else
