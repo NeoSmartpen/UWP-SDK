@@ -30,5 +30,6 @@ namespace Neosmartpen.Net
 		event TypedEventHandler<IPenClient, PenStatusReceivedEventArgs> PenStatusReceived;
 		event TypedEventHandler<IPenClient, SimpleResultEventArgs> OfflineDataRemoved;
 		event TypedEventHandler<IPenClient, object> OfflineDataDownloadStarted;
+		event TypedEventHandler<IPenClient, PenProfileReceivedEventArgs> PenProfileReceived;
 	}
 }

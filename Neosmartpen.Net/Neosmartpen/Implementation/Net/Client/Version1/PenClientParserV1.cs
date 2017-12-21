@@ -70,7 +70,10 @@ namespace Neosmartpen.Net
 			P_PenSWUpgradeCommand = 0x51,
 			A_PenSWUpgradeRequest = 0x52,
 			P_PenSWUpgradeResponse = 0x53,
-			A_PenSWUpgradeStatus = 0x54
+			A_PenSWUpgradeStatus = 0x54,
+
+			P_ProfileRequest = 0x61,
+			A_ProfileResponse = 0x62
 		}
 
 		private readonly int PKT_START = 0xC0;
@@ -103,6 +106,14 @@ namespace Neosmartpen.Net
 		private int PenMaxForce = 0;        // 상수로 박아도 될것같지만 혹시 모르니 connection시 받는다.
 		private bool needToInputDefaultPassword;
 		private FilterForPaper dotFilterForPaper = null;
+
+		private string connectedDeviceName = string.Empty;
+		public string protocolVersion;
+
+		public static readonly float PEN_PROFILE_SUPPORT_VERSION_F110 = 1.06f;
+		public static readonly float PEN_PROFILE_SUPPORT_VERSION_F110C = 1.06f;
+		public static readonly string PEN_MODEL_NAME_F110 = "NWP-F110";
+		public static readonly string PEN_MODEL_NAME_F110C = "NWP-F110C";
 
 		public PenClientParserV1(PenController penClient) 
 		{
@@ -283,6 +294,7 @@ namespace Neosmartpen.Net
 					int FORCE_MAX = packet.GetByteToInt();
 
 					string SW_VER = packet.GetString(5);
+					protocolVersion = SW_VER;
 
 					if (STATUS == 0x00)
 					{
@@ -332,14 +344,14 @@ namespace Neosmartpen.Net
 					short stat_autoshutdowntime = packet.GetShort();
 					short stat_pensensitivity = packet.GetShort();
 
-					string model_name = string.Empty;
+					connectedDeviceName = string.Empty;
 					if (packet.CheckMoreData())
 					{
 						int model_name_length = packet.GetByte();
-						model_name = packet.GetString(model_name_length);
+						connectedDeviceName = packet.GetString(model_name_length);
 					}
 
-					PenController.onReceivePenStatus(new PenStatusReceivedEventArgs(stat_timezone, stat_timetick, stat_forcemax, stat_battery, stat_usedmem, stat_pencolor, stat_autopower, stat_accel, stat_hovermode, stat_beep, stat_autoshutdowntime, stat_pensensitivity, model_name));
+					PenController.onReceivePenStatus(new PenStatusReceivedEventArgs(stat_timezone, stat_timetick, stat_forcemax, stat_battery, stat_usedmem, stat_pencolor, stat_autopower, stat_accel, stat_hovermode, stat_beep, stat_autoshutdowntime, stat_pensensitivity, connectedDeviceName));
 					break;
 
 				// 오프라인 데이터 크기,갯수 전송
@@ -545,9 +557,147 @@ namespace Neosmartpen.Net
 						mFwChunk = null;
 					}
 					break;
+
+				#region Pen Profile	
+				case Cmd.A_ProfileResponse:
+					{
+						if (packet.Result == 0x00)
+						{
+							string profileName = packet.GetString(8);
+							byte type = packet.GetByte();
+							PenProfileReceivedEventArgs eventArgs = null;
+							if (type == PenProfile.PROFILE_CREATE)
+							{
+								eventArgs = PenProfileCreate(profileName, packet);
+							}
+							else if (type == PenProfile.PROFILE_DELETE)
+							{
+								eventArgs = PenProfileDelete(profileName, packet);
+							}
+							else if (type == PenProfile.PROFILE_INFO)
+							{
+								eventArgs = PenProfileInfo(profileName, packet);
+							}
+							else if (type == PenProfile.PROFILE_READ_VALUE)
+							{
+								eventArgs = PenProfileReadValue(profileName, packet);
+							}
+							else if (type == PenProfile.PROFILE_WRITE_VALUE)
+							{
+								eventArgs = PenProfileWriteValue(profileName, packet);
+							}
+							else if (type == PenProfile.PROFILE_DELETE_VALUE)
+							{
+								eventArgs = PenProfileDeleteValue(profileName, packet);
+							}
+
+							if (eventArgs != null)
+								PenController.onPenProfileReceived(eventArgs);
+							else
+								PenController.onPenProfileReceived(new PenProfileReceivedEventArgs(PenProfileReceivedEventArgs.ResultType.Falied));
+						}
+						else
+							PenController.onPenProfileReceived(new PenProfileReceivedEventArgs(PenProfileReceivedEventArgs.ResultType.Falied));
+					}
+					break;
+					#endregion
 			}
 		}
 
+		#region Pen Profile Response
+		private PenProfileReceivedEventArgs PenProfileCreate(string profileName, Packet packet)
+		{
+			byte status = packet.GetByte();
+			return new PenProfileCreateEventArgs(profileName, status);
+		}
+
+		private PenProfileReceivedEventArgs PenProfileDelete(string profileName, Packet packet)
+		{
+			byte status = packet.GetByte();
+			return new PenProfileDeleteEventArgs(profileName, status);
+		}
+
+		private PenProfileReceivedEventArgs PenProfileInfo(string profileName, Packet packet)
+		{
+			byte status = packet.GetByte();
+			var args = new PenProfileInfoEventArgs(profileName, status);
+			if (status == 0x00)
+			{
+				args.TotalSectionCount = packet.GetShort();
+				args.SectionSize = packet.GetShort();
+				args.UseSectionCount = packet.GetShort();
+				args.UseKeyCount = packet.GetShort();
+			}
+			return args;
+		}
+
+		private PenProfileReceivedEventArgs PenProfileReadValue(string profileName, Packet packet)
+		{
+			int count = packet.GetByte();
+			var args = new PenProfileReadValueEventArgs(profileName);
+			try
+			{
+				for (int i = 0; i < count; ++i)
+				{
+					var result = new PenProfileReadValueEventArgs.ReadValueResult();
+					result.Key = packet.GetString(16);
+					result.Status = packet.GetByte();
+					int dataSize = packet.GetShort();
+					result.Data = packet.GetBytes(dataSize);
+					args.Results.Add(result);
+				}
+			}
+			catch(Exception exp)
+			{
+				Debug.WriteLine(exp.StackTrace);
+			}
+			return args;
+		}
+		private PenProfileReceivedEventArgs PenProfileWriteValue(string profileName, Packet packet)
+		{
+			int count = packet.GetByte();
+			var args = new PenProfileWriteValueEventArgs(profileName);
+			try
+			{
+				for(int i =0; i < count; ++i)
+				{
+					var result = new PenProfileWriteValueEventArgs.WriteValueResult();
+					result.Key = packet.GetString(16);
+					result.Status = packet.GetByte();
+					args.Results.Add(result);
+				}
+			}
+			catch(Exception exp)
+			{
+				Debug.WriteLine(exp.StackTrace);
+			}
+
+			return args;
+		}
+
+		private PenProfileReceivedEventArgs PenProfileDeleteValue(string profileName, Packet packet)
+		{
+			int count = packet.GetByte();
+			var args = new PenProfileDeleteValueEventArgs();
+
+			try
+			{
+				for(int i = 0; i < count; ++i)
+				{
+					var result = new PenProfileDeleteValueEventArgs.DeleteValueResult();
+					result.Key = packet.GetString(16);
+					result.Status = packet.GetByte();
+					args.Results.Add(result);
+				}
+			}
+			catch(Exception exp)
+			{
+				Debug.WriteLine(exp.StackTrace);
+			}
+
+			return args;
+		}
+		#endregion
 
 		private void ResPenSetup(Cmd cmd, bool result)
 		{
@@ -1269,9 +1419,172 @@ namespace Neosmartpen.Net
 			return true;
 		}
 
-        #region Protocol Parse
-        
-        public void ProtocolParse(byte[] buff, int size)
+		public bool IsSupportPenProfile()
+		{
+			//if (connectedDeviceName != null)
+			//{
+			//	float ver = 0f;
+			//	string[] temp = protocolVersion.Split('.');
+			//	try
+			//	{
+			//		ver = FloatConverter.ToSingle(temp[0] + "." + temp[1]);
+			//	}
+			//	catch (Exception e)
+			//	{
+			//		Debug.WriteLine(e.StackTrace);
+			//	}
+
+			//	if (connectedDeviceName.Equals(PEN_MODEL_NAME_F110) && ver >= PEN_PROFILE_SUPPORT_VERSION_F110)
+			//		return true;
+			//	else if (connectedDeviceName.Equals(PEN_MODEL_NAME_F110C) && ver >= PEN_PROFILE_SUPPORT_VERSION_F110C)
+			//		return true;
+			//	else
+			//		return false;
+			//}
+
+			return false;
+		}
+
+		#region Pen Profile
+		public bool ReqCreateProfile(string profileName, string password)
+		{
+			ByteUtil bf = new ByteUtil();
+			byte[] profileNameBytes = Encoding.UTF8.GetBytes(profileName);
+			byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
+			bf.Put(0xC0)
+				.Put((byte)Cmd.P_ProfileRequest)	// command
+				.PutShort(8 + 1 + 8 + 2 + 2)		// length
+				.Put(profileNameBytes, 8)			// profile file name
+				.Put(PenProfile.PROFILE_CREATE)		// type
+				.Put(passwordBytes, 8)				// password
+				.PutShort(32)						// section 크기 -> 32인 이유? 우선 android따라감. 확인필요
+				.PutShort(8)						// sector 개수(2^N 현재는 고정 2^8)
+				.Put(0xC1);
+
+			return Send(bf);
+		}
+
+		public bool ReqDeleteProfile(string profileName, string password)
+		{
+			ByteUtil bf = new ByteUtil();
+			byte[] profileNameBytes = Encoding.UTF8.GetBytes(profileName);
+			byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
+			bf.Put(0xC0)
+				.Put((byte)Cmd.P_ProfileRequest)	// command
+				.PutShort(8 + 1 + 8)				// length
+				.Put(profileNameBytes, 8)			// profile file name
+				.Put(PenProfile.PROFILE_DELETE)		// type
+				.Put(passwordBytes, 8)				// password
+				.Put(0xC1);
+
+			return Send(bf);
+		}
+
+		public bool ReqProfileInfo(string profileName)
+		{
+			ByteUtil bf = new ByteUtil();
+			byte[] profileNameBytes = Encoding.UTF8.GetBytes(profileName);
+			bf.Put(0xC0)
+				.Put((byte)Cmd.P_ProfileRequest) // command
+				.PutShort(8 + 1)                    // length
+				.Put(profileNameBytes, 8)           // profile file name
+				.Put(PenProfile.PROFILE_INFO)		// type
+				.Put(0xC1);
+
+			return Send(bf);
+		}
+
+		public bool ReqWriteProfileValue(string profileName, string password, string[] keys, byte[][] data)
+		{
+			if (keys.Length != data.Length)
+				return false;
+
+			int dataLength = 0;
+			int dataCount = data.Length;
+			for ( int i = 0; i < dataCount; ++i )
+			{
+				dataLength += 16;				// key
+				dataLength += 2;				// data length
+				dataLength += data[i].Length;	// data 
+			}
+
+			ByteUtil bf = new ByteUtil();
+			byte[] profileNameBytes = Encoding.UTF8.GetBytes(profileName);
+			byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
+			bf.Put(0xC0)
+				.Put((byte)Cmd.P_ProfileRequest)             // command
+				.PutShort((short)(8 + 1 + 8 + 1 + dataLength))  // length
+				.Put(profileNameBytes, 8)                       // profile file name
+				.Put(PenProfile.PROFILE_WRITE_VALUE)            // type
+				.Put(passwordBytes, 8)							// password
+				.Put((byte)dataCount);							// count
+
+			for(int i = 0; i < dataCount; ++i )
+			{
+				byte[] keyBytes = Encoding.UTF8.GetBytes(keys[i]);
+				bf.Put(keyBytes, 16)
+					.PutShort((short)data[i].Length)
+					.Put(data[i]);
+			}
+
+			bf.Put(0xC1);
+
+			return Send(bf);
+
+		}
+
+		public bool ReqReadProfileValue(string profileName, string[] keys)
+		{
+			ByteUtil bf = new ByteUtil();
+
+			byte[] profileNameBytes = Encoding.UTF8.GetBytes(profileName);
+
+			bf.Put(0xC0)
+				.Put((byte)Cmd.P_ProfileRequest)                 // command
+				.PutShort((short)(8 + 1 + 1 + 16 * keys.Length))    // Length
+				.Put(profileNameBytes, 8)                           // profile file name
+				.Put(PenProfile.PROFILE_READ_VALUE)                 // Type
+				.Put((byte)keys.Length);							// Key Count
+
+			for(int i = 0; i < keys.Length; ++i )
+			{
+				byte[] keyBytes = Encoding.UTF8.GetBytes(keys[i]);
+				bf.Put(keyBytes, 16);
+			}
+
+			bf.Put(0xC1);
+
+			return Send(bf);
+		}
+
+		public bool ReqDeleteProfileValue(string profileName, string password, string[] keys)
+		{
+			ByteUtil bf = new ByteUtil();
+			byte[] profileNameBytes = Encoding.UTF8.GetBytes(profileName);
+			byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
+			bf.Put(0xC0)
+				.Put((byte)Cmd.P_ProfileRequest)                     // command
+				.PutShort((short)(8 + 1 + 8 + 1 + 16 * keys.Length))    // Length
+				.Put(profileNameBytes, 8)                               // profile file name
+				.Put(PenProfile.PROFILE_DELETE_VALUE)                   // Type
+				.Put(passwordBytes, 8)									// password
+				.Put((byte)keys.Length);								// key count
+
+			for(int i = 0; i < keys.Length; ++i )
+			{
+				byte[] keyBytes = Encoding.UTF8.GetBytes(keys[i]);
+				bf.Put(keyBytes, 16);
+			}
+
+			bf.Put(0xC1);
+
+			return Send(bf);
+		}
+		#endregion
+
+		#region Protocol Parse
+
+		public void ProtocolParse(byte[] buff, int size)
         {
             for (int i = 0; i < size; i++)
             {
@@ -1375,5 +1688,15 @@ namespace Neosmartpen.Net
         }
 
         #endregion
+
+		private bool Send(ByteUtil bf)
+		{
+			PenController.PenClient.Write(bf.ToArray());
+
+			bf.Clear();
+			bf = null;
+
+			return true;
+		}
     }
 }

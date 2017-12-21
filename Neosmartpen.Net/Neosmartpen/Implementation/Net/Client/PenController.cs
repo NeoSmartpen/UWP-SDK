@@ -265,6 +265,12 @@ namespace Neosmartpen.Net
         /// Occurs when offline downloading starts
         /// </summary>
 		public event TypedEventHandler<IPenClient, object> OfflineDataDownloadStarted;
+		public event TypedEventHandler<IPenClient, PenProfileReceivedEventArgs> PenProfileReceived;
+		internal void onPenProfileReceived(PenProfileReceivedEventArgs args)
+		{
+			PenProfileReceived?.Invoke(PenClient, args);
+		}
+
 		internal void onStartOfflineDownload()
 		{
 			OfflineDataDownloadStarted?.Invoke(PenClient, new object());
@@ -456,6 +462,85 @@ namespace Neosmartpen.Net
         {
             Request(() => mClientV1.SuspendSwUpgrade(), () => mClientV2.SuspendSwUpgrade());
         }
+
+		public bool IsSupportPenProfile()
+		{
+            if ( PenClient == null || !PenClient.Alive || Protocol == -1 )
+            {
+                throw new RequestIsUnreached();
+            }
+
+            if ( Protocol == Protocols.N2 )
+            {
+				return mClientV1.IsSupportPenProfile();
+            }
+            else
+            {
+				return mClientV2.IsSupportPenProfile();
+            }
+		}
+
+		/// <summary>
+		/// Request to create profile
+		/// </summary>
+		/// <param name="profileName">Name of the profile to be created</param>
+		/// <param name="password">Password of profile</param>
+		public void CreateProfile(string profileName, string password)
+		{
+			Request(() => mClientV1.ReqCreateProfile(profileName, password), () => mClientV2.ReqCreateProfile(profileName, password));
+		}
+
+		/// <summary>
+		/// Request to delete profile
+		/// </summary>
+		/// <param name="profileName">Name of the profile to be deleted</param>
+		/// <param name="password">password of profile</param>
+		public void DeleteProfile(string profileName, string password)
+		{
+			Request(() => mClientV1.ReqDeleteProfile(profileName, password), () => mClientV2.ReqDeleteProfile(profileName, password));
+		}
+
+		/// <summary>
+		/// Request information of the profile
+		/// </summary>
+		/// <param name="profileName">profile's name</param>
+		public void GetProfileInfo(string profileName)
+		{
+			Request(() => mClientV1.ReqProfileInfo(profileName), () => mClientV2.ReqProfileInfo(profileName));
+		}
+
+		/// <summary>
+		/// Request to get data from profile
+		/// </summary>
+		/// <param name="profileName">profile name</param>
+		/// <param name="keys">key array</param>
+		public void ReadProfileValues(string profileName, string[] keys)
+		{
+			Request(() => mClientV1.ReqReadProfileValue(profileName, keys), () => mClientV2.ReqReadProfileValue(profileName, keys));
+		}
+
+		/// <summary>
+		/// Request to write data
+		/// </summary>
+		/// <param name="profileName">profile name</param>
+		/// <param name="password">password</param>
+		/// <param name="keys">key array</param>
+		/// <param name="data">data</param>
+		public void WriteProfileValues(string profileName, string password, string[] keys, byte[][] data)
+		{
+			Request(() => mClientV1.ReqWriteProfileValue(profileName, password, keys, data), () => mClientV2.ReqWriteProfileValue(profileName, password, keys, data));
+		}
+
+		/// <summary>
+		/// Request to delete data
+		/// </summary>
+		/// <param name="profileName">profile name</param>
+		/// <param name="password">password</param>
+		/// <param name="keys">key array</param>
+		public void DeleteProfileValues(string profileName, string password, string[] keys)
+		{
+			Request(() => mClientV1.ReqDeleteProfileValue(profileName, password, keys), () => mClientV2.ReqDeleteProfileValue(profileName, password, keys));
+		}
 
         public void OnConnected()
         {
