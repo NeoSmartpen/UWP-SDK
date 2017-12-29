@@ -1001,12 +1001,12 @@ namespace Neosmartpen.Net
 		/// <returns>true if the request is accepted; otherwise, false.</returns>
 		public bool ReqPenStatus()
 		{
-			ByteUtil bf = new ByteUtil();
+			ByteUtil bf = new ByteUtil(Escape);
 
-			bf.Put(Const.PK_STX)
+			bf.Put(Const.PK_STX, false)
 				.Put((byte)Cmd.SETTING_INFO_REQUEST)
 				.PutShort(0)
-				.Put(Const.PK_ETX);
+				.Put(Const.PK_ETX, false);
 
 			return Send(bf);
 		}
@@ -1015,9 +1015,9 @@ namespace Neosmartpen.Net
 
 		private bool RequestChangeSetting(SettingType stype, object value)
 		{
-			ByteUtil bf = new ByteUtil();
+			ByteUtil bf = new ByteUtil(Escape);
 
-			bf.Put(Const.PK_STX).Put((byte)Cmd.SETTING_CHANGE_REQUEST);
+			bf.Put(Const.PK_STX, false).Put((byte)Cmd.SETTING_CHANGE_REQUEST);
 
 			switch (stype)
 			{
@@ -1049,7 +1049,7 @@ namespace Neosmartpen.Net
 					break;
 			}
 
-			bf.Put(Const.PK_ETX);
+			bf.Put(Const.PK_ETX, false);
 
 			return Send(bf);
 		}
@@ -1168,9 +1168,9 @@ namespace Neosmartpen.Net
 
 		private bool SendAddUsingNote(int sectionId = -1, int ownerId = -1, int[] noteIds = null)
 		{
-			ByteUtil bf = new ByteUtil();
+			ByteUtil bf = new ByteUtil(Escape);
 
-			bf.Put(Const.PK_STX)
+			bf.Put(Const.PK_STX, false)
 			  .Put((byte)Cmd.ONLINE_DATA_REQUEST);
 
 			if (sectionId > 0 && ownerId > 0 && noteIds == null)
@@ -1200,7 +1200,7 @@ namespace Neosmartpen.Net
 				  .Put(0xFF);
 			}
 
-			bf.Put(Const.PK_ETX);
+			bf.Put(Const.PK_ETX, false);
 
 			return Send(bf);
 		}
@@ -1631,9 +1631,9 @@ namespace Neosmartpen.Net
 		{
 			byte[] test = new byte[size];
 
-			//Array.Copy( buff, 0, test, 0, size );
-			//System.Console.WriteLine( "Read Buffer : {0}", BitConverter.ToString( test ) );
-			//System.Console.WriteLine();
+			//Array.Copy(buff, 0, test, 0, size);
+			//Debug.WriteLine("Read Buffer : {0}", BitConverter.ToString(test));
+			//Debug.WriteLine("");
 
 			for (int i = 0; i < size; i++)
 			{
