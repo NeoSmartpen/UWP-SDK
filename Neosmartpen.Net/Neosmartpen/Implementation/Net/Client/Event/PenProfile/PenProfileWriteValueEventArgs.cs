@@ -12,10 +12,10 @@ namespace Neosmartpen.Net
 		internal PenProfileWriteValueEventArgs(string profileName) : this()
 		{
 			ProfileName = profileName;
-			Results = new List<WriteValueResult>();
+			Data = new List<WriteValueResult>();
 		}
 
-		public List<WriteValueResult> Results { get; internal set; }
+		public List<WriteValueResult> Data { get; internal set; }
 
 		public class WriteValueResult
 		{

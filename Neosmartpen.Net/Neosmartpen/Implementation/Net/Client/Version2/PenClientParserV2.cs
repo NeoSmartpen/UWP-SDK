@@ -692,7 +692,7 @@ namespace Neosmartpen.Net
 					result.Status = packet.GetByte();
 					int dataSize = packet.GetShort();
 					result.Data = packet.GetBytes(dataSize);
-					args.Results.Add(result);
+					args.Data.Add(result);
 				}
 			}
 			catch(Exception exp)
@@ -712,7 +712,7 @@ namespace Neosmartpen.Net
 					var result = new PenProfileWriteValueEventArgs.WriteValueResult();
 					result.Key = packet.GetString(16);
 					result.Status = packet.GetByte();
-					args.Results.Add(result);
+					args.Data.Add(result);
 				}
 			}
 			catch(Exception exp)
@@ -726,7 +726,7 @@ namespace Neosmartpen.Net
 		private PenProfileReceivedEventArgs PenProfileDeleteValue(string profileName, Packet packet)
 		{
 			int count = packet.GetByte();
-			var args = new PenProfileDeleteValueEventArgs();
+			var args = new PenProfileDeleteValueEventArgs(profileName);
 
 			try
 			{
@@ -735,7 +735,7 @@ namespace Neosmartpen.Net
 					var result = new PenProfileDeleteValueEventArgs.DeleteValueResult();
 					result.Key = packet.GetString(16);
 					result.Status = packet.GetByte();
-					args.Results.Add(result);
+					args.Data.Add(result);
 				}
 			}
 			catch(Exception exp)
@@ -1476,83 +1476,72 @@ namespace Neosmartpen.Net
 		#endregion
 
 		#region Pen Profile
-		public bool ReqCreateProfile(string profileName, string password)
+		public bool ReqCreateProfile(byte[] profileName, byte[] password)
 		{
 			ByteUtil bf = new ByteUtil(Escape);
-			byte[] profileNameBytes = Encoding.UTF8.GetBytes(profileName);
-			byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
-			bf.Put(Const.PK_STX, false)
-				.Put((byte)Cmd.PEN_PROFILE_REQUEST)	// command
-				.PutShort(8 + 1 + 8 + 2 + 2)		// length
-				.Put(profileNameBytes, 8)			// profile file name
-				.Put(PenProfile.PROFILE_CREATE)		// type
-				.Put(passwordBytes, 8)				// password
-				.PutShort(32)						// section 크기 -> 32인 이유? 우선 android따라감. 확인필요
-				.PutShort(8)						// sector 개수(2^N 현재는 고정 2^8)
-				.Put(Const.PK_ETX, false);
-
-			return Send(bf);
-		}
-
-		public bool ReqDeleteProfile(string profileName, string password)
-		{
-			ByteUtil bf = new ByteUtil(Escape);
-			byte[] profileNameBytes = Encoding.UTF8.GetBytes(profileName);
-			byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
-			bf.Put(Const.PK_STX, false)
-				.Put((byte)Cmd.PEN_PROFILE_REQUEST)	// command
-				.PutShort(8 + 1 + 8)				// length
-				.Put(profileNameBytes, 8)			// profile file name
-				.Put(PenProfile.PROFILE_DELETE)		// type
-				.Put(passwordBytes, 8)				// password
-				.Put(Const.PK_ETX, false);
-
-			return Send(bf);
-		}
-
-		public bool ReqProfileInfo(string profileName)
-		{
-			ByteUtil bf = new ByteUtil(Escape);
-			byte[] profileNameBytes = Encoding.UTF8.GetBytes(profileName);
 			bf.Put(Const.PK_STX, false)
 				.Put((byte)Cmd.PEN_PROFILE_REQUEST) // command
-				.PutShort(8 + 1)                    // length
-				.Put(profileNameBytes, 8)           // profile file name
-				.Put(PenProfile.PROFILE_INFO)		// type
+				.PutShort((short)(PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME + 1 + PenProfile.LIMIT_BYTE_LENGTH_PASSWORD + 2 + 2))        // length
+				.Put(profileName, PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME)				// profile file name
+				.Put(PenProfile.PROFILE_CREATE)     // type
+				.Put(password, PenProfile.LIMIT_BYTE_LENGTH_PASSWORD)					// password
+				.PutShort(32)                       // section 크기 -> 32인 이유? 우선 android따라감. 확인필요
+				.PutShort(32)                        // sector 개수(2^N 현재는 고정 2^8)
 				.Put(Const.PK_ETX, false);
 
 			return Send(bf);
 		}
 
-		public bool ReqWriteProfileValue(string profileName, string password, string[] keys, byte[][] data)
+		public bool ReqDeleteProfile(byte[] profileName, byte[] password)
 		{
-			if (keys.Length != data.Length)
-				return false;
+			ByteUtil bf = new ByteUtil(Escape);
+			bf.Put(Const.PK_STX, false)
+				.Put((byte)Cmd.PEN_PROFILE_REQUEST) // command
+				.PutShort((short)(PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME + 1 + PenProfile.LIMIT_BYTE_LENGTH_PASSWORD))                // length
+				.Put(profileName, PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME)				// profile file name
+				.Put(PenProfile.PROFILE_DELETE)     // type
+				.Put(password, PenProfile.LIMIT_BYTE_LENGTH_PASSWORD)					// password
+				.Put(Const.PK_ETX, false);
 
+			return Send(bf);
+		}
+
+		public bool ReqProfileInfo(byte[] profileName)
+		{
+			ByteUtil bf = new ByteUtil(Escape);
+			bf.Put(Const.PK_STX, false)
+				.Put((byte)Cmd.PEN_PROFILE_REQUEST) // command
+				.PutShort((short)(PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME + 1))                    // length
+				.Put(profileName, PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME)           // profile file name
+				.Put(PenProfile.PROFILE_INFO)       // type
+				.Put(Const.PK_ETX, false);
+
+			return Send(bf);
+		}
+
+		public bool ReqWriteProfileValue(byte[] profileName, byte[] password, byte[][] keys, byte[][] data)
+		{
 			int dataLength = 0;
 			int dataCount = data.Length;
-			for ( int i = 0; i < dataCount; ++i )
+			for (int i = 0; i < dataCount; ++i)
 			{
-				dataLength += 16;				// key
-				dataLength += 2;				// data length
-				dataLength += data[i].Length;	// data 
+				dataLength += PenProfile.LIMIT_BYTE_LENGTH_KEY;               // key
+				dataLength += 2;                // data length
+				dataLength += data[i].Length;   // data 
 			}
 
 			ByteUtil bf = new ByteUtil(Escape);
-			byte[] profileNameBytes = Encoding.UTF8.GetBytes(profileName);
-			byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
 			bf.Put(Const.PK_STX, false)
 				.Put((byte)Cmd.PEN_PROFILE_REQUEST)             // command
-				.PutShort((short)(8 + 1 + 8 + 1 + dataLength))  // length
-				.Put(profileNameBytes, 8)                       // profile file name
+				.PutShort((short)(PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME + 1 + PenProfile.LIMIT_BYTE_LENGTH_PASSWORD + 1 + dataLength))  // length
+				.Put(profileName, PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME)                       // profile file name
 				.Put(PenProfile.PROFILE_WRITE_VALUE)            // type
-				.Put(passwordBytes, 8)							// password
-				.Put((byte)dataCount);							// count
+				.Put(password, PenProfile.LIMIT_BYTE_LENGTH_PASSWORD)                          // password
+				.Put((byte)dataCount);                          // count
 
-			for(int i = 0; i < dataCount; ++i )
+			for (int i = 0; i < dataCount; ++i)
 			{
-				byte[] keyBytes = Encoding.UTF8.GetBytes(keys[i]);
-				bf.Put(keyBytes, 16)
+				bf.Put(keys[i], PenProfile.LIMIT_BYTE_LENGTH_KEY)
 					.PutShort((short)data[i].Length)
 					.Put(data[i]);
 			}
@@ -1560,26 +1549,21 @@ namespace Neosmartpen.Net
 			bf.Put(Const.PK_ETX, false);
 
 			return Send(bf);
-
 		}
 
-		public bool ReqReadProfileValue(string profileName, string[] keys)
+		public bool ReqReadProfileValue(byte[] profileName, byte[][] keys)
 		{
 			ByteUtil bf = new ByteUtil(Escape);
-
-			byte[] profileNameBytes = Encoding.UTF8.GetBytes(profileName);
-
 			bf.Put(Const.PK_STX, false)
 				.Put((byte)Cmd.PEN_PROFILE_REQUEST)                 // command
-				.PutShort((short)(8 + 1 + 1 + 16 * keys.Length))    // Length
-				.Put(profileNameBytes, 8)                           // profile file name
+				.PutShort((short)(PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME + 1 + 1 + PenProfile.LIMIT_BYTE_LENGTH_KEY * keys.Length))    // Length
+				.Put(profileName, PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME)                           // profile file name
 				.Put(PenProfile.PROFILE_READ_VALUE)                 // Type
-				.Put((byte)keys.Length);							// Key Count
+				.Put((byte)keys.Length);                            // Key Count
 
-			for(int i = 0; i < keys.Length; ++i )
+			for (int i = 0; i < keys.Length; ++i)
 			{
-				byte[] keyBytes = Encoding.UTF8.GetBytes(keys[i]);
-				bf.Put(keyBytes, 16);
+				bf.Put(keys[i], PenProfile.LIMIT_BYTE_LENGTH_KEY);
 			}
 
 			bf.Put(Const.PK_ETX, false);
@@ -1587,23 +1571,20 @@ namespace Neosmartpen.Net
 			return Send(bf);
 		}
 
-		public bool ReqDeleteProfileValue(string profileName, string password, string[] keys)
+		public bool ReqDeleteProfileValue(byte[] profileName, byte[] password, byte[][] keys)
 		{
 			ByteUtil bf = new ByteUtil(Escape);
-			byte[] profileNameBytes = Encoding.UTF8.GetBytes(profileName);
-			byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
 			bf.Put(Const.PK_STX, false)
 				.Put((byte)Cmd.PEN_PROFILE_REQUEST)                     // command
-				.PutShort((short)(8 + 1 + 8 + 1 + 16 * keys.Length))    // Length
-				.Put(profileNameBytes, 8)                               // profile file name
+				.PutShort((short)(PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME + 1 + PenProfile.LIMIT_BYTE_LENGTH_PASSWORD + 1 + PenProfile.LIMIT_BYTE_LENGTH_KEY * keys.Length))    // Length
+				.Put(profileName, PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME)                               // profile file name
 				.Put(PenProfile.PROFILE_DELETE_VALUE)                   // Type
-				.Put(passwordBytes, 8)									// password
-				.Put((byte)keys.Length);								// key count
+				.Put(password, PenProfile.LIMIT_BYTE_LENGTH_PASSWORD)                                  // password
+				.Put((byte)keys.Length);                                // key count
 
-			for(int i = 0; i < keys.Length; ++i )
+			for (int i = 0; i < keys.Length; ++i)
 			{
-				byte[] keyBytes = Encoding.UTF8.GetBytes(keys[i]);
-				bf.Put(keyBytes, 16);
+				bf.Put(keys[i], PenProfile.LIMIT_BYTE_LENGTH_KEY);
 			}
 
 			bf.Put(Const.PK_ETX, false);

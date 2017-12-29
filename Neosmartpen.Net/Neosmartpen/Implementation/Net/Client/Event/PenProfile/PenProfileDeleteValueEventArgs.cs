@@ -12,10 +12,10 @@ namespace Neosmartpen.Net
 		internal PenProfileDeleteValueEventArgs(string profileName) : this()
 		{
 			ProfileName = profileName;
-			Results = new List<DeleteValueResult>();
+			Data = new List<DeleteValueResult>();
 		}
 
-		public List<DeleteValueResult> Results { get; internal set; }
+		public List<DeleteValueResult> Data { get; internal set; }
 
 		public class DeleteValueResult
 		{

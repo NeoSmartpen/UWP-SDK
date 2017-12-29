@@ -13,10 +13,10 @@ namespace Neosmartpen.Net
 		internal PenProfileReadValueEventArgs(string profileName):this()
 		{
 			ProfileName = profileName;
-			Results = new List<ReadValueResult>();
+			Data = new List<ReadValueResult>();
 		}
 
-		public List<ReadValueResult> Results { get; internal set; }
+		public List<ReadValueResult> Data { get; internal set; }
 		
 		public class ReadValueResult
 		{

@@ -12,6 +12,7 @@ namespace SampleApp
 {
     public sealed partial class MainPage : Page
     {
+		private static readonly int[] THICKNESS_LEVEL = { 1, 2, 5, 9, 18 };
         private CanvasRenderTarget _canvasCurrent, _canvasArchived;
 
         private CanvasStrokeStyle _canvasStrokeStyle;
@@ -23,8 +24,32 @@ namespace SampleApp
         public const float Pixel2DotScaleFactor = 600f / 72f / 56f;
 
         public static Color _color;
+		public int _thickness;
 
         public PaperInformation _currentPaperInfo;
+
+        public void InitRenderer()
+        {
+            PaperInformation paper1 = new PaperInformation("Idea Pad", 609, 595.275f, 771.023f, 36.8503f, 107.716f);
+            PaperInformation paper2 = new PaperInformation("RingNote", 603, 425.196f, 595.275f, 36.8503f, 36.8503f);
+            PaperInformation paper3 = new PaperInformation("Idea Pad Mini", 620, 360f, 566.929f, 36.8503f, 36.8503f);
+            PaperInformation paper4 = new PaperInformation("A4", 0, 595f, 842f, 0f, 0f);
+            PaperInformation paper5 = new PaperInformation("College Note", 617, 612.283f, 793.7f, 36.8503f, 36.8503f);
+            PaperInformation paper6 = new PaperInformation("Plain Note", 604, 498.897f, 708.661f, 36.8503f, 36.8503f);
+
+            cbPaperInfo.Items.Add(paper1);
+            cbPaperInfo.Items.Add(paper2);
+            cbPaperInfo.Items.Add(paper3);
+            cbPaperInfo.Items.Add(paper4);
+            cbPaperInfo.Items.Add(paper5);
+            cbPaperInfo.Items.Add(paper6);
+
+            _currentPaperInfo = paper1;
+
+            cbPaperInfo.SelectedIndex = 0;
+
+            initStrokesStyle();
+        }
 
         private void initStrokesStyle()
         {
@@ -37,9 +62,17 @@ namespace SampleApp
             _canvasStrokeStyle.LineJoin = CanvasLineJoin.Round;
             
             _color = Colors.Black;
+			ChangeThinknessLevel(0);
         }
 
-        private void drawableCanvas_Draw(CanvasControl sender, CanvasDrawEventArgs args)
+		private void ChangeThinknessLevel(int index)
+		{
+			if (index < 0) index = 0;
+			else if (index > 4) index = 4;
+			_thickness = THICKNESS_LEVEL[index];
+		}
+
+		private void drawableCanvas_Draw(CanvasControl sender, CanvasDrawEventArgs args)
         {
             if (_canvasCurrent == null || _canvasArchived == null)
             {
@@ -140,7 +173,7 @@ namespace SampleApp
             float offsetX = _currentPaperInfo.OffsetX * _scale * Pixel2DotScaleFactor;
             float offsetY = _currentPaperInfo.OffsetY * _scale * Pixel2DotScaleFactor;
 
-            DrawToCanvas(target, dots, _scale, -offsetX, -offsetY, _color, _canvasStrokeStyle);
+            DrawToCanvas(target, dots, _scale, -offsetX, -offsetY, _color, _canvasStrokeStyle, _thickness);
 
             drawableCanvas.Invalidate();
         }
@@ -279,29 +312,6 @@ namespace SampleApp
             {
                 canvasDrawSession.Clear(color ?? Colors.White);
             }
-        }
-
-        public void InitRenderer()
-        {
-            PaperInformation paper1 = new PaperInformation("Idea Pad", 609, 595.275f, 771.023f, 36.8503f, 107.716f);
-            PaperInformation paper2 = new PaperInformation("RingNote", 603, 425.196f, 595.275f, 36.8503f, 36.8503f);
-            PaperInformation paper3 = new PaperInformation("Idea Pad Mini", 620, 360f, 566.929f, 36.8503f, 36.8503f);
-            PaperInformation paper4 = new PaperInformation("A4", 0, 595f, 842f, 0f, 0f);
-            PaperInformation paper5 = new PaperInformation("College Note", 617, 612.283f, 793.7f, 36.8503f, 36.8503f);
-            PaperInformation paper6 = new PaperInformation("Plain Note", 604, 498.897f, 708.661f, 36.8503f, 36.8503f);
-
-            cbPaperInfo.Items.Add(paper1);
-            cbPaperInfo.Items.Add(paper2);
-            cbPaperInfo.Items.Add(paper3);
-            cbPaperInfo.Items.Add(paper4);
-            cbPaperInfo.Items.Add(paper5);
-            cbPaperInfo.Items.Add(paper6);
-
-            _currentPaperInfo = paper1;
-
-            cbPaperInfo.SelectedIndex = 0;
-
-            initStrokesStyle();
         }
 
         private void cbPaperInfo_SelectionChanged(object sender, SelectionChangedEventArgs e)

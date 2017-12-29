@@ -5,7 +5,7 @@
 		internal PenProfileDeleteEventArgs()
 		{
 			Result = ResultType.Successs;
-			Type = PenProfileType.Create;
+			Type = PenProfileType.Delete;
 		}
 		internal PenProfileDeleteEventArgs(string profileName, int status) : this()
 		{

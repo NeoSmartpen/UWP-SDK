@@ -2,9 +2,9 @@
 {
     public class Protocols
     {
-        public static readonly int N2 = 1;
-        public static readonly int F50 = 2;
-        public static readonly int F120 = 2;
+		public static readonly int NONE = -1;
+        public static readonly int V1 = 1;
+        public static readonly int V2 = 2;
     }
 
 	//public class PenCommTypeConverter
