@@ -169,7 +169,7 @@ namespace Neosmartpen.Net
         public class Builder
         {
             private Dot mDot;
-			private int RefindMaxForce = 1000;
+			private int RefindMaxForce = 1024;
 			private int maxForce = -1;
 			private float scale = -1;
 

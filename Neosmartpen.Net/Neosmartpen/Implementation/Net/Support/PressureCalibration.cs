@@ -27,7 +27,7 @@ namespace Neosmartpen.Net.Support
 		}
 
 		#region Calculate Calibration Factor 
-		public readonly int MAX_FACTOR = 1000;
+		public readonly int MAX_FACTOR = 1024;
 		private readonly int MAX_CURVE = 2000;
 		private float[] pressureCalibrationFactor;
 		public float[] Factor
