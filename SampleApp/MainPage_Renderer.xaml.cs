@@ -194,7 +194,7 @@ namespace SampleApp
             {
                 if (dots.Count <= 2)
                 {
-                    float p = (float)dots[dots.Count-1].Force / 1024 * thickness;
+                    float p = (float)dots[dots.Count-1].Force / 1023 * thickness;
 
                     if (dots.Count == 1) // 점찍기
                     {
@@ -217,11 +217,11 @@ namespace SampleApp
                     x0 = dots[0].X * scale + offsetX + 0.1f;
                     y0 = dots[0].Y * scale + offsetY;
                     // TODO Change MaxForce
-                    p0 = (float)dots[0].Force / 1024 * thickness;
+                    p0 = (float)dots[0].Force / 1023 * thickness;
 
                     x1 = dots[1].X * scale + offsetX + 0.1f;
                     y1 = dots[1].Y * scale + offsetY;
-                    p1 = (float)dots[1].Force / 1024 * thickness;
+                    p1 = (float)dots[1].Force / 1023 * thickness;
 
                     vx01 = x1 - x0;
                     vy01 = y1 - y0;
@@ -242,7 +242,7 @@ namespace SampleApp
                     {
                         x3 = dots[i].X * scale + offsetX + 0.1f;
                         y3 = dots[i].Y * scale + offsetY;
-                        p3 = (float)dots[i].Force / 1024 * thickness;
+                        p3 = (float)dots[i].Force / 1023 * thickness;
 
                         x2 = (x1 + x3) / 2.0f;
                         y2 = (y1 + y3) / 2.0f;
@@ -282,7 +282,7 @@ namespace SampleApp
 
                     x2 = dots[count - 1].X * scale + offsetX + 0.1f;
                     y2 = dots[count - 1].Y * scale + offsetY;
-                    p2 = dots[count - 1].Force / 1024 * thickness;
+                    p2 = dots[count - 1].Force / 1023 * thickness;
 
                     vx21 = x1 - x2;
                     vy21 = y1 - y2;
