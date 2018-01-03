@@ -71,7 +71,10 @@ namespace Neosmartpen.Net
 			FIRMWARE_UPLOAD_REQUEST = 0X31,
 			FIRMWARE_UPLOAD_RESPONSE = 0XB1,
 			FIRMWARE_PACKET_REQUEST = 0X32,
-			FIRMWARE_PACKET_RESPONSE = 0XB2
+			FIRMWARE_PACKET_RESPONSE = 0XB2,
+
+			PEN_PROFILE_REQUEST =0x41,
+			PEN_PROFILE_RESPONSE = 0xC1
 		};
 		public PenClientParserV2(PenController penClient)
 		{
@@ -138,6 +141,8 @@ namespace Neosmartpen.Net
 
 		private FilterForPaper dotFilterForPaper = null;
 		private FilterForPaper offlineFilterForPaper = null;
+
+		public static readonly float PEN_PROFILE_SUPPORT_PROTOCOL_VERSION = 2.06f;
 
 		public bool HoverMode
 		{
@@ -593,6 +598,50 @@ namespace Neosmartpen.Net
 					break;
 				#endregion
 
+				#region Pen Profile
+				case Cmd.PEN_PROFILE_RESPONSE:
+					{
+						if (packet.Result == 0x00)
+						{
+							string profileName = packet.GetString(8);
+							byte type = packet.GetByte();
+							PenProfileReceivedEventArgs eventArgs = null;
+							if (type == PenProfile.PROFILE_CREATE)
+							{
+								eventArgs = PenProfileCreate(profileName, packet);
+							}
+							else if (type == PenProfile.PROFILE_DELETE)
+							{
+								eventArgs = PenProfileDelete(profileName, packet);
+							}
+							else if (type == PenProfile.PROFILE_INFO)
+							{
+								eventArgs = PenProfileInfo(profileName, packet);
+							}
+							else if ( type == PenProfile.PROFILE_READ_VALUE )
+							{
+								eventArgs = PenProfileReadValue(profileName, packet);
+							}
+							else if ( type == PenProfile.PROFILE_WRITE_VALUE )
+							{
+								eventArgs = PenProfileWriteValue(profileName, packet);
+							}
+							else if ( type == PenProfile.PROFILE_DELETE_VALUE)
+							{
+								eventArgs = PenProfileDeleteValue(profileName, packet);
+							}
+
+							if (eventArgs != null)
+								PenController.onPenProfileReceived(eventArgs);
+							else
+								PenController.onPenProfileReceived(new PenProfileReceivedEventArgs(PenProfileReceivedEventArgs.ResultType.Falied));
+						}
+						else
+							PenController.onPenProfileReceived(new PenProfileReceivedEventArgs(PenProfileReceivedEventArgs.ResultType.Falied));
+					}
+					break;
+				#endregion
+
 				case Cmd.ONLINE_DATA_RESPONSE:
 					break;
 
@@ -602,6 +651,101 @@ namespace Neosmartpen.Net
 					break;
 			}
 		}
+
+		#region Pen Profile Response
+		private PenProfileReceivedEventArgs PenProfileCreate(string profileName, Packet packet)
+		{
+			byte status = packet.GetByte();
+			return new PenProfileCreateEventArgs(profileName, status);
+		}
+
+		private PenProfileReceivedEventArgs PenProfileDelete(string profileName, Packet packet)
+		{
+			byte status = packet.GetByte();
+			return new PenProfileDeleteEventArgs(profileName, status);
+		}
+
+		private PenProfileReceivedEventArgs PenProfileInfo(string profileName, Packet packet)
+		{
+			byte status = packet.GetByte();
+			var args = new PenProfileInfoEventArgs(profileName, status);
+			if (status == 0x00)
+			{
+				args.TotalSectionCount = packet.GetShort();
+				args.SectionSize = packet.GetShort();
+				args.UseSectionCount = packet.GetShort();
+				args.UseKeyCount = packet.GetShort();
+			}
+			return args;
+		}
+
+		private PenProfileReceivedEventArgs PenProfileReadValue(string profileName, Packet packet)
+		{
+			int count = packet.GetByte();
+			var args = new PenProfileReadValueEventArgs(profileName);
+			try
+			{
+				for (int i = 0; i < count; ++i)
+				{
+					var result = new PenProfileReadValueEventArgs.ReadValueResult();
+					result.Key = packet.GetString(16);
+					result.Status = packet.GetByte();
+					int dataSize = packet.GetShort();
+					result.Data = packet.GetBytes(dataSize);
+					args.Data.Add(result);
+				}
+			}
+			catch(Exception exp)
+			{
+				Debug.WriteLine(exp.StackTrace);
+			}
+			return args;
+		}
+		private PenProfileReceivedEventArgs PenProfileWriteValue(string profileName, Packet packet)
+		{
+			int count = packet.GetByte();
+			var args = new PenProfileWriteValueEventArgs(profileName);
+			try
+			{
+				for(int i =0; i < count; ++i)
+				{
+					var result = new PenProfileWriteValueEventArgs.WriteValueResult();
+					result.Key = packet.GetString(16);
+					result.Status = packet.GetByte();
+					args.Data.Add(result);
+				}
+			}
+			catch(Exception exp)
+			{
+				Debug.WriteLine(exp.StackTrace);
+			}
+
+			return args;
+		}
+
+		private PenProfileReceivedEventArgs PenProfileDeleteValue(string profileName, Packet packet)
+		{
+			int count = packet.GetByte();
+			var args = new PenProfileDeleteValueEventArgs(profileName);
+
+			try
+			{
+				for(int i = 0; i < count; ++i)
+				{
+					var result = new PenProfileDeleteValueEventArgs.DeleteValueResult();
+					result.Key = packet.GetString(16);
+					result.Status = packet.GetByte();
+					args.Data.Add(result);
+				}
+			}
+			catch(Exception exp)
+			{
+				Debug.WriteLine(exp.StackTrace);
+			}
+
+			return args;
+		}
+		#endregion
 
         private Dot mPrevDot = null;
 
@@ -848,7 +992,6 @@ namespace Neosmartpen.Net
 
 		#endregion
 
-
 		#region pen setup
 
 		/// <summary>
@@ -858,12 +1001,12 @@ namespace Neosmartpen.Net
 		/// <returns>true if the request is accepted; otherwise, false.</returns>
 		public bool ReqPenStatus()
 		{
-			ByteUtil bf = new ByteUtil();
+			ByteUtil bf = new ByteUtil(Escape);
 
-			bf.Put(Const.PK_STX)
+			bf.Put(Const.PK_STX, false)
 				.Put((byte)Cmd.SETTING_INFO_REQUEST)
 				.PutShort(0)
-				.Put(Const.PK_ETX);
+				.Put(Const.PK_ETX, false);
 
 			return Send(bf);
 		}
@@ -872,9 +1015,9 @@ namespace Neosmartpen.Net
 
 		private bool RequestChangeSetting(SettingType stype, object value)
 		{
-			ByteUtil bf = new ByteUtil();
+			ByteUtil bf = new ByteUtil(Escape);
 
-			bf.Put(Const.PK_STX).Put((byte)Cmd.SETTING_CHANGE_REQUEST);
+			bf.Put(Const.PK_STX, false).Put((byte)Cmd.SETTING_CHANGE_REQUEST);
 
 			switch (stype)
 			{
@@ -906,7 +1049,7 @@ namespace Neosmartpen.Net
 					break;
 			}
 
-			bf.Put(Const.PK_ETX);
+			bf.Put(Const.PK_ETX, false);
 
 			return Send(bf);
 		}
@@ -1001,15 +1144,33 @@ namespace Neosmartpen.Net
 			return RequestChangeSetting(SettingType.Sensitivity, step);
 		}
 
+		public bool IsSupportPenProfile()
+		{
+			string[] temp = ProtocolVersion.Split('.');
+			float ver = 0f;
+			try
+			{
+				ver = FloatConverter.ToSingle(temp[0] + "." + temp[1]);
+			}
+			catch (Exception e)
+			{
+				Debug.WriteLine(e.StackTrace);
+			}
+			if (ver >= PEN_PROFILE_SUPPORT_PROTOCOL_VERSION)
+				return true;
+			else
+				return false;
+		}
+
 		#endregion
 
 		#region using note
 
 		private bool SendAddUsingNote(int sectionId = -1, int ownerId = -1, int[] noteIds = null)
 		{
-			ByteUtil bf = new ByteUtil();
+			ByteUtil bf = new ByteUtil(Escape);
 
-			bf.Put(Const.PK_STX)
+			bf.Put(Const.PK_STX, false)
 			  .Put((byte)Cmd.ONLINE_DATA_REQUEST);
 
 			if (sectionId > 0 && ownerId > 0 && noteIds == null)
@@ -1039,7 +1200,7 @@ namespace Neosmartpen.Net
 				  .Put(0xFF);
 			}
 
-			bf.Put(Const.PK_ETX);
+			bf.Put(Const.PK_ETX, false);
 
 			return Send(bf);
 		}
@@ -1314,6 +1475,124 @@ namespace Neosmartpen.Net
 
 		#endregion
 
+		#region Pen Profile
+		public bool ReqCreateProfile(byte[] profileName, byte[] password)
+		{
+			ByteUtil bf = new ByteUtil(Escape);
+			bf.Put(Const.PK_STX, false)
+				.Put((byte)Cmd.PEN_PROFILE_REQUEST) // command
+				.PutShort((short)(PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME + 1 + PenProfile.LIMIT_BYTE_LENGTH_PASSWORD + 2 + 2))        // length
+				.Put(profileName, PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME)				// profile file name
+				.Put(PenProfile.PROFILE_CREATE)     // type
+				.Put(password, PenProfile.LIMIT_BYTE_LENGTH_PASSWORD)					// password
+				.PutShort(32)                       // section 크기 -> 32인 이유? 우선 android따라감. 확인필요
+				.PutShort(32)                        // sector 개수(2^N 현재는 고정 2^8)
+				.Put(Const.PK_ETX, false);
+
+			return Send(bf);
+		}
+
+		public bool ReqDeleteProfile(byte[] profileName, byte[] password)
+		{
+			ByteUtil bf = new ByteUtil(Escape);
+			bf.Put(Const.PK_STX, false)
+				.Put((byte)Cmd.PEN_PROFILE_REQUEST) // command
+				.PutShort((short)(PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME + 1 + PenProfile.LIMIT_BYTE_LENGTH_PASSWORD))                // length
+				.Put(profileName, PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME)				// profile file name
+				.Put(PenProfile.PROFILE_DELETE)     // type
+				.Put(password, PenProfile.LIMIT_BYTE_LENGTH_PASSWORD)					// password
+				.Put(Const.PK_ETX, false);
+
+			return Send(bf);
+		}
+
+		public bool ReqProfileInfo(byte[] profileName)
+		{
+			ByteUtil bf = new ByteUtil(Escape);
+			bf.Put(Const.PK_STX, false)
+				.Put((byte)Cmd.PEN_PROFILE_REQUEST) // command
+				.PutShort((short)(PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME + 1))                    // length
+				.Put(profileName, PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME)           // profile file name
+				.Put(PenProfile.PROFILE_INFO)       // type
+				.Put(Const.PK_ETX, false);
+
+			return Send(bf);
+		}
+
+		public bool ReqWriteProfileValue(byte[] profileName, byte[] password, byte[][] keys, byte[][] data)
+		{
+			int dataLength = 0;
+			int dataCount = data.Length;
+			for (int i = 0; i < dataCount; ++i)
+			{
+				dataLength += PenProfile.LIMIT_BYTE_LENGTH_KEY;               // key
+				dataLength += 2;                // data length
+				dataLength += data[i].Length;   // data 
+			}
+
+			ByteUtil bf = new ByteUtil(Escape);
+			bf.Put(Const.PK_STX, false)
+				.Put((byte)Cmd.PEN_PROFILE_REQUEST)             // command
+				.PutShort((short)(PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME + 1 + PenProfile.LIMIT_BYTE_LENGTH_PASSWORD + 1 + dataLength))  // length
+				.Put(profileName, PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME)                       // profile file name
+				.Put(PenProfile.PROFILE_WRITE_VALUE)            // type
+				.Put(password, PenProfile.LIMIT_BYTE_LENGTH_PASSWORD)                          // password
+				.Put((byte)dataCount);                          // count
+
+			for (int i = 0; i < dataCount; ++i)
+			{
+				bf.Put(keys[i], PenProfile.LIMIT_BYTE_LENGTH_KEY)
+					.PutShort((short)data[i].Length)
+					.Put(data[i]);
+			}
+
+			bf.Put(Const.PK_ETX, false);
+
+			return Send(bf);
+		}
+
+		public bool ReqReadProfileValue(byte[] profileName, byte[][] keys)
+		{
+			ByteUtil bf = new ByteUtil(Escape);
+			bf.Put(Const.PK_STX, false)
+				.Put((byte)Cmd.PEN_PROFILE_REQUEST)                 // command
+				.PutShort((short)(PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME + 1 + 1 + PenProfile.LIMIT_BYTE_LENGTH_KEY * keys.Length))    // Length
+				.Put(profileName, PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME)                           // profile file name
+				.Put(PenProfile.PROFILE_READ_VALUE)                 // Type
+				.Put((byte)keys.Length);                            // Key Count
+
+			for (int i = 0; i < keys.Length; ++i)
+			{
+				bf.Put(keys[i], PenProfile.LIMIT_BYTE_LENGTH_KEY);
+			}
+
+			bf.Put(Const.PK_ETX, false);
+
+			return Send(bf);
+		}
+
+		public bool ReqDeleteProfileValue(byte[] profileName, byte[] password, byte[][] keys)
+		{
+			ByteUtil bf = new ByteUtil(Escape);
+			bf.Put(Const.PK_STX, false)
+				.Put((byte)Cmd.PEN_PROFILE_REQUEST)                     // command
+				.PutShort((short)(PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME + 1 + PenProfile.LIMIT_BYTE_LENGTH_PASSWORD + 1 + PenProfile.LIMIT_BYTE_LENGTH_KEY * keys.Length))    // Length
+				.Put(profileName, PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME)                               // profile file name
+				.Put(PenProfile.PROFILE_DELETE_VALUE)                   // Type
+				.Put(password, PenProfile.LIMIT_BYTE_LENGTH_PASSWORD)                                  // password
+				.Put((byte)keys.Length);                                // key count
+
+			for (int i = 0; i < keys.Length; ++i)
+			{
+				bf.Put(keys[i], PenProfile.LIMIT_BYTE_LENGTH_KEY);
+			}
+
+			bf.Put(Const.PK_ETX, false);
+
+			return Send(bf);
+		}
+		#endregion
+
 		#region util
 
 		private static byte[] GetSectionOwnerByte(int section, int owner)
@@ -1352,9 +1631,9 @@ namespace Neosmartpen.Net
 		{
 			byte[] test = new byte[size];
 
-			//Array.Copy( buff, 0, test, 0, size );
-			//System.Console.WriteLine( "Read Buffer : {0}", BitConverter.ToString( test ) );
-			//System.Console.WriteLine();
+			//Array.Copy(buff, 0, test, 0, size);
+			//Debug.WriteLine("Read Buffer : {0}", BitConverter.ToString(test));
+			//Debug.WriteLine("");
 
 			for (int i = 0; i < size; i++)
 			{

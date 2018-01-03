@@ -107,6 +107,14 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Neosmartpen\Implementation\Net\Client\Event\PenProfile\PenProfileCreateEventArgs.cs" />
+    <Compile Include="Neosmartpen\Implementation\Net\Client\Event\PenProfile\PenProfileDeleteEventArgs.cs" />
+    <Compile Include="Neosmartpen\Implementation\Net\Client\Event\PenProfile\PenProfileDeleteValueEventArgs.cs" />
+    <Compile Include="Neosmartpen\Implementation\Net\Client\Event\PenProfile\PenProfileInfoEventArgs.cs" />
+    <Compile Include="Neosmartpen\Implementation\Net\Client\Event\PenProfile\PenProfileReadValueEventArgs.cs" />
+    <Compile Include="Neosmartpen\Implementation\Net\Client\Event\PenProfile\PenProfileReceivedEventArgs.cs" />
+    <Compile Include="Neosmartpen\Implementation\Net\Client\Event\PenProfile\PenProfileWriteValueEventArgs.cs" />
+    <Compile Include="Neosmartpen\Implementation\Net\Client\PenProfile.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Filter\FilterForPaper.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Bluetooth\BluetoothPenClient.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Bluetooth\PenInfomation.cs" />
@@ -141,6 +149,7 @@
     <Compile Include="Neosmartpen\Framework\Net\Data\Stroke.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Support\ByteConverter.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Support\ByteUtil.cs" />
+    <Compile Include="Neosmartpen\Implementation\Net\Support\FloatConverter.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Support\PressureCalibration.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Support\PressureFilter.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Support\Time.cs" />

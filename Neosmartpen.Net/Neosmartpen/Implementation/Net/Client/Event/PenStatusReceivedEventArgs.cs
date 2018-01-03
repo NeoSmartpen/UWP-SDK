@@ -132,6 +132,10 @@
         /// Gets the property that can be control by cap of pen
         /// </summary>
         public bool PenCapPower { get; internal set; }
+		/// <summary>
+		/// Model Name 
+		/// This property use in protocol ver 1
+		/// </summary>
 		public string ModelName { get; internal set; }
 	}
 }

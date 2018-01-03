@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using Windows.Foundation;
 using Windows.Storage;
 
@@ -16,7 +17,7 @@ namespace Neosmartpen.Net
             mClientV1 = new PenClientParserV1(this);
             mClientV2 = new PenClientParserV2(this);
 
-            Protocol = -1;
+			Protocol = Protocols.NONE;
         }
 
         public IPenClient PenClient
@@ -26,7 +27,7 @@ namespace Neosmartpen.Net
 
         void IPenController.OnDataReceived( byte[] buff )
         {
-            if ( Protocol == Protocols.N2 )
+            if ( Protocol == Protocols.V1 )
             {
                 mClientV1.ProtocolParse(buff, buff.Length);
             }
@@ -265,6 +266,12 @@ namespace Neosmartpen.Net
         /// Occurs when offline downloading starts
         /// </summary>
 		public event TypedEventHandler<IPenClient, object> OfflineDataDownloadStarted;
+		public event TypedEventHandler<IPenClient, PenProfileReceivedEventArgs> PenProfileReceived;
+		internal void onPenProfileReceived(PenProfileReceivedEventArgs args)
+		{
+			PenProfileReceived?.Invoke(PenClient, args);
+		}
+
 		internal void onStartOfflineDownload()
 		{
 			OfflineDataDownloadStarted?.Invoke(PenClient, new object());
@@ -457,9 +464,216 @@ namespace Neosmartpen.Net
             Request(() => mClientV1.SuspendSwUpgrade(), () => mClientV2.SuspendSwUpgrade());
         }
 
+		public bool IsSupportPenProfile()
+		{
+            if ( PenClient == null || !PenClient.Alive || Protocol == -1 )
+            {
+                throw new RequestIsUnreached();
+            }
+
+            if ( Protocol == Protocols.V1 )
+            {
+				return mClientV1.IsSupportPenProfile();
+            }
+            else
+            {
+				return mClientV2.IsSupportPenProfile();
+            }
+		}
+
+		/// <summary>
+		/// Request to create profile
+		/// </summary>
+		/// <param name="profileName">Name of the profile to be created</param>
+		/// <param name="password">Password of profile</param>
+		//public void CreateProfile(string profileName, string password)
+		public void CreateProfile(string profileName, byte[] password)
+		{
+			if (IsSupportPenProfile())
+			{
+				if (string.IsNullOrEmpty(profileName))
+					throw new ArgumentNullException("profileName");
+				if (password == null)
+					throw new ArgumentNullException("password");
+
+				byte[] profileNameBytes = Encoding.UTF8.GetBytes(profileName);
+				//byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
+				if (profileNameBytes.Length > PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME)
+					throw new ArgumentOutOfRangeException("profileName", $"profileName byte length must be {PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME} or less");
+				else if (password.Length != PenProfile.LIMIT_BYTE_LENGTH_PASSWORD)
+					throw new ArgumentOutOfRangeException("password", $"password byte length must be {PenProfile.LIMIT_BYTE_LENGTH_PASSWORD}");
+
+				Request(() => mClientV1.ReqCreateProfile(profileNameBytes, password), () => mClientV2.ReqCreateProfile(profileNameBytes, password));
+			}
+			else
+				throw new NotSupportedException($"CreateProfile is not supported at this pen firmware version");
+
+		}
+
+		/// <summary>
+		/// Request to delete profile
+		/// </summary>
+		/// <param name="profileName">Name of the profile to be deleted</param>
+		/// <param name="password">password of profile</param>
+		public void DeleteProfile(string profileName, byte[] password)
+		{
+			if (IsSupportPenProfile())
+			{
+				if (string.IsNullOrEmpty(profileName))
+					throw new ArgumentNullException("profileName");
+				if (password == null)
+					throw new ArgumentNullException("password");
+
+				byte[] profileNameBytes = Encoding.UTF8.GetBytes(profileName);
+				//byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
+				if (profileNameBytes.Length > PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME)
+					throw new ArgumentOutOfRangeException("profileName", $"profileName byte length must be {PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME} or less");
+				else if (password.Length != PenProfile.LIMIT_BYTE_LENGTH_PASSWORD)
+					throw new ArgumentOutOfRangeException("password", $"password byte length must be {PenProfile.LIMIT_BYTE_LENGTH_PASSWORD}");
+
+				Request(() => mClientV1.ReqDeleteProfile(profileNameBytes, password), () => mClientV2.ReqDeleteProfile(profileNameBytes, password));
+			}
+			else
+				throw new NotSupportedException($"CreateProfile is not supported at this pen firmware version");
+		}
+
+		/// <summary>
+		/// Request information of the profile
+		/// </summary>
+		/// <param name="profileName">profile's name</param>
+		public void GetProfileInfo(string profileName)
+		{
+			if (IsSupportPenProfile())
+			{
+				if (string.IsNullOrEmpty(profileName))
+					throw new ArgumentNullException("profileName");
+
+				byte[] profileNameBytes = Encoding.UTF8.GetBytes(profileName);
+				if (profileNameBytes.Length > PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME)
+					throw new ArgumentOutOfRangeException("profileName", $"profileName byte length must be {PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME} or less");
+
+				Request(() => mClientV1.ReqProfileInfo(profileNameBytes), () => mClientV2.ReqProfileInfo(profileNameBytes));
+			}
+			else
+				throw new NotSupportedException($"CreateProfile is not supported at this pen firmware version");
+		}
+
+		/// <summary>
+		/// Request to get data from profile
+		/// </summary>
+		/// <param name="profileName">profile name</param>
+		/// <param name="keys">key array</param>
+		public void ReadProfileValues(string profileName, string[] keys)
+		{
+			if (IsSupportPenProfile())
+			{
+				if (string.IsNullOrEmpty(profileName))
+					throw new ArgumentNullException("profileName");
+				if (keys == null)
+					throw new ArgumentNullException("keys");
+
+				byte[] profileNameBytes = Encoding.UTF8.GetBytes(profileName);
+				if (profileNameBytes.Length > PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME)
+					new ArgumentOutOfRangeException("profileName", $"profileName byte length must be {PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME} or less");
+
+				byte[][] keysBytes = new byte[keys.Length][];
+				for(int i = 0; i < keys.Length; ++i)
+				{
+					keysBytes[i] = Encoding.UTF8.GetBytes(keys[i]);
+					if ( keysBytes[i].Length > PenProfile.LIMIT_BYTE_LENGTH_KEY)
+						throw new ArgumentOutOfRangeException("keys", $"key byte length must be {PenProfile.LIMIT_BYTE_LENGTH_KEY} or less");
+				}
+
+				Request(() => mClientV1.ReqReadProfileValue(profileNameBytes, keysBytes), () => mClientV2.ReqReadProfileValue(profileNameBytes, keysBytes));
+			}
+			else
+				throw new NotSupportedException($"CreateProfile is not supported at this pen firmware version");
+		}
+
+		/// <summary>
+		/// Request to write data
+		/// </summary>
+		/// <param name="profileName">profile name</param>
+		/// <param name="password">password</param>
+		/// <param name="keys">key array</param>
+		/// <param name="data">data</param>
+		public void WriteProfileValues(string profileName, byte[] password, string[] keys, byte[][] data)
+		{
+			if (IsSupportPenProfile())
+			{
+				if (string.IsNullOrEmpty(profileName))
+					throw new ArgumentNullException("profileName");
+				if (password == null)
+					throw new ArgumentNullException("password");
+				if (keys == null)
+					throw new ArgumentNullException("keys");
+				if (data == null)
+					throw new ArgumentNullException("data");
+				if (keys.Length != data.Length)
+					throw new ArgumentOutOfRangeException("keys, data", "The number of keys and data does not match");
+
+				byte[] profileNameBytes = Encoding.UTF8.GetBytes(profileName);
+				//byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
+				if (profileNameBytes.Length > PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME)
+					throw new ArgumentOutOfRangeException("profileName", $"profileName byte length must be {PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME} or less");
+				else if (password.Length != PenProfile.LIMIT_BYTE_LENGTH_PASSWORD)
+					throw new ArgumentOutOfRangeException("password", $"password byte length must be {PenProfile.LIMIT_BYTE_LENGTH_PASSWORD}");
+
+				byte[][] keysBytes = new byte[keys.Length][];
+				for(int i = 0; i < keys.Length; ++i)
+				{
+					keysBytes[i] = Encoding.UTF8.GetBytes(keys[i]);
+					if ( keysBytes[i].Length > PenProfile.LIMIT_BYTE_LENGTH_KEY)
+						throw new ArgumentOutOfRangeException("keys", $"key byte length must be {PenProfile.LIMIT_BYTE_LENGTH_KEY} or less");
+				}
+
+				Request(() => mClientV1.ReqWriteProfileValue(profileNameBytes, password, keysBytes, data), () => mClientV2.ReqWriteProfileValue(profileNameBytes, password, keysBytes, data));
+			}
+			else
+				throw new NotSupportedException($"CreateProfile is not supported at this pen firmware version");
+		}
+
+		/// <summary>
+		/// Request to delete data
+		/// </summary>
+		/// <param name="profileName">profile name</param>
+		/// <param name="password">password</param>
+		/// <param name="keys">key array</param>
+		public void DeleteProfileValues(string profileName, byte[] password, string[] keys)
+		{
+			if (IsSupportPenProfile())
+			{
+				if (string.IsNullOrEmpty(profileName))
+					throw new ArgumentNullException("profileName");
+				if (password == null)
+					throw new ArgumentNullException("password");
+				if (keys == null)
+					throw new ArgumentNullException("keys");
+
+				byte[] profileNameBytes = Encoding.UTF8.GetBytes(profileName);
+				//byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
+				if (profileNameBytes.Length > PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME)
+					new ArgumentOutOfRangeException("profileName", $"profileName byte length must be {PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME} or less");
+				else if (password.Length != PenProfile.LIMIT_BYTE_LENGTH_PASSWORD)
+					new ArgumentOutOfRangeException("password", $"password byte length must be {PenProfile.LIMIT_BYTE_LENGTH_PASSWORD}");
+
+				byte[][] keysBytes = new byte[keys.Length][];
+				for(int i = 0; i < keys.Length; ++i)
+				{
+					keysBytes[i] = Encoding.UTF8.GetBytes(keys[i]);
+					if ( keysBytes[i].Length > PenProfile.LIMIT_BYTE_LENGTH_KEY)
+						throw new ArgumentOutOfRangeException("keys", $"key byte length must be {PenProfile.LIMIT_BYTE_LENGTH_KEY} or less");
+				}
+
+				Request(() => mClientV1.ReqDeleteProfileValue(profileNameBytes, password, keysBytes), () => mClientV2.ReqDeleteProfileValue(profileNameBytes, password, keysBytes));
+			}
+			else
+				throw new NotSupportedException($"CreateProfile is not supported at this pen firmware version");
+		}
+
         public void OnConnected()
         {
-            if (Protocol != Protocols.N2)
+            if (Protocol != Protocols.V1)
             {
                 mClientV2.ReqVersion();
             }
@@ -467,7 +681,7 @@ namespace Neosmartpen.Net
 
         public void OnDisconnected()
         {
-			if (Protocol == Protocols.N2)
+			if (Protocol == Protocols.V1)
 				mClientV1.OnDisconnected();
             onDisconnected();
         }
@@ -481,7 +695,7 @@ namespace Neosmartpen.Net
                 throw new RequestIsUnreached();
             }
 
-            if ( Protocol == Protocols.N2 )
+            if ( Protocol == Protocols.V1 )
             {
                 if (requestToV1 == null) throw new UnavailableRequest();
 

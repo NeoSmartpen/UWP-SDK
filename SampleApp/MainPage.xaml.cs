@@ -11,146 +11,126 @@ using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.UI.Notifications;
 using Windows.UI.Popups;
-using Windows.UI.ViewManagement;
 using Windows.UI.Xaml.Controls;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
 namespace SampleApp
 {
-    /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
-    /// </summary>
-    public sealed partial class MainPage : Page
+	/// <summary>
+	/// An empty page that can be used on its own or navigated to within a Frame.
+	/// </summary>
+	public sealed partial class MainPage : Page, INotifyPropertyChanged
 	{
-        private BluetoothPenClient _client;
+		private ProgressDialog _progressDialog = new ProgressDialog();
+		private StorageFile mFile;
+		public ObservableCollection<NColor> colors;
+		public enum AppStatus
+		{
+			Disconnected,
+			Connected
+		}
 
-        private PenController _controller;
+		public enum PenProfileType
+		{
+			NONE,
+			CreateProfile,
+			DeleteProfile,
+			ProfileInfo,
+			WriteProfileValue,
+			ReadProfileValue,
+			DeleteProfileValue
+		}
+		private PenProfileType currentProfileType;
 
-        private ProgressDialog _progressDialog = new ProgressDialog();
+		#region Properties
+		private bool isSearching = false;
+		public bool IsSearching
+		{
+			get
+			{
+				return isSearching;
+			}
+			set
+			{
+				isSearching = value;
+				btnSearch.Content = isSearching ? "Stop" : "Search";
+			}
+		}
+
+		private AppStatus currentStatus;
+
+		public AppStatus CurrentStatus
+		{
+			get
+			{
+				return currentStatus;
+			}
+			set
+			{
+				currentStatus = value;
+				NotifyPropertyChanged();
+			}
+		}
+
+		private string currentMacAddress;
+		public string CurrentMacAddress { get { return currentMacAddress; } set { currentMacAddress = value; NotifyPropertyChanged(); } }
+
+		private Visibility profilePasswordVisibility;
+		public Visibility ProfilePasswordVisibility { get { return profilePasswordVisibility; } set { profilePasswordVisibility = value; NotifyPropertyChanged(); } }
+		private Visibility profileKeyVisibility;
+		public Visibility ProfileKeyVisibility { get { return profileKeyVisibility; } set { profileKeyVisibility = value; NotifyPropertyChanged(); } }
+		private Visibility profileValueVisibility;
+		public Visibility ProfileValueVisibility { get { return profileValueVisibility; } set { profileValueVisibility = value; NotifyPropertyChanged(); } }
+		//private string profileName;
+		//public string ProfileName { get { return profileName; } set { profileName = value; NotifyPropertyChanged(); } }
+		//private string profilePassword;
+		//public string ProfilePassword { get { return profilePassword; } set { profilePassword = value; NotifyPropertyChanged(); } }
+		private string profileKey;
+		public string ProfileKey { get { return profileKey; } set { profileKey = value; NotifyPropertyChanged(); } }
+		private string profileValue;
+		public string ProfileValue { get { return profileValue; } set { profileValue = value; NotifyPropertyChanged(); } }
+		public string outputConsole { get; set; }
+		public string OutputConsole { get { return outputConsole; } set { outputConsole = value + Environment.NewLine; NotifyPropertyChanged(); } }
+		#endregion
 
         public MainPage()
         {
             this.InitializeComponent();
 
-            ApplicationView.PreferredLaunchViewSize = new Size(1024, 768);
-            ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.PreferredLaunchViewSize;
+			//ApplicationView.PreferredLaunchViewSize = new Size(1024, 1024);
+			//ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.PreferredLaunchViewSize;
 
-            // create PenController instance.
-            _controller = new PenController();
+			currentProfileType = PenProfileType.NONE;
+			cbPenProfileType.ItemsSource = Enum.GetValues(typeof(PenProfileType)).Cast<PenProfileType>().Where(x => x != PenProfileType.NONE).ToList();
+			cbPenProfileType.SelectedIndex = 0;
 
-            // Create BluetoothPenClient instance. and bind PenController.
-            // BluetoothPenClient is implementation of bluetooth function.
-            _client = new BluetoothPenClient(_controller);
-
-			// bluetooth watcher event
-			_client.onAddPenController += MClient_onAddPenController;
-			_client.onRemovePenController += MClient_onRemovePenController;
-			_client.onStopSearch += MClient_onStopSearch;
-			_client.onUpdatePenController += MClient_onUpdatePenController;
-
-			// pen controller event
-            _controller.PenStatusReceived += MController_PenStatusReceived;
-            _controller.Connected += MController_Connected;
-            _controller.Disconnected += MController_Disconnected;
-            _controller.Authenticated += MController_Authenticated;
-            _controller.DotReceived += MController_DotReceived;
-            _controller.PasswordRequested += MController_PasswordRequested;
-            _controller.OfflineDataListReceived += MController_OfflineDataListReceived;
-
-            _controller.AutoPowerOffTimeChanged += MController_AutoPowerOffTimeChanged;
-            _controller.AutoPowerOnChanged += MController_AutoPowerOnChanged;
-            _controller.BatteryAlarmReceived += MController_BatteryAlarmReceived;
-            _controller.RtcTimeChanged += MController_RtcTimeChanged;
-            _controller.SensitivityChanged += MController_SensitivityChanged;
-            _controller.PasswordChanged += MController_PasswordChanged;
-            _controller.BeepSoundChanged += MController_BeepSoundChanged;
-			_controller.PenColorChanged += MController_PenColorChanged;
-
-            _controller.OfflineDataDownloadStarted += MController_OfflineDataDownloadStarted;
-            _controller.OfflineStrokeReceived += MController_OfflineStrokeReceived;
-            _controller.OfflineDownloadFinished += MController_OfflineDownloadFinished;
-
-            _controller.FirmwareInstallationStarted += MController_FirmwareInstallationStarted;
-            _controller.FirmwareInstallationStatusUpdated += MController_FirmwareInstallationStatusUpdated;
-            _controller.FirmwareInstallationFinished += MController_FirmwareInstallationFinished;
-
+			InitPenClient();
 			InitColor();
             InitRenderer();
+
+			CurrentMacAddress = string.Empty;
+			CurrentStatus = AppStatus.Disconnected;
+			ClearKeyValuePenProfile();
         }
 
-		#region Watcher Event
-		private async void MClient_onUpdatePenController(BluetoothPenClient sender, PenUpdateInformation args)
+		public void InitColor()
 		{
-			await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+			if (colors == null)
+				colors = new ObservableCollection<NColor>();
+
+			colors.Clear();
+
+			int size = NColor.AllColor.Length;
+			for (int i = 0; i < size; ++i)
 			{
-				var item = lvDevices.Items.Where(p => (p as PenInformation)?.Id == args.Id);
-				if (item != null)
-				{
-					PenInformation penInformation = item as PenInformation;
-					if (penInformation != null)
-					{
-						penInformation.Update(args);
-					}
-				}
-			});
+				colors.Add(new NColor(i));
+			}
 		}
-
-		private async void MClient_onStopSearch(BluetoothPenClient sender, Windows.Devices.Bluetooth.BluetoothError args)
-		{
-			Debug.WriteLine("Watcher finidhed");
-			await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => IsSearching = false );
-		}
-
-		private async void MClient_onRemovePenController(BluetoothPenClient sender, PenUpdateInformation args)
-		{
-			await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
-			{
-				var item = lvDevices.Items.Where(p => (p as PenInformation)?.Id == args.Id);
-				if (item != null)
-				{
-					PenInformation penInformation = item as PenInformation;
-					if (penInformation != null)
-					{
-						lvDevices.Items.Remove(penInformation);
-					}
-				}
-			});
-		}
-
-		private async void MClient_onAddPenController(BluetoothPenClient sender, PenInformation args)
-		{
-			await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => lvDevices.Items.Add(args) );
-		}
-		#endregion
-
-		private async void MController_FirmwareInstallationStarted(IPenClient sender, object args)
-        {
-            _progressDialog.Title = "Firmware Installation";
-            await _progressDialog.ShowAsync();
-        }
-
-        private async void MController_FirmwareInstallationFinished(IPenClient sender, SimpleResultEventArgs args)
-        {
-            await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, ()=> _progressDialog.Hide() );
-        }
-
-        private async void MController_FirmwareInstallationStatusUpdated(IPenClient sender, ProgressChangeEventArgs args)
-        {
-            await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => _progressDialog.Update(args.AmountDone, args.Total));
-        }
-
-        private async void MController_OfflineDataDownloadStarted(IPenClient sender, object args)
-        {
-            _progressDialog.Title = "Offline Data Downloading";
-            await _progressDialog.ShowAsync();
-        }
-
-        private async void MController_OfflineDownloadFinished(IPenClient sender, SimpleResultEventArgs args)
-        {
-            _controller.RequestOfflineDataList();
-            await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => _progressDialog.Hide());
-        }
 
         private void ToggleControls( object obj, bool toggle )
         {
@@ -174,156 +154,59 @@ namespace SampleApp
             }
         }
 
-        private void MController_PasswordChanged(IPenClient sender, SimpleResultEventArgs args)
+
+        private IAsyncOperation<IUICommand> ShowMessage(string text)
         {
-            ShowToast("Changing password is " + (args.Result ? "complete" : "failure"));
+            var dialog = new MessageDialog(text);
+            return dialog.ShowAsync();
         }
 
-        private void MController_SensitivityChanged(IPenClient sender, SimpleResultEventArgs args)
+        private void ShowToast(string text)
         {
-            _controller?.RequestPenStatus();
+            ToastNotificationManager.History.Clear();
+            XmlDocument toastXml = ToastNotificationManager.GetTemplateContent(ToastTemplateType.ToastText01);
+            XmlNodeList toastTextElements = toastXml.GetElementsByTagName("text");
+            toastTextElements[0].AppendChild(toastXml.CreateTextNode(text));
+            IXmlNode toastNode = toastXml.SelectSingleNode("/toast");
+            ((XmlElement)toastNode).SetAttribute("duration", "short");
+            ToastNotification toast = new ToastNotification(toastXml);
+            ToastNotificationManager.CreateToastNotifier().Show(toast);
         }
 
-        private void MController_RtcTimeChanged(IPenClient sender, SimpleResultEventArgs args)
+        private void cbAutoPoweroffTime_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            _controller?.RequestPenStatus();
+            ComboBoxItem selectedItem = e.AddedItems[0] as ComboBoxItem;
+
+            short numValue = -1;
+
+            bool result = Int16.TryParse(selectedItem.Content as string, out numValue);
+
+            _controller?.SetAutoPowerOffTime(numValue);
         }
 
-        private void MController_BeepSoundChanged(IPenClient sender, SimpleResultEventArgs args)
+
+        private async void ShowPasswordForm( int tryCount, int maxCount )
         {
-            _controller?.RequestPenStatus();
+            var dialog1 = new PasswordInputDialog();
+
+            dialog1.Title = "Input your password (" + tryCount + "/" + maxCount + ")";
+
+            await dialog1.ShowAsync();
+
+            _controller?.InputPassword(dialog1.Text);
         }
-		private void MController_PenColorChanged(IPenClient sender, SimpleResultEventArgs args)
+
+		private void ClearKeyValuePenProfile()
 		{
-            _controller?.RequestPenStatus();
+			ProfileKey = string.Empty;
+			ProfileValue = string.Empty;
 		}
 
-        private void MController_BatteryAlarmReceived(IPenClient sender, BatteryAlarmReceivedEventArgs args)
-        {
-            _controller?.RequestPenStatus();
-        }
-
-        private void MController_AutoPowerOnChanged(IPenClient sender, SimpleResultEventArgs args)
-        {
-            _controller?.RequestPenStatus();
-        }
-
-        private void MController_AutoPowerOffTimeChanged(IPenClient sender, SimpleResultEventArgs args)
-        {
-            _controller?.RequestPenStatus();
-        }
-
-        private void MController_PenStatusReceived(IPenClient sender, PenStatusReceivedEventArgs args)
-        {
-            cbPenCapPowerControl.IsChecked = args.PenCapPower;
-            
-            foreach ( ComboBoxItem item in cbAutoPoweroffTime.Items )
-            {
-                short numValue = -1; 
-                    
-                bool result = Int16.TryParse(item.Content as string, out numValue);
-
-                if ( args.AutoShutdownTime == numValue)
-                {
-                    cbAutoPoweroffTime.SelectedItem = item;
-                    continue;
-                }
-            }
-
-            cbPowerOnByPenTip.IsChecked = args.AutoPowerOn;
-            cbBeepSound.IsChecked = args.Beep;
-            cbOfflineData.IsChecked = args.UseOfflineData;
-
-            pbPower.Maximum = 100;
-            pbPower.Value = args.Battery;
-            pbStorage.Maximum = 100;
-            pbStorage.Value = args.UsedMem;
-            cbFSRStep.SelectedIndex = args.PenSensitivity - 1;
-        }
-
-        private void MController_OfflineDataListReceived(IPenClient sender, OfflineDataListReceivedEventArgs args)
-        {
-            lvOfflineDataList.Items.Clear();
-
-            foreach ( var item in args.OfflineNotes )
-            {
-                lvOfflineDataList.Items.Add(item);
-            }
-        }
-
-        private void MController_PasswordRequested(IPenClient sender, PasswordRequestedEventArgs args)
-        {
-            ShowPasswordForm( args.RetryCount, args.ResetCount );
-
-            //you can input password immediately, please refer to below code.
-            //mController.InputPassword("0000");
-        }
-
-        private void MController_DotReceived(IPenClient sender, DotReceivedEventArgs args)
-        {
-			ProcessDot(args.Dot);
-        }
-
-        private void MController_Authenticated(IPenClient sender, object args)
-        {
-            _controller.RequestPenStatus();
-            _controller.AddAvailableNote();
-            _controller.RequestOfflineDataList();
-
-            // MController_Connected에 있으니 비밀번호 입력창이 뜰때 연결끊김
-            // 펜 세팅값으로 넣어줘야 할듯
-            cbColor.SelectedIndex = cbColor.Items.Count - 1;
-
-            ShowToast("Device is connected");
-        }
-
-        private async void MController_Disconnected(IPenClient sender, object args)
-        {
-            ToggleControls(this.Content, false);
-
-            await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => {
-                _progressDialog?.Hide();
-                btnConnect.Content = "Connect";
-            });
- 
-            ShowToast("Device is disconnected");
-        }
-
-        private void MController_Connected(IPenClient sender, ConnectedEventArgs args)
-        {
-            ToggleControls( this.Content, true );
-
-            if ( args.DeviceName == null ) 
-            {
-                textBox.Text = String.Format("Firmware Version : {0}", args.FirmwareVersion);
-            }
-            else
-            {
-                textBox.Text = String.Format("Mac : {0}\r\n\r\nName : {1}\r\n\r\nSubName : {2}\r\n\r\nFirmware Version : {3}\r\n\r\nProtocol Version : {4}", args.MacAddress, args.DeviceName, args.SubName, args.FirmwareVersion, args.ProtocolVersion);
-            }
-
-			_client.StopWatcher();
-		}
-
-		public bool IsSearching
-		{
-			get
-			{
-				return isSearching;
-			}
-			set
-			{
-				isSearching = value;
-				if (isSearching == true)
-					btnSearch.Content = "Stop";
-				else
-					btnSearch.Content = "Search";
-
-			}
-		}
-		private bool isSearching = false;
-
-        private void btnSearch_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+		/***
+		 *  UI EVENTS 
+		 */
+		#region UI Events
+		private void btnSearch_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
 			if ( isSearching == false )
 			{
@@ -357,75 +240,45 @@ namespace SampleApp
 
             (sender as Button).IsEnabled = true;
         }
-
-
         private async void btnConnect_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
             Button btnConnect = (sender as Button);
 
             btnConnect.IsEnabled = false;
 
-            if ( btnConnect.Content as string == "Disconnect" )
-            {
-                _client.Disconnect();
+			PenInformation selected = lvDevices.SelectedItem as PenInformation;
 
-                btnConnect.Content = "Connect";
+			if (selected == null)
+			{
+				await ShowMessage("Select your device");
+			}
+			else
+			{
+				try
+				{
+					bool result = await _client.Connect(selected);
 
-				_client.StopWatcher();
-            }
-            else
-            {
-                PenInformation selected = lvDevices.SelectedItem as PenInformation;
+					if (!result)
+					{
+						await ShowMessage("Connection is failure");
+					}
+				}
+				catch (Exception ex)
+				{
+					Debug.WriteLine("conection exception : " + ex.Message);
+					Debug.WriteLine("conection exception : " + ex.StackTrace);
+				}
+			}
 
-                if ( selected == null )
-                {
-                    await ShowMessage("Select your device");
-                }
-                else
-                {
-                    try
-                    {
-                        bool result = await _client.Connect(selected);
+			btnConnect.IsEnabled = true;
+		}
 
-                        if ( !result )
-                        {
-                            await ShowMessage("Connection is failure");
-                        }
-                        else
-                        {
-                            btnConnect.Content = "Disconnect";
-                        }
-                    }
-                    catch ( Exception ex )
-                    {
-                        Debug.WriteLine("conection exception : " + ex.Message);
-                        Debug.WriteLine("conection exception : " + ex.StackTrace);
-                    }
-                }
-            }
+		private void btnDisconnect_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+		{
+			_client.Disconnect();
+		}
 
-            btnConnect.IsEnabled = true;
-        }
-
-        private IAsyncOperation<IUICommand> ShowMessage(string text)
-        {
-            var dialog = new MessageDialog(text);
-            return dialog.ShowAsync();
-        }
-
-        private void ShowToast(string text)
-        {
-            ToastNotificationManager.History.Clear();
-            XmlDocument toastXml = ToastNotificationManager.GetTemplateContent(ToastTemplateType.ToastText01);
-            XmlNodeList toastTextElements = toastXml.GetElementsByTagName("text");
-            toastTextElements[0].AppendChild(toastXml.CreateTextNode(text));
-            IXmlNode toastNode = toastXml.SelectSingleNode("/toast");
-            ((XmlElement)toastNode).SetAttribute("duration", "short");
-            ToastNotification toast = new ToastNotification(toastXml);
-            ToastNotificationManager.CreateToastNotifier().Show(toast);
-        }
-
-        private void lvDevices_SelectionChanged(object sender, SelectionChangedEventArgs e)
+		private void lvDevices_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             PenInformation selected = lvDevices.SelectedItem as PenInformation;
 
@@ -434,7 +287,8 @@ namespace SampleApp
                 return;
             }
 
-            tbMacAddress.Text = selected.MacAddress;
+			//tbMacAddress.Text = selected.MacAddress;
+			CurrentMacAddress = selected.MacAddress;
         }
 
         private void cbControl_Checked(object sender, Windows.UI.Xaml.RoutedEventArgs e)
@@ -446,7 +300,6 @@ namespace SampleApp
         {
             SetCheckBox(sender, false);
         }
-
         private void SetCheckBox(object sender, bool enable)
         {
             try
@@ -485,17 +338,6 @@ namespace SampleApp
 
                 _controller?.RequestPenStatus();
             }
-        }
-
-        private void cbAutoPoweroffTime_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            ComboBoxItem selectedItem = e.AddedItems[0] as ComboBoxItem;
-
-            short numValue = -1;
-
-            bool result = Int16.TryParse(selectedItem.Content as string, out numValue);
-
-            _controller?.SetAutoPowerOffTime(numValue);
         }
 
         private void Page_Loaded(object sender, Windows.UI.Xaml.RoutedEventArgs e)
@@ -547,8 +389,6 @@ namespace SampleApp
             _controller?.RequestFirmwareInstallation(mFile, txtFirmwareVersion.Text );
         }
 
-        StorageFile mFile;
-
         private async void txtFirmwareFile_GotFocus(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
             TextBox tb = (TextBox)sender;
@@ -579,17 +419,6 @@ namespace SampleApp
             }
         }
 
-        private async void ShowPasswordForm( int tryCount, int maxCount )
-        {
-            var dialog1 = new PasswordInputDialog();
-
-            dialog1.Title = "Input your password (" + tryCount + "/" + maxCount + ")";
-
-            await dialog1.ShowAsync();
-
-            _controller?.InputPassword(dialog1.Text);
-        }
-
         private async void btnDownload_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
 			OfflineDataInfo d = lvOfflineDataList.SelectedItem as OfflineDataInfo;
@@ -600,22 +429,6 @@ namespace SampleApp
 			}
 
 			_controller?.RequestOfflineData(d.Section, d.Owner, d.Note);
-		}
-
-		public ObservableCollection<NColor> colors;
-
-		public void InitColor()
-		{
-			if (colors == null)
-				colors = new ObservableCollection<NColor>();
-
-			colors.Clear();
-
-			int size = NColor.AllColor.Length;
-			for (int i = 0; i < size; ++i)
-			{
-				colors.Add(new NColor(i));
-			}
 		}
 
 		private void cbColor_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -642,5 +455,153 @@ namespace SampleApp
             await _client.UnPairing(selected);
             lvDevices.Items.Remove(lvDevices.SelectedItem);
         }
-    }
+		private void SliderThickness_ValueChanged(object sender, Windows.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+		{
+			var slider = sender as Slider;
+			ChangeThinknessLevel((int)(slider.Value - 1));
+		}
+
+		private void cbPenProfileType_SelectionChanged(object sender, SelectionChangedEventArgs e)
+		{
+			if ( e.AddedItems.Count == 1 )
+			{
+				var type = (PenProfileType)e.AddedItems[0];
+				if (currentProfileType != type)
+				{
+					currentProfileType = type;
+
+					switch (type)
+					{
+						case PenProfileType.CreateProfile:
+							ProfilePasswordVisibility = Visibility.Visible;
+							ProfileKeyVisibility = Visibility.Collapsed;
+							ProfileValueVisibility = Visibility.Collapsed;
+							break;
+						case PenProfileType.DeleteProfile:
+							ProfilePasswordVisibility = Visibility.Visible;
+							ProfileKeyVisibility = Visibility.Collapsed;
+							ProfileValueVisibility = Visibility.Collapsed;
+							break;
+						case PenProfileType.ProfileInfo:
+							ProfilePasswordVisibility = Visibility.Collapsed;
+							ProfileKeyVisibility = Visibility.Collapsed;
+							ProfileValueVisibility = Visibility.Collapsed;
+							break;
+						case PenProfileType.ReadProfileValue:
+							ProfilePasswordVisibility = Visibility.Collapsed;
+							ProfileKeyVisibility = Visibility.Visible;
+							ProfileValueVisibility = Visibility.Collapsed;
+							break;
+						case PenProfileType.WriteProfileValue:
+							ProfilePasswordVisibility = Visibility.Visible;
+							ProfileKeyVisibility = Visibility.Visible;
+							ProfileValueVisibility = Visibility.Visible;
+							break;
+						case PenProfileType.DeleteProfileValue:
+							ProfilePasswordVisibility = Visibility.Visible;
+							ProfileKeyVisibility = Visibility.Visible;
+							ProfileValueVisibility = Visibility.Collapsed;
+							break;
+					}
+				}
+			}
+		}
+
+		private void ButtonProfileExecute_Click(object sender, RoutedEventArgs e)
+		{
+			if (currentProfileType != PenProfileType.NONE)
+			{
+				if (_controller.IsSupportPenProfile())
+				{
+					try
+					{
+						switch (currentProfileType)
+						{
+							case PenProfileType.CreateProfile:
+								{
+									_controller?.CreateProfile(PEN_PROFILE_TEST_NAME, PEN_PROFILE_TEST_PASSWORD);
+								}
+								break;
+							case PenProfileType.DeleteProfile:
+								{
+									_controller?.DeleteProfile(PEN_PROFILE_TEST_NAME, PEN_PROFILE_TEST_PASSWORD);
+								}
+								break;
+							case PenProfileType.ProfileInfo:
+								{
+									_controller?.GetProfileInfo(PEN_PROFILE_TEST_NAME);
+								}
+								break;
+							case PenProfileType.ReadProfileValue:
+								{
+									if (string.IsNullOrEmpty(ProfileKey))
+									{
+										OutputConsole += currentProfileType + " Can not execute without key";
+										return;
+									}
+									_controller?.ReadProfileValues(PEN_PROFILE_TEST_NAME, new string[] { ProfileKey });
+								}
+								break;
+							case PenProfileType.WriteProfileValue:
+								{
+									if (string.IsNullOrEmpty(ProfileKey))
+									{
+										OutputConsole += currentProfileType + " Can not execute without key";
+										return;
+									}
+									if (string.IsNullOrEmpty(ProfileValue))
+									{
+										OutputConsole += currentProfileType + " Can not execute without value";
+										return;
+									}
+									var value = System.Text.Encoding.UTF8.GetBytes(ProfileValue);
+									_controller?.WriteProfileValues(PEN_PROFILE_TEST_NAME, PEN_PROFILE_TEST_PASSWORD, new string[] { ProfileKey }, new byte[][] { value });
+								}
+								break;
+							case PenProfileType.DeleteProfileValue:
+								{
+									_controller?.DeleteProfileValues(PEN_PROFILE_TEST_NAME, PEN_PROFILE_TEST_PASSWORD, new string[] { profileKey });
+								}
+								break;
+						}
+					}
+					catch (Exception exp)
+					{
+						OutputConsole += exp.Message;
+					}
+				}
+				else
+				{
+					OutputConsole += "This Firmware is not supported pen profile";
+				}
+			}
+			else
+			{
+				OutputConsole += "Execute type error";
+			}
+		}
+
+		private void txtPenProfileOutput_TextChanged(object sender, TextChangedEventArgs e)
+		{
+			var textBox1 = sender as TextBox;
+			var grid = (Grid)VisualTreeHelper.GetChild(textBox1, 0);
+			for (var i = 0; i <= VisualTreeHelper.GetChildrenCount(grid) - 1; i++)
+			{
+				object obj = VisualTreeHelper.GetChild(grid, i);
+				if (!(obj is ScrollViewer)) continue;
+				((ScrollViewer)obj).ChangeView(0.0f, ((ScrollViewer)obj).ExtentHeight, 1.0f);
+				break;
+			}
+		}
+		#endregion
+
+		/***
+		 * Implements NotifyProperty
+		 */
+		#region NotifyPropertyChanged
+		public event PropertyChangedEventHandler PropertyChanged;
+		private void NotifyPropertyChanged([CallerMemberName] string propertyName = null)
+			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		#endregion
+	}
 }

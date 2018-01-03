@@ -115,7 +115,9 @@ namespace Neosmartpen.Net.Bluetooth
 				await streamSocket.ConnectAsync(bluetoothDevice.HostName, chatService.ConnectionServiceName);
 
 				// 여기가 좀 지저분함
-				(this.PenController as Neosmartpen.Net.PenController).Protocol = bluetoothDevice.ClassOfDevice.RawValue == ClassOfDeviceV1 ? Protocols.N2 : Protocols.F50;
+				(this.PenController as Neosmartpen.Net.PenController).Protocol = bluetoothDevice.ClassOfDevice.RawValue == ClassOfDeviceV1 ? Protocols.V1 : Protocols.V2;
+
+				await Task.Delay(200);
 
 				Bind(streamSocket);
 			}
