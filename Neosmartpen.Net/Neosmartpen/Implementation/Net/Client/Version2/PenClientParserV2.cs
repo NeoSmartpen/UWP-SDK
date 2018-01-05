@@ -144,6 +144,9 @@ namespace Neosmartpen.Net
 
 		public static readonly float PEN_PROFILE_SUPPORT_PROTOCOL_VERSION = 2.06f;
 
+		private bool isConnectWrite = false;
+		private int connectRetryCount = 0;
+
 		public bool HoverMode
 		{
 			get;
@@ -160,6 +163,7 @@ namespace Neosmartpen.Net
 			{
 				case Cmd.VERSION_RESPONSE:
 					{
+						isConnectWrite = true;
 						DeviceName = packet.GetString(16);
 						FirmwareVersion = packet.GetString(16);
 						ProtocolVersion = packet.GetString(8);
@@ -928,6 +932,32 @@ namespace Neosmartpen.Net
 			  .Put(Const.PK_ETX, false);
 
 			Send(bf);
+		}
+
+		public async void ReqVersionTask()
+		{
+			isConnectWrite = false;
+			connectRetryCount = 0;
+			await System.Threading.Tasks.Task.Factory.StartNew(async () =>
+			{
+				for(int i = 0; i < 3; ++i)
+				{
+					Debug.WriteLine($"Connection Task Try {i+1}");
+					if (isConnectWrite == false)
+					{
+						ReqVersion();
+
+						await System.Threading.Tasks.Task.Delay(1000);
+					}
+					else
+						break;
+				}
+				Debug.WriteLine($"Connection Finish");
+				if (isConnectWrite == false)
+				{
+					PenController.PenClient.Unbind();
+				}
+			});
 		}
 
 		#region password
