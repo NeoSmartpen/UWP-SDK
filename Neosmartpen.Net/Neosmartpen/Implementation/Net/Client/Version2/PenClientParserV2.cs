@@ -159,11 +159,11 @@ namespace Neosmartpen.Net
 
 			//Debug.Write("Cmd : {0}", cmd.ToString());
 
+			isConnectWrite = true;
 			switch (cmd)
 			{
 				case Cmd.VERSION_RESPONSE:
 					{
-						isConnectWrite = true;
 						DeviceName = packet.GetString(16);
 						FirmwareVersion = packet.GetString(16);
 						ProtocolVersion = packet.GetString(8);
@@ -417,7 +417,7 @@ namespace Neosmartpen.Net
 							pages[i] = packet.GetInt();
 						}
 
-						OfflineDataInfo info = new OfflineDataInfo(section, owner, note);
+						OfflineDataInfo info = new OfflineDataInfo(section, owner, note, pages);
 
 						PenController.onReceiveOfflineDataList(new OfflineDataListReceivedEventArgs(info));
 					}
