@@ -115,6 +115,8 @@ namespace Neosmartpen.Net
 		public static readonly string PEN_MODEL_NAME_F110 = "NWP-F110";
 		public static readonly string PEN_MODEL_NAME_F110C = "NWP-F110C";
 
+		private bool isIgnorePenStatus = false;
+
 		public PenClientParserV1(PenController penClient) 
 		{
 			this.PenController = penClient;
@@ -286,7 +288,6 @@ namespace Neosmartpen.Net
                     break;
 
 				case Cmd.A_PenOnState:
-
 					packet.Move(8);
 
 					int STATUS = packet.GetByteToInt();
@@ -307,6 +308,7 @@ namespace Neosmartpen.Net
 						SendPenOnOffData();
 						SendRTCData();
 
+						isIgnorePenStatus = true;
 						needToInputDefaultPassword = true;
                         PenController.onConnected(new ConnectedEventArgs(SW_VER, FORCE_MAX));
 						PenMaxForce = FORCE_MAX;
@@ -319,11 +321,12 @@ namespace Neosmartpen.Net
 					break;
 
 				case Cmd.A_PenStatusResponse:
+					if (needToInputDefaultPassword)
+						break;
 
 					if (!Authenticated)
 					{
 						Authenticated = true;
-						needToInputDefaultPassword = false;
                         PenController.onPenAuthenticated();
 					}
 
