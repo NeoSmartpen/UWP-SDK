@@ -1421,26 +1421,26 @@ namespace Neosmartpen.Net
 
 		public bool IsSupportPenProfile()
 		{
-			if (connectedDeviceName != null)
-			{
-				float ver = 0f;
-				string[] temp = protocolVersion.Split('.');
-				try
-				{
-					ver = FloatConverter.ToSingle(temp[0] + "." + temp[1]);
-				}
-				catch (Exception e)
-				{
-					Debug.WriteLine(e.StackTrace);
-				}
+			//if (connectedDeviceName != null)
+			//{
+			//	float ver = 0f;
+			//	string[] temp = protocolVersion.Split('.');
+			//	try
+			//	{
+			//		ver = FloatConverter.ToSingle(temp[0] + "." + temp[1]);
+			//	}
+			//	catch (Exception e)
+			//	{
+			//		Debug.WriteLine(e.StackTrace);
+			//	}
 
-				if (connectedDeviceName.Equals(PEN_MODEL_NAME_F110) && ver >= PEN_PROFILE_SUPPORT_VERSION_F110)
-					return true;
-				else if (connectedDeviceName.Equals(PEN_MODEL_NAME_F110C) && ver >= PEN_PROFILE_SUPPORT_VERSION_F110C)
-					return true;
-				else
-					return false;
-			}
+			//	if (connectedDeviceName.Equals(PEN_MODEL_NAME_F110) && ver >= PEN_PROFILE_SUPPORT_VERSION_F110)
+			//		return true;
+			//	else if (connectedDeviceName.Equals(PEN_MODEL_NAME_F110C) && ver >= PEN_PROFILE_SUPPORT_VERSION_F110C)
+			//		return true;
+			//	else
+			//		return false;
+			//}
 
 			return false;
 		}

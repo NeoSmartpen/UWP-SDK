@@ -142,7 +142,7 @@ namespace Neosmartpen.Net
 		private FilterForPaper dotFilterForPaper = null;
 		private FilterForPaper offlineFilterForPaper = null;
 
-		public static readonly float PEN_PROFILE_SUPPORT_PROTOCOL_VERSION = 2.06f;
+		public static readonly float PEN_PROFILE_SUPPORT_PROTOCOL_VERSION = 2.10f;
 
 		private bool isConnectWrite = false;
 		private int connectRetryCount = 0;
