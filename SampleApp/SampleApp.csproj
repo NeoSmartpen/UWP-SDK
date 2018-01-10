@@ -106,7 +106,7 @@
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="MainPage_PenEvents.cs" />
-    <Compile Include="MainPage_PenProfileTest.cs" />
+    <Compile Include="TestCase\MainPage_PenProfileTest.cs" />
     <Compile Include="MainPage_Renderer.xaml.cs" />
     <Compile Include="NColor.cs" />
     <Compile Include="PasswordInputDialog.xaml.cs">
@@ -116,6 +116,7 @@
       <DependentUpon>ProgressDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestCase\MainPage_PenStatusTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">

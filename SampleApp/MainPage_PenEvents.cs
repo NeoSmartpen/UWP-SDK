@@ -151,6 +151,8 @@ namespace SampleApp
 
         private void MController_BeepSoundChanged(IPenClient sender, SimpleResultEventArgs args)
         {
+			if (isTest)
+				return;
             _controller?.RequestPenStatus();
         }
 		private void MController_PenColorChanged(IPenClient sender, SimpleResultEventArgs args)
@@ -165,16 +167,22 @@ namespace SampleApp
 
         private void MController_AutoPowerOnChanged(IPenClient sender, SimpleResultEventArgs args)
         {
+			if (isTest)
+				return;
             _controller?.RequestPenStatus();
         }
 
         private void MController_AutoPowerOffTimeChanged(IPenClient sender, SimpleResultEventArgs args)
         {
+			if (isTest)
+				return;
             _controller?.RequestPenStatus();
         }
 
         private void MController_PenStatusReceived(IPenClient sender, PenStatusReceivedEventArgs args)
         {
+			if (isTest)
+				return;
             cbPenCapPowerControl.IsChecked = args.PenCapPower;
             
             foreach ( ComboBoxItem item in cbAutoPoweroffTime.Items )
@@ -285,6 +293,7 @@ namespace SampleApp
 			{
 				lastArgs = args;
 				autoResetEvent.Set();
+				return;
 			}
 			switch (args.Type)
 			{
