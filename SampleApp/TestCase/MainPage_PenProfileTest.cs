@@ -21,7 +21,7 @@ namespace SampleApp
 		};
 		private static string dataAA = "AATestisGood";
 		private static string dataBB = "neolabneolabnoelab";
-		private static string dataCC = "StringTest";
+		private static string dataCC = "asdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasfd";
 		private static float dataDD = 123.456f;
 		private static int dataEE = 20180101;
 		private static byte[][] testData =
@@ -33,6 +33,8 @@ namespace SampleApp
 			BitConverter.GetBytes(dataEE)
 		};
 		private static Dictionary<string, byte[]> testDictionary = new Dictionary<string, byte[]>();
+		public string testConsole { get; set; }
+		public string TestConsole { get { return testConsole; } set { testConsole = value + Environment.NewLine; NotifyPropertyChanged(); } }
 		private async void ButtonPenProfileTest_Click(object sender, RoutedEventArgs e)
 		{
 			await Task.Factory.StartNew(() =>
@@ -97,7 +99,7 @@ namespace SampleApp
 		{
 			await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
 			{
-				OutputConsole += str;
+				TestConsole += str;
 			});
 		}
 

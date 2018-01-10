@@ -142,7 +142,10 @@ namespace Neosmartpen.Net
 		private FilterForPaper dotFilterForPaper = null;
 		private FilterForPaper offlineFilterForPaper = null;
 
-		public static readonly float PEN_PROFILE_SUPPORT_PROTOCOL_VERSION = 2.06f;
+		public static readonly float PEN_PROFILE_SUPPORT_PROTOCOL_VERSION = 2.10f;
+
+		private bool isConnectWrite = false;
+		private int connectRetryCount = 0;
 
 		public bool HoverMode
 		{
@@ -156,6 +159,7 @@ namespace Neosmartpen.Net
 
 			//Debug.Write("Cmd : {0}", cmd.ToString());
 
+			isConnectWrite = true;
 			switch (cmd)
 			{
 				case Cmd.VERSION_RESPONSE:
@@ -413,7 +417,7 @@ namespace Neosmartpen.Net
 							pages[i] = packet.GetInt();
 						}
 
-						OfflineDataInfo info = new OfflineDataInfo(section, owner, note);
+						OfflineDataInfo info = new OfflineDataInfo(section, owner, note, pages);
 
 						PenController.onReceiveOfflineDataList(new OfflineDataListReceivedEventArgs(info));
 					}
@@ -928,6 +932,32 @@ namespace Neosmartpen.Net
 			  .Put(Const.PK_ETX, false);
 
 			Send(bf);
+		}
+
+		public async void ReqVersionTask()
+		{
+			isConnectWrite = false;
+			connectRetryCount = 0;
+			await System.Threading.Tasks.Task.Factory.StartNew(async () =>
+			{
+				for(int i = 0; i < 3; ++i)
+				{
+					Debug.WriteLine($"Connection Task Try {i+1}");
+					if (isConnectWrite == false)
+					{
+						ReqVersion();
+
+						await System.Threading.Tasks.Task.Delay(1000);
+					}
+					else
+						break;
+				}
+				Debug.WriteLine($"Connection Finish");
+				if (isConnectWrite == false)
+				{
+					PenController.PenClient.Unbind();
+				}
+			});
 		}
 
 		#region password

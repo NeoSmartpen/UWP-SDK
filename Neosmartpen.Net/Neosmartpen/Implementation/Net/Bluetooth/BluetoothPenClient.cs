@@ -275,30 +275,35 @@ namespace Neosmartpen.Net.Bluetooth
 
 		private async Task<List<PenInformation>> SearchDevicesWithoutWatcher(string deviceSelector)
 		{
+			if (penList == null)
+				penList = new List<PenInformation>();
 			penList.Clear();
 			var deviceInfo = await DeviceInformation.FindAllAsync(deviceSelector, RequestedProperties);
 
 			foreach (var info in deviceInfo)
 			{
-                object value;
-
-                if (info.Properties.TryGetValue("System.Devices.Aep.DeviceAddress", out value))
+				if ( info != null)
 				{
-					if (ValidateMacAddress(value.ToString()))
+					object value;
+
+					if (info.Properties != null && info.Properties.TryGetValue("System.Devices.Aep.DeviceAddress", out value))
 					{
-						object valueRssi;
-						int rssi = 0;
-						info.Properties.TryGetValue("System.Devices.Aep.SignalStrength", out valueRssi);
-						if (valueRssi != null)
+						if (ValidateMacAddress(value.ToString()))
 						{
-							rssi = (int)valueRssi;
+							object valueRssi;
+							int rssi = 0;
+							info.Properties.TryGetValue("System.Devices.Aep.SignalStrength", out valueRssi);
+							if (valueRssi != null)
+							{
+								rssi = (int)valueRssi;
+							}
+
+							PenInformation penInfo = new PenInformation(info);
+							penInfo.MacAddress = value.ToString();
+							penInfo.Rssi = rssi;
+
+							penList.Add(penInfo);
 						}
-
-						PenInformation penInfo = new PenInformation(info);
-						penInfo.MacAddress = value.ToString();
-						penInfo.Rssi = rssi;
-
-						penList.Add(penInfo);
 					}
 				}
 			}

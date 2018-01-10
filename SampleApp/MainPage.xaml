@@ -24,6 +24,11 @@
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Margin" Value="0,8,0,5"/>
         </Style>
+        <Style x:Key="TestTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Margin" Value="0,8,0,5"/>
+        </Style>
         <Style TargetType="TextBox">
             <Setter Property="Background" Value="White" />
             <Setter Property="BorderThickness" Value="1" />
@@ -210,7 +215,6 @@
 					<StackPanel>
 						<RelativePanel>
 							<TextBlock TextWrapping="Wrap" Text="Pen Profile Test" Style="{StaticResource Title}"/>
-							<Button RelativePanel.AlignRightWithPanel="True" Margin="0,12,0,0" Content="Test" Click="ButtonPenProfileTest_Click"/>
 						</RelativePanel>
 
 						<TextBox Text="{x:Bind OutputConsole, Mode=OneWay}" x:Name="txtPenProfileOutput" AcceptsReturn="True" IsReadOnly="True" Height="300" TextChanged="txtPenProfileOutput_TextChanged"/>
@@ -233,6 +237,29 @@
 							<TextBox Text="{x:Bind ProfileValue, Mode=TwoWay}" Visibility="{x:Bind ProfileValueVisibility, Mode=OneWay}" Grid.Column="1" />
 							<Button Margin="0,12,0,0" Content="Execute" HorizontalAlignment="Right" Click="ButtonProfileExecute_Click"/>
 						</StackPanel>
+					</StackPanel>
+				</PivotItem>
+				<PivotItem Header="Test Set">
+					<StackPanel>
+						<TextBlock TextWrapping="Wrap" Text="Unit Test" Style="{StaticResource TestTitle}"/>
+						<TextBox Text="{x:Bind TestConsole, Mode=OneWay}" x:Name="txtTestOutput" AcceptsReturn="True" IsReadOnly="True" Height="300" TextChanged="txtPenProfileOutput_TextChanged"/>
+						<TextBlock TextWrapping="Wrap" Text="Test Case" Style="{StaticResource TestTitle}"/>
+						<ScrollViewer>
+							<Grid>
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="450"/>
+									<ColumnDefinition Width="*"/>
+								</Grid.ColumnDefinitions>
+								<Grid.RowDefinitions>
+									<RowDefinition Height="*"/>
+									<RowDefinition Height="*"/>
+								</Grid.RowDefinitions>
+								<TextBlock Text="Pen Status Test" VerticalAlignment="Center" FontSize="12" />
+								<Button Grid.Column="1" HorizontalAlignment="Center" Margin="0,0,0,0" Content="Run" Click="ButtonPenStatusTest_Click"/>
+								<TextBlock Grid.Row="1" Text="Pen Profile Test" VerticalAlignment="Center" Margin="0,12,0,0" FontSize="12" />
+								<Button Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" Margin="0,12,0,0" Content="Run" Click="ButtonPenProfileTest_Click"/>
+							</Grid>
+						</ScrollViewer>
 					</StackPanel>
 				</PivotItem>
 			</Pivot>

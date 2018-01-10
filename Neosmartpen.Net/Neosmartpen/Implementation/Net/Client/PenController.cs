@@ -675,7 +675,7 @@ namespace Neosmartpen.Net
         {
             if (Protocol != Protocols.V1)
             {
-                mClientV2.ReqVersion();
+                mClientV2.ReqVersionTask();
             }
         }
 
