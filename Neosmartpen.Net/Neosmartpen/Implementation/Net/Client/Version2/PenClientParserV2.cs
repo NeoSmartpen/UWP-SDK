@@ -1681,9 +1681,10 @@ namespace Neosmartpen.Net
 
 					int cmd = mBuffer.GetByteToInt();
 
+					// event command is 0x6X
 					string cmdstr = Enum.GetName(typeof(Cmd), cmd);
 
-					int result_size = cmdstr != null && cmdstr.EndsWith("RESPONSE") ? 1 : 0;
+					int result_size = (cmd>>4) != 0x6 && cmdstr != null && cmdstr.EndsWith("RESPONSE") ? 1 : 0;
 
 					int result = result_size > 0 ? mBuffer.GetByteToInt() : -1;
 
