@@ -815,7 +815,7 @@ namespace Neosmartpen.Net
                         //오류
                     }
 
-                    if (dot != null)
+                    if (dot != null && mPrevDot != null)
                     {
 						ProcessDot(dot);
                         //PenController.onReceiveDot(new DotReceivedEventArgs(dot));
@@ -830,7 +830,7 @@ namespace Neosmartpen.Net
 				case Cmd.ONLINE_PAPER_INFO_EVENT:
                     
                     // 미들도트 중에 페이지가 바뀐다면 강제로 펜업을 만들어 준다.
-                    if (IsBeforeMiddle)
+                    if (IsBeforeMiddle && mPrevDot != null)
                     {
                         var audot = mPrevDot.Clone();
                         audot.DotType = DotTypes.PEN_UP;
