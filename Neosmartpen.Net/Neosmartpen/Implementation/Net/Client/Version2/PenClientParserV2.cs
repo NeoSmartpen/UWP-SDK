@@ -76,6 +76,10 @@ namespace Neosmartpen.Net
 			PEN_PROFILE_REQUEST =0x41,
 			PEN_PROFILE_RESPONSE = 0xC1
 		};
+
+		public static readonly float PEN_PROFILE_SUPPORT_PROTOCOL_VERSION = 2.10f;
+		private readonly string DEFAULT_PASSWORD = "0000";
+
 		public PenClientParserV2(PenController penClient)
 		{
 			this.PenController = penClient;
@@ -135,17 +139,14 @@ namespace Neosmartpen.Net
 
 		//private Dot previousDot = null;
 
-		private readonly string DEFAULT_PASSWORD = "0000";
 		private bool reCheckPassword = false;
 		private string newPassword;
 
 		private FilterForPaper dotFilterForPaper = null;
 		private FilterForPaper offlineFilterForPaper = null;
 
-		public static readonly float PEN_PROFILE_SUPPORT_PROTOCOL_VERSION = 2.10f;
 
 		private bool isConnectWrite = false;
-		private int connectRetryCount = 0;
 
 		public bool HoverMode
 		{
@@ -171,6 +172,10 @@ namespace Neosmartpen.Net
 						DeviceType = packet.GetShort();
 						MaxForce = -1;
 						MacAddress = BitConverter.ToString(packet.GetBytes(6)).Replace("-", "");
+
+						bool isMG = isF121MG(MacAddress);
+						if (isMG && DeviceName.Equals("NWP-F121") && DeviceName.Equals("Mbest_smartpenS"))
+							DeviceName = "NWP-F121MG";
 
 						IsUploading = false;
 
@@ -937,7 +942,6 @@ namespace Neosmartpen.Net
 		public async void ReqVersionTask()
 		{
 			isConnectWrite = false;
-			connectRetryCount = 0;
 			await System.Threading.Tasks.Task.Factory.StartNew(async () =>
 			{
 				for(int i = 0; i < 3; ++i)
@@ -1650,6 +1654,20 @@ namespace Neosmartpen.Net
 				.dotType(type)
 				.color(color);
 			return builder.Build();
+		}
+
+		private bool isF121MG(string macAddress)
+		{
+			const string MG_F121_MAC_START = "9C:7B:D2:22:00:00";
+			const string MG_F121_MAC_END = "9C:7B:D2:22:18:06";
+			ulong address = Convert.ToUInt64(macAddress.Replace(":", ""), 16);
+			ulong mgStart = Convert.ToUInt64(MG_F121_MAC_START.Replace(":", ""), 16);
+			ulong mgEnd = Convert.ToUInt64(MG_F121_MAC_END.Replace(":", ""), 16);
+
+			if (address >= mgStart && address <= mgEnd)
+				return true;
+			else
+				return false;
 		}
 
 		#endregion
