@@ -1000,7 +1000,7 @@ namespace Neosmartpen.Net
 		{
 			byte[] ownerByte = ByteConverter.IntToByte(ownerId);
 
-			short length = (short)(5 + 4);
+			short length = (short)(5 + 40);
 
 			ByteUtil bf = new ByteUtil();
 
@@ -1013,6 +1013,7 @@ namespace Neosmartpen.Net
 			  .Put((byte)sectionId)
 			  .Put((byte)1)
 			  .PutInt(noteId)
+			  .PutNull(36)
 			  .Put((byte)0xC1);
 
             PenController.PenClient.Write(bf.ToArray());
