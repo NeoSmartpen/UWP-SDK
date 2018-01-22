@@ -268,7 +268,7 @@ namespace Neosmartpen.Net
 				case Cmd.A_DotIDChange:
 
                     // 미들도트 중에 페이지가 바뀐다면 강제로 펜업을 만들어 준다.
-                    if (IsBeforeMiddle)
+                    if (IsBeforeMiddle && mPrevDot != null)
                     {
                         var audot = mPrevDot.Clone();
                         audot.DotType = DotTypes.PEN_UP;
@@ -1000,7 +1000,7 @@ namespace Neosmartpen.Net
 		{
 			byte[] ownerByte = ByteConverter.IntToByte(ownerId);
 
-			short length = (short)(5 + 4);
+			short length = (short)(5 + 40);
 
 			ByteUtil bf = new ByteUtil();
 
@@ -1013,6 +1013,7 @@ namespace Neosmartpen.Net
 			  .Put((byte)sectionId)
 			  .Put((byte)1)
 			  .PutInt(noteId)
+			  .PutNull(36)
 			  .Put((byte)0xC1);
 
             PenController.PenClient.Write(bf.ToArray());
