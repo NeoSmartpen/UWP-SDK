@@ -174,7 +174,7 @@ namespace Neosmartpen.Net
 						MacAddress = BitConverter.ToString(packet.GetBytes(6)).Replace("-", "");
 
 						bool isMG = isF121MG(MacAddress);
-						if (isMG && DeviceName.Equals("NWP-F121") && DeviceName.Equals("Mbest_smartpenS"))
+						if (isMG && DeviceName.Equals("NWP-F121") && SubName.Equals("Mbest_smartpenS"))
 							DeviceName = "NWP-F121MG";
 
 						IsUploading = false;
