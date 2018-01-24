@@ -820,7 +820,7 @@ namespace Neosmartpen.Net
                         //오류
                     }
 
-                    if (dot != null && mPrevDot != null)
+                    if (dot != null)
                     {
 						ProcessDot(dot);
                         //PenController.onReceiveDot(new DotReceivedEventArgs(dot));
