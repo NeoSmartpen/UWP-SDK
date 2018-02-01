@@ -897,23 +897,28 @@ namespace Neosmartpen.Net
 		/// <param name="notes">The array of Note Id list</param>
 		public void ReqAddUsingNote(int section, int owner, int[] notes)
 		{
-			List<int> alnoteIds = new List<int>();
-
-			for (int i = 0; i < notes.Length; i++)
+			if (notes == null || notes.Length == 0)
+				SendAddUsingNote(section, owner);
+			else
 			{
-				alnoteIds.Add(notes[i]);
+				List<int> alnoteIds = new List<int>();
 
-				if (i > 0 && i % 8 == 0)
+				for (int i = 0; i < notes.Length; i++)
+				{
+					alnoteIds.Add(notes[i]);
+
+					if (i > 0 && i % 8 == 0)
+					{
+						SendAddUsingNote(section, owner, alnoteIds);
+						alnoteIds.Clear();
+					}
+				}
+
+				if (alnoteIds.Count > 0)
 				{
 					SendAddUsingNote(section, owner, alnoteIds);
 					alnoteIds.Clear();
 				}
-			}
-
-			if (alnoteIds.Count > 0)
-			{
-				SendAddUsingNote(section, owner, alnoteIds);
-				alnoteIds.Clear();
 			}
 		}
 
@@ -941,6 +946,34 @@ namespace Neosmartpen.Net
 			}
 
 			bf.Put((byte)0xC1);
+
+            PenController.PenClient.Write(bf.ToArray());
+
+            bf.Clear();
+            bf = null;
+
+            return true;
+        }
+
+		private bool SendAddUsingNote(int sectionId, int ownerId)
+		{
+			byte[] ownerByte = ByteConverter.IntToByte(ownerId);
+
+			short length = 42;
+
+			ByteUtil bf = new ByteUtil();
+
+			bf.Put((byte)0xC0)
+			  .Put((byte)Cmd.P_UsingNoteNotify)
+			  .PutShort(length)
+			  .Put((byte)2)
+			  .Put((byte)1)
+			  .Put(ownerByte[0])
+			  .Put(ownerByte[1])
+			  .Put(ownerByte[2])
+			  .Put((byte)sectionId)
+			  .PutNull(36)
+			  .Put((byte)0xC1);
 
             PenController.PenClient.Write(bf.ToArray());
 
