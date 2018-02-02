@@ -402,12 +402,29 @@ namespace Neosmartpen.Net
             Request(() => mClientV1.ReqAddUsingNote(section, owner, notes), () => mClientV2.ReqAddUsingNote( section, owner, notes));
         }
 
-        //public bool RequestOfflineDataList(int section, int owner, int note);
+		/// <summary>
+		/// Sets the available notebook types
+		/// </summary>
+		/// <param name="section">The array of section Id of the paper list</param>
+		/// <param name="owner">The array of owner Id of the paper list</param>
+        public void AddAvailableNote(int[] section, int[] owner)
+		{
+			if (section == null)
+				throw new ArgumentNullException("section");
+			if (owner == null)
+				throw new ArgumentNullException("onwer");
+			if ( section.Length != owner.Length)
+				throw new ArgumentOutOfRangeException("section, owner", "The number of section and owner does not match");
 
-        /// <summary>
-        /// Requests the list of Offline data
-        /// </summary>
-        public void RequestOfflineDataList()
+            Request(() => mClientV1.ReqAddUsingNote(section, owner), () => mClientV2.ReqAddUsingNote( section, owner ));
+		}
+
+		//public bool RequestOfflineDataList(int section, int owner, int note);
+
+		/// <summary>
+		/// Requests the list of Offline data
+		/// </summary>
+		public void RequestOfflineDataList()
         {
             Request(() => mClientV1.ReqOfflineDataList(), () => mClientV2.ReqOfflineDataList());
         }
