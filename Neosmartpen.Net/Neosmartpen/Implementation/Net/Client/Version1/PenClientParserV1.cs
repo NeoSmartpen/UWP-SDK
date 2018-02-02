@@ -835,6 +835,15 @@ namespace Neosmartpen.Net
 			return SendAddUsingNote(section, owner, alnoteIds);
 		}
 
+		public bool ReqAddUsingNote(int[] section, int[] owner)
+		{
+			for(int i =0; i < section.Length; ++i)
+			{
+				ReqAddUsingNote(section[i], owner[i]);
+			}
+			return true;
+		}
+
 		/// <summary>
 		/// Sets the available notebook type
 		/// </summary>

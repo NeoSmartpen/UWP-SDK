@@ -1238,6 +1238,25 @@ namespace Neosmartpen.Net
 
 			return Send(bf);
 		}
+		private bool SendAddUsingNote(int[] sectionId, int[] ownerId)
+		{
+			ByteUtil bf = new ByteUtil(Escape);
+
+			bf.Put(Const.PK_STX, false)
+			  .Put((byte)Cmd.ONLINE_DATA_REQUEST);
+
+			bf.PutShort((short)(2 + sectionId.Length * 8))
+				.PutShort((short)sectionId.Length);
+			for(int i = 0; i < sectionId.Length; ++i)
+			{
+				bf.Put(GetSectionOwnerByte(sectionId[i], ownerId[i]))
+				  .Put(0xFF).Put(0xFF).Put(0xFF).Put(0xFF);
+			}
+
+			bf.Put(Const.PK_ETX, false);
+
+			return Send(bf);
+		}
 
 		/// <summary>
 		/// Sets the available notebook type
@@ -1257,6 +1276,17 @@ namespace Neosmartpen.Net
 		public bool ReqAddUsingNote(int section, int owner, int[] notes = null)
 		{
 			return SendAddUsingNote(section, owner, notes);
+		}
+
+		/// <summary>
+		/// Set the available notebook type lits
+		/// </summary>
+		/// <param name="section">The array of section Id of the paper list</param>
+		/// <param name="owner">The array of owner Id of the paper list</param>
+		/// <returns></returns>
+		public bool ReqAddUsingNote(int[] section, int[] owner)
+		{
+			return SendAddUsingNote(section, owner);
 		}
 
 		#endregion
