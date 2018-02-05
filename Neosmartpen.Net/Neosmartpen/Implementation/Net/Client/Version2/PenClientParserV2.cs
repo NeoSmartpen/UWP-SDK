@@ -79,6 +79,8 @@ namespace Neosmartpen.Net
 
 		public static readonly float PEN_PROFILE_SUPPORT_PROTOCOL_VERSION = 2.10f;
 		private readonly string DEFAULT_PASSWORD = "0000";
+		private readonly string F121 = "NWP-F121";
+		private readonly string F121MG = "NWP-F121MG";
 
 		public PenClientParserV2(PenController penClient)
 		{
@@ -174,8 +176,8 @@ namespace Neosmartpen.Net
 						MacAddress = BitConverter.ToString(packet.GetBytes(6)).Replace("-", "");
 
 						bool isMG = isF121MG(MacAddress);
-						if (isMG && DeviceName.Equals("NWP-F121") && SubName.Equals("Mbest_smartpenS"))
-							DeviceName = "NWP-F121MG";
+						if (isMG && DeviceName.Equals(F121) && SubName.Equals("Mbest_smartpenS"))
+							DeviceName = F121MG;
 
 						IsUploading = false;
 
@@ -1459,7 +1461,11 @@ namespace Neosmartpen.Net
 
 			byte[] StrVersionByte = Encoding.UTF8.GetBytes(version);
 
-			byte[] StrDeviceByte = Encoding.UTF8.GetBytes(DeviceName);
+			string deviceName = DeviceName;
+			if (deviceName.Equals(F121MG))
+				deviceName = F121;
+
+			byte[] StrDeviceByte = Encoding.UTF8.GetBytes(deviceName);
 
 			Debug.WriteLine("[FileUploadWorker] file upload => filesize : {0}, packet count : {1}, packet size {2}", file_size, chunk_count, chunk_size);
 
