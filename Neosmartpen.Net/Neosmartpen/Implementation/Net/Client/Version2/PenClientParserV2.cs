@@ -779,7 +779,7 @@ namespace Neosmartpen.Net
                         // 펜업이 넘어오지 않음
                         var errorDot = mPrevDot.Clone();
                         errorDot.DotType = DotTypes.PEN_ERROR;
-                        PenController.onErrorDetected(new ErrorReceivedEventArgs(ErrorType.MissingPenUp, errorDot, sessionTs));
+                        PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenUp, errorDot, sessionTs));
                     }
 
                     IsBeforeMiddle = false;
@@ -804,7 +804,7 @@ namespace Neosmartpen.Net
                     {
                         // 펜업이지만 이전에 도트가 없으면
                         // 즉 다운업(무브없이) 혹은 업만 들어올 경우 UP dot을 보내지 않음
-                        PenController.onErrorDetected(new ErrorReceivedEventArgs(ErrorType.MissingPenDownPenMove, sessionTs));
+                        PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenDownPenMove, sessionTs));
 
                         sessionTs = mTime;
                     }
@@ -842,13 +842,13 @@ namespace Neosmartpen.Net
                         if (!IsStartWithPaperInfo)
                         {
                             //펜 다운 없이 페이퍼 정보 없고 무브가 오는 현상(다운 - 무브 - 업 - 다운X - 무브)
-                            PenController.onErrorDetected(new ErrorReceivedEventArgs(ErrorType.MissingPenDown, -1));
+                            PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenDown, -1));
                         }
                         else
                         {
                             var errorDot = MakeDot(PenMaxForce, mCurOwner, mCurSection, mCurNote, mCurPage, mTime, x, y, fx, fy, force, DotTypes.PEN_ERROR, mPenTipColor);
                             //펜 다운 없이 페이퍼 정보 있고 무브가 오는 현상(다운 - 무브 - 업 - 다운X - 무브)
-                            PenController.onErrorDetected(new ErrorReceivedEventArgs(ErrorType.MissingPenDown, errorDot, - 1));
+                            PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenDown, errorDot, - 1));
                         }
                     }
 

@@ -280,8 +280,8 @@ namespace Neosmartpen.Net
         /// <summary>
         /// Occurs when error received
         /// </summary>
-        public event TypedEventHandler<IPenClient, ErrorReceivedEventArgs> ErrorDetected;
-        internal void onErrorDetected(ErrorReceivedEventArgs args)
+        public event TypedEventHandler<IPenClient, ErrorDetectedEventArgs> ErrorDetected;
+        internal void onErrorDetected(ErrorDetectedEventArgs args)
         {
             ErrorDetected?.Invoke(PenClient, args);
         }

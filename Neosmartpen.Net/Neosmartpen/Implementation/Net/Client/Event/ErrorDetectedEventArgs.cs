@@ -10,15 +10,15 @@
         NdacError = 6
     }
 
-    public sealed class ErrorReceivedEventArgs
+    public sealed class ErrorDetectedEventArgs
     {
-        internal ErrorReceivedEventArgs(ErrorType errorType, long ts)
+        internal ErrorDetectedEventArgs(ErrorType errorType, long ts)
         {
             ErrorType = errorType;
             Timestamp = ts;
         }
 
-        internal ErrorReceivedEventArgs(ErrorType errorType, Dot dot, long ts)
+        internal ErrorDetectedEventArgs(ErrorType errorType, Dot dot, long ts)
         {
             ErrorType = errorType;
             Dot = dot;
