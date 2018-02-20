@@ -89,7 +89,7 @@ namespace Neosmartpen.Net
 		//private IPacket mPrevPacket;
 		private int mOwnerId = 0, mSectionId = 0, mNoteId = 0, mPageId = 0;
 		private long mPrevDotTime = 0;
-		private bool IsPrevDotDown = false;
+		//private bool IsPrevDotDown = false;
 		private bool IsStartWithDown = false;
 		private int mCurrentColor = 0x000000;
 		private String mOfflineFileName;
@@ -155,18 +155,26 @@ namespace Neosmartpen.Net
 		{
 			Debug.WriteLine("[PenCommCore] Reset");
 
-			IsPrevDotDown = false;
 			IsStartWithDown = false;
+            IsBeforeMiddle = false;
+            IsStartWithPaperInfo = false;
+            IsBeforePaperInfo = false;
 
-			Authenticated = false;
+            Authenticated = false;
 
 			IsUploading = false;
 
 			IsStartOfflineTask = false;
 		}
 
-        Dot mPrevDot;
-        bool IsBeforeMiddle = false;
+        private Dot mPrevDot;
+
+        private bool IsBeforeMiddle = false;
+
+        private bool IsStartWithPaperInfo = false;
+        private bool IsBeforePaperInfo = false;
+
+        private long sessionTs = -1;
 
         public void ParsePacket(Packet packet)
 		{
@@ -185,12 +193,6 @@ namespace Neosmartpen.Net
 
 						long timeLong = mPrevDotTime + time;
 
-						if (!IsStartWithDown || timeLong < 10000)
-						{
-							Debug.WriteLine("[PenCommCore] this stroke start with middle dot.");
-							return;
-						}
-
                         Dot.Builder builder = null;
                         if (PenMaxForce == 0)
                             builder = new Dot.Builder();
@@ -205,26 +207,55 @@ namespace Neosmartpen.Net
                             .force(force)
                             .color(mCurrentColor);
 
-                        if (IsPrevDotDown)
+                        Dot dot = null;
+
+                        if (IsStartWithDown && IsStartWithPaperInfo && IsBeforePaperInfo)
 						{
-							// 펜업의 경우 시작 도트로 저장
-                            builder.dotType(DotTypes.PEN_DOWN);
-                            IsPrevDotDown = false;
+                            // 펜다운의 경우 시작 도트로 저장
+                            dot = builder.dotType(DotTypes.PEN_DOWN).Build();
                         }
-						else
+						else if (IsStartWithDown && IsStartWithPaperInfo && !IsBeforePaperInfo && IsBeforeMiddle)
 						{
-                            // 펜업이 아닌 경우 미들 도트로 저장
-                            builder.dotType(DotTypes.PEN_MOVE);
+                            // 펜다운이 아닌 경우 미들 도트로 저장
+                            dot = builder.dotType(DotTypes.PEN_MOVE).Build();
+                        }
+                        else
+                        {
+                            if (!IsStartWithDown)
+                            {
+                                if (!IsStartWithPaperInfo)
+                                {
+                                    //펜 다운 없이 페이퍼 정보 없고 무브가 오는 현상(다운 - 무브 - 업 - 다운X - 무브)
+                                    PenController.onErrorDetected(new ErrorReceivedEventArgs(ErrorType.MissingPenDown, -1));
+                                }
+                                else
+                                {
+                                    //펜 다운 없이 페이퍼 정보 있고 무브가 오는 현상(다운 - 무브 - 업 - 다운X - 무브)
+                                    builder.dotType(DotTypes.PEN_ERROR);
+                                    var errorDot = builder.Build();
+                                    PenController.onErrorDetected(new ErrorReceivedEventArgs(ErrorType.MissingPenDown, errorDot, -1));
+                                }
+                            }
+
+                            if (timeLong < 10000)
+                            {
+                                // 타임스템프가 10000보다 작을 경우 도트 필터링
+                                builder.dotType(DotTypes.PEN_ERROR);
+                                var errorDot = builder.Build();
+                                PenController.onErrorDetected(new ErrorReceivedEventArgs(ErrorType.InvalidTime, errorDot, sessionTs));
+                            }
                         }
 
-                        Dot dot = builder.Build();
-
-						ProcessDot(dot);
-                        //PenController.onReceiveDot(new DotReceivedEventArgs(dot));
+                        if (dot != null)
+                        {
+                            ProcessDot(dot);
+                        }
 
                         mPrevDot = dot;
                         mPrevDotTime = timeLong;
+
                         IsBeforeMiddle = true;
+                        IsBeforePaperInfo = false;
                     }
 					break;
 
@@ -242,11 +273,21 @@ namespace Neosmartpen.Net
 
 						if (updown == 0x00)
 						{
-							// 펜 다운 일 경우 Start Dot의 timestamp 설정
-							mPrevDotTime = updownTime;
-							IsPrevDotDown = true;
+                            // 펜 다운 일 경우 Start Dot의 timestamp 설정
+                            mPrevDotTime = updownTime;
+							//IsPrevDotDown = true;
 							IsStartWithDown = true;
-						}
+
+                            if (IsBeforeMiddle && mPrevDot != null)
+                            {
+                                // 펜업이 넘어오지 않는 경우
+                                var errorDot = mPrevDot.Clone();
+                                errorDot.DotType = DotTypes.PEN_ERROR;
+                                PenController.onErrorDetected(new ErrorReceivedEventArgs(ErrorType.InvalidTime, errorDot, sessionTs));
+                            }
+
+                            sessionTs = updownTime;
+                        }
 						else if (updown == 0x01)
 						{
 							if (mPrevDot != null)
@@ -254,14 +295,21 @@ namespace Neosmartpen.Net
                                 var udot = mPrevDot.Clone();
                                 udot.DotType = DotTypes.PEN_UP;
 								ProcessDot(udot);
-                                //PenController.onReceiveDot(new DotReceivedEventArgs(udot));
 							}
+                            else
+                            {
+                                // 다운업(무브없이) 혹은 업만 들어올 경우 UP dot을 보내지 않음
+                                PenController.onErrorDetected(new ErrorReceivedEventArgs(ErrorType.MissingPenDownPenMove, sessionTs));
+                            }
 
 							IsStartWithDown = false;
 						}
 
                         IsBeforeMiddle = false;
+                        IsStartWithPaperInfo = false;
+
                         mPrevDot = null;
+                        sessionTs = -1;
                     }
 					break;
 
@@ -273,7 +321,6 @@ namespace Neosmartpen.Net
                         var audot = mPrevDot.Clone();
                         audot.DotType = DotTypes.PEN_UP;
 						ProcessDot(audot);
-                        //PenController.onReceiveDot(new DotReceivedEventArgs(audot));
                     }
 
                     byte[] rb = packet.GetBytes(4);
@@ -283,7 +330,10 @@ namespace Neosmartpen.Net
 					mNoteId = packet.GetInt();
 					mPageId = packet.GetInt();
 
-                    IsPrevDotDown = true;
+                    //IsPrevDotDown = true;
+
+                    IsBeforePaperInfo = true;
+                    IsStartWithPaperInfo = true;
 
                     break;
 

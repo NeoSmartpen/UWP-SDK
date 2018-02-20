@@ -276,6 +276,15 @@ namespace Neosmartpen.Net
 		{
 			OfflineDataDownloadStarted?.Invoke(PenClient, new object());
 		}
+
+        /// <summary>
+        /// Occurs when error received
+        /// </summary>
+        public event TypedEventHandler<IPenClient, ErrorReceivedEventArgs> ErrorDetected;
+        internal void onErrorDetected(ErrorReceivedEventArgs args)
+        {
+            ErrorDetected?.Invoke(PenClient, args);
+        }
         #endregion
 
         #region Request

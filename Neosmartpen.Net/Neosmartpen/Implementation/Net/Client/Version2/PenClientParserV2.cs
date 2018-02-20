@@ -762,6 +762,10 @@ namespace Neosmartpen.Net
 
         private bool IsBeforeMiddle = false;
 
+        private bool IsStartWithPaperInfo = false;
+
+        private long sessionTs = -1;
+
         private void ParseDotPacket(Cmd cmd, Packet pk)
 		{
 			switch (cmd)
@@ -770,7 +774,17 @@ namespace Neosmartpen.Net
 
 					IsStartWithDown = pk.GetByte() == 0x00;
 
+                    if (IsStartWithDown && IsBeforeMiddle && mPrevDot != null)
+                    {
+                        // 펜업이 넘어오지 않음
+                        var errorDot = mPrevDot.Clone();
+                        errorDot.DotType = DotTypes.PEN_ERROR;
+                        PenController.onErrorDetected(new ErrorReceivedEventArgs(ErrorType.MissingPenUp, errorDot, sessionTs));
+                    }
+
                     IsBeforeMiddle = false;
+
+                    IsStartWithPaperInfo = false;
 
                     mDotCount = 0;
 
@@ -780,18 +794,24 @@ namespace Neosmartpen.Net
 
 					mPenTipColor = pk.GetInt();
 
-					if (mPrevDot != null && !IsStartWithDown)
-					{
-                        //mPrevPacket.Reset();
-                        //ParseDot(mPrevPacket, DotTypes.PEN_UP);
+                    if (mPrevDot != null && !IsStartWithDown)
+                    {
                         var udot = mPrevDot.Clone();
                         udot.DotType = DotTypes.PEN_UP;
-						ProcessDot(udot);
-                        //PenController.onReceiveDot(new DotReceivedEventArgs(udot));
-                        mPrevDot = null;
+                        ProcessDot(udot);
+                    }
+                    else if (mPrevDot == null && !IsStartWithDown)
+                    {
+                        // 펜업이지만 이전에 도트가 없으면
+                        // 즉 다운업(무브없이) 혹은 업만 들어올 경우 UP dot을 보내지 않음
+                        PenController.onErrorDetected(new ErrorReceivedEventArgs(ErrorType.MissingPenDownPenMove, sessionTs));
+
+                        sessionTs = mTime;
                     }
 
-					break;
+                    mPrevDot = null;
+
+                    break;
 
 				case Cmd.ONLINE_PEN_DOT_EVENT:
 
@@ -809,27 +829,36 @@ namespace Neosmartpen.Net
 
                     Dot dot = null;
 
-                    if (HoverMode && !IsStartWithDown)
+                    if (HoverMode && !IsStartWithDown && IsStartWithPaperInfo)
                     {
                         dot = MakeDot(PenMaxForce, mCurOwner, mCurSection, mCurNote, mCurPage, mTime, x, y, fx, fy, force, DotTypes.PEN_HOVER, mPenTipColor);
                     }
-                    else if (IsStartWithDown)
+                    else if (IsStartWithDown && IsStartWithPaperInfo)
                     {
                         dot = MakeDot(PenMaxForce, mCurOwner, mCurSection, mCurNote, mCurPage, mTime, x, y, fx, fy, force, mDotCount == 0 ? DotTypes.PEN_DOWN : DotTypes.PEN_MOVE, mPenTipColor);
                     }
                     else
                     {
-                        //오류
+                        if (!IsStartWithPaperInfo)
+                        {
+                            //펜 다운 없이 페이퍼 정보 없고 무브가 오는 현상(다운 - 무브 - 업 - 다운X - 무브)
+                            PenController.onErrorDetected(new ErrorReceivedEventArgs(ErrorType.MissingPenDown, -1));
+                        }
+                        else
+                        {
+                            var errorDot = MakeDot(PenMaxForce, mCurOwner, mCurSection, mCurNote, mCurPage, mTime, x, y, fx, fy, force, DotTypes.PEN_ERROR, mPenTipColor);
+                            //펜 다운 없이 페이퍼 정보 있고 무브가 오는 현상(다운 - 무브 - 업 - 다운X - 무브)
+                            PenController.onErrorDetected(new ErrorReceivedEventArgs(ErrorType.MissingPenDown, errorDot, - 1));
+                        }
                     }
 
                     if (dot != null)
                     {
 						ProcessDot(dot);
-                        //PenController.onReceiveDot(new DotReceivedEventArgs(dot));
                     }
+
                     IsBeforeMiddle = true;
                     mPrevDot = dot;
-                    //mPrevPacket = pk;
 					mDotCount++;
 
 					break;
@@ -842,7 +871,6 @@ namespace Neosmartpen.Net
                         var audot = mPrevDot.Clone();
                         audot.DotType = DotTypes.PEN_UP;
 						ProcessDot(audot);
-                        //PenController.onReceiveDot(new DotReceivedEventArgs(audot));
                     }
 
 					byte[] rb = pk.GetBytes(4);
@@ -853,6 +881,8 @@ namespace Neosmartpen.Net
 					mCurPage = pk.GetInt();
 
                     mDotCount = 0;
+
+                    IsStartWithPaperInfo = true;
 
                     break;
 			}
