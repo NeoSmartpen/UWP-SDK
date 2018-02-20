@@ -107,7 +107,7 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Neosmartpen\Implementation\Net\Client\Event\ErrorReceivedEventArgs.cs" />
+    <Compile Include="Neosmartpen\Implementation\Net\Client\Event\ErrorDetectedEventArgs.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Client\Event\PenProfile\PenProfileCreateEventArgs.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Client\Event\PenProfile\PenProfileDeleteEventArgs.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Client\Event\PenProfile\PenProfileDeleteValueEventArgs.cs" />
