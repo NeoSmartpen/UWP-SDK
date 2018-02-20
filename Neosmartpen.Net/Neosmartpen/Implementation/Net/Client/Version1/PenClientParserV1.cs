@@ -13,7 +13,7 @@ namespace Neosmartpen.Net
     internal class PenClientParserV1 : IPenClientParser, OfflineWorkResponseHandler
 	{
 		[System.Runtime.InteropServices.DllImport("Kernel32.dll")]
-		public static extern bool GetDiskFreeSpace(string lpRootPathName, ref ulong lpSectorsPerCluster, ref ulong lpBytesPerSector, ref ulong lpNumberOfFreeClusters, ref ulong lpTotalNumberOfClusters );
+		private static extern bool GetDiskFreeSpace(string lpRootPathName, ref ulong lpSectorsPerCluster, ref ulong lpBytesPerSector, ref ulong lpNumberOfFreeClusters, ref ulong lpTotalNumberOfClusters );
 
 		public enum Cmd : byte
 		{
