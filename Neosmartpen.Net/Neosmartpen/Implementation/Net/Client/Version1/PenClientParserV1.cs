@@ -225,6 +225,13 @@ namespace Neosmartpen.Net
                                 PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenDown, errorDot, -1));
                             }
                         }
+                        else if (timeLong < 10000)
+                        {
+                            // 타임스템프가 10000보다 작을 경우 도트 필터링
+                            builder.dotType(DotTypes.PEN_ERROR);
+                            var errorDot = builder.Build();
+                            PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.InvalidTime, errorDot, SessionTs));
+                        }
 
                         Dot dot = null;
 
@@ -239,13 +246,7 @@ namespace Neosmartpen.Net
                             dot = builder.dotType(DotTypes.PEN_MOVE).Build();
                         }
 
-                        if (timeLong < 10000)
-                        {
-                            // 타임스템프가 10000보다 작을 경우 도트 필터링
-                            builder.dotType(DotTypes.PEN_ERROR);
-                            var errorDot = builder.Build();
-                            PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.InvalidTime, errorDot, SessionTs));
-                        }
+
 
                         if (dot != null)
                         {
@@ -282,7 +283,7 @@ namespace Neosmartpen.Net
                                 // 펜업이 넘어오지 않는 경우
                                 var errorDot = mPrevDot.Clone();
                                 errorDot.DotType = DotTypes.PEN_ERROR;
-                                PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.InvalidTime, errorDot, SessionTs));
+                                PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenUp, errorDot, SessionTs));
                             }
 
                             IsStartWithDown = true;
@@ -299,7 +300,7 @@ namespace Neosmartpen.Net
                                 udot.DotType = DotTypes.PEN_UP;
 								ProcessDot(udot);
 							}
-                            else
+                            else if (!IsStartWithDown && !IsBeforeMiddle)
                             {
                                 // 다운업(무브없이) 혹은 업만 들어올 경우 UP dot을 보내지 않음
                                 PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenDownPenMove, SessionTs));
