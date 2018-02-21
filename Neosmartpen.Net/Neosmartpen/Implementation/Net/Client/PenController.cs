@@ -25,7 +25,7 @@ namespace Neosmartpen.Net
             get;set;
         }
 
-        void IPenController.OnDataReceived( byte[] buff )
+        public void OnDataReceived( byte[] buff )
         {
             if ( Protocol == Protocols.V1 )
             {
