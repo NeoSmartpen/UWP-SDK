@@ -805,11 +805,11 @@ namespace Neosmartpen.Net
 
 		private void ProcessDot(Dot dot)
 		{
-            SendDotReceiveEvent(dot);
+            SendDotReceiveEvent(dot, null);
             //dotFilterForPaper.Put(dot);
         }
 
-		private void SendDotReceiveEvent(Dot dot)
+		private void SendDotReceiveEvent(Dot dot, object obj)
 		{
 			PenController.onReceiveDot(new DotReceivedEventArgs(dot));
 		}

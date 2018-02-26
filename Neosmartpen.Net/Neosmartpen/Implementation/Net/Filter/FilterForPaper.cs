@@ -17,11 +17,11 @@ namespace Neosmartpen.Net.Filter
 		private Dot dot1, dot2;
 		private Dot makeDownDot = null, makeMoveDot = null;
 		private bool secondCheck = true, thirdCheck = true;
-		#endregion
+        #endregion
 
-		#region Delegates
-		public delegate void FilteredDot(Dot dot);
-		private FilteredDot filteredDot;
+        #region Delegates
+        public delegate void FilteredDot(Dot dot, object obj);
+        private FilteredDot filteredDot;
 		#endregion
 
 		public FilterForPaper(FilteredDot func)
@@ -29,7 +29,7 @@ namespace Neosmartpen.Net.Filter
 			filteredDot = func;
 		}
 
-		public void Put(Dot dot)
+		public void Put(Dot dot, object obj)
 		{
 			if (!ValidateCode(dot))
 			{
@@ -51,11 +51,11 @@ namespace Neosmartpen.Net.Filter
 				{
 					if ( ValidateStartDot(dot1, dot2, dot) )
 					{
-						filteredDot(dot1);
+						filteredDot(dot1, obj);
 
 						if ( ValidateMiddleDot(dot1, dot2, dot))
 						{
-							filteredDot(dot2);
+							filteredDot(dot2, obj);
 							dot1 = dot2;
 							dot2 = dot;
 						}
@@ -76,7 +76,7 @@ namespace Neosmartpen.Net.Filter
 				{
 					if (ValidateMiddleDot(dot1, dot2, dot))
 					{
-						filteredDot(dot2);
+						filteredDot(dot2, obj);
 						dot1 = dot2;
 						dot2 = dot;
 					}
@@ -98,7 +98,7 @@ namespace Neosmartpen.Net.Filter
 				{
 					if (ValidateStartDot(dot1, dot2, dot))
 					{
-						filteredDot(dot1);
+						filteredDot(dot1, obj);
 					}
 					else
 					{
@@ -112,10 +112,10 @@ namespace Neosmartpen.Net.Filter
 					if (!validateStartDot)
 					{
 						makeDownDot = MakeDot(dot2.Owner, dot2.Section, dot2.Note, dot2.Page, dot2.Timestamp, dot2.X, dot2.Y, dot2.TiltX, dot2.TiltY, dot2.Twist, dot2.Force, DotTypes.PEN_DOWN, dot2.Color);
-						filteredDot(makeDownDot);
+						filteredDot(makeDownDot, obj);
 					}
 
-					filteredDot(dot2);
+					filteredDot(dot2, obj);
 				}
 				else
 				{
@@ -128,19 +128,19 @@ namespace Neosmartpen.Net.Filter
 					if (!validateStartDot && !validateMiddleDot)
 					{
 						makeDownDot = MakeDot(dot.Owner, dot.Section, dot.Note, dot.Page, dot.Timestamp, dot.X, dot.Y, dot.TiltX, dot.TiltY, dot.Twist, dot.Force, DotTypes.PEN_DOWN, dot.Color);
-						filteredDot(makeDownDot);
+						filteredDot(makeDownDot, obj);
 					}
 					if (thirdCheck && !validateMiddleDot)
 					{
 						makeMoveDot = MakeDot(dot.Owner, dot.Section, dot.Note, dot.Page, dot.Timestamp, dot.X, dot.Y, dot.TiltX, dot.TiltY, dot.Twist, dot.Force, DotTypes.PEN_MOVE, dot.Color);
-						filteredDot(makeMoveDot);
+						filteredDot(makeMoveDot, obj);
 					}
-					filteredDot(dot);
+					filteredDot(dot, obj);
 				}
 				else
 				{
 					dot2.DotType = DotTypes.PEN_UP;
-					filteredDot(dot2);
+					filteredDot(dot2, obj);
 				}
 
 				// Dot 및 변수 초기화
