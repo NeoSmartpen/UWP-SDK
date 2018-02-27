@@ -7,6 +7,7 @@ using System.Text;
 using Neosmartpen.Net.Support;
 using Windows.Storage;
 using Neosmartpen.Net.Filter;
+using System.Threading.Tasks;
 
 namespace Neosmartpen.Net
 {
@@ -190,7 +191,9 @@ namespace Neosmartpen.Net
 
 						IsUploading = false;
 
-						ReqPenStatus();
+                        EventCount = 0;
+
+                        ReqPenStatus();
 					}
 					break;
 
@@ -213,7 +216,13 @@ namespace Neosmartpen.Net
 				case Cmd.ONLINE_PEN_UPDOWN_EVENT:
 				case Cmd.ONLINE_PEN_DOT_EVENT:
 				case Cmd.ONLINE_PAPER_INFO_EVENT:
-					{
+                case Cmd.ONLINE_PEN_ERROR_EVENT:
+                case Cmd.ONLINE_NEW_PEN_DOWN_EVENT:
+                case Cmd.ONLINE_NEW_PEN_UP_EVENT:
+                case Cmd.ONLINE_NEW_PEN_DOT_EVENT:
+                case Cmd.ONLINE_NEW_PAPER_INFO_EVENT:
+                case Cmd.ONLINE_NEW_PEN_ERROR_EVENT:
+                    {
 						ParseDotPacket(cmd, packet);
 					}
 					break;
@@ -775,11 +784,13 @@ namespace Neosmartpen.Net
 
         private long SessionTs = -1;
 
-        private int EventCount = 0;
+        private int EventCount = -1;
 
         private void CheckEventCount(int ecount)
         {
-            if (ecount != 0 && ecount - EventCount != 1)
+            Debug.WriteLine("COUNT : " + ecount + ", " + EventCount);
+
+            if (ecount - EventCount != 1 && (ecount != 0 || EventCount != 255))
             {
                 // 이벤트 카운트 오류
                 Dot errorDot = null;
@@ -792,12 +803,12 @@ namespace Neosmartpen.Net
 
                 if (ecount - EventCount > 1)
                 {
-                    string extraData = string.Format("missed event count {0} - {1}", EventCount + 1, ecount - 1);
+                    string extraData = string.Format("missed event count {0}-{1}", EventCount + 1, ecount - 1);
                     PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.InvalidEventCount, errorDot, SessionTs, extraData));
                 }
                 else if (ecount < EventCount)
                 {
-                    string extraData = string.Format("invalid event count {0}, {1}", EventCount, ecount);
+                    string extraData = string.Format("invalid event count {0},{1}", EventCount, ecount);
                     PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.InvalidEventCount, errorDot, SessionTs, extraData));
                 }
             }
@@ -807,7 +818,9 @@ namespace Neosmartpen.Net
 
         private void ParseDotPacket(Cmd cmd, Packet pk)
 		{
-			switch (cmd)
+            //Debug.Write("CMD : " + cmd.ToString() + ", ");
+
+            switch (cmd)
 			{
                 case Cmd.ONLINE_NEW_PEN_DOWN_EVENT:
                     {
