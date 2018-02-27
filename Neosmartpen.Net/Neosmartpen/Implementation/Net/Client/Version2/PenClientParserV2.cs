@@ -596,6 +596,7 @@ namespace Neosmartpen.Net
 								}
 								else if (j == dotCount - 1)
 								{
+
 									dotType = DotTypes.PEN_UP;
 								}
 								else
@@ -1169,6 +1170,17 @@ namespace Neosmartpen.Net
 			if (IsStartWithDown && IsBeforeMiddle && mPrevDot != null)
 			{
 				MakeUpDot();
+
+				mTime = -1;
+				SessionTs = -1;
+
+				IsStartWithDown = false;
+				IsBeforeMiddle = false;
+				IsStartWithPaperInfo = false;
+
+				mDotCount = 0;
+
+				mPrevDot = null;
 			}
 		}
 

@@ -817,9 +817,17 @@ namespace Neosmartpen.Net
 		private void UpDotTimerCallback(object state)
 		{
 			if (IsStartWithDown && IsBeforeMiddle && mPrevDot != null)
-
 			{
 				MakeUpDot();
+
+				mPrevDotTime = -1;
+				SessionTs = -1;
+
+				IsStartWithDown = false;
+				IsBeforeMiddle = false;
+				IsStartWithPaperInfo = false;
+
+				mPrevDot = null;
 			}
 		}
 
