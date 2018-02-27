@@ -1077,6 +1077,13 @@ namespace Neosmartpen.Net
 		/// <returns>true if the request is accepted; otherwise, false.</returns>
 		public bool ReqOfflineData(OfflineDataInfo note)
 		{
+			ulong freeCapacity = 0;
+			if (GetAvailableCapacity(ref freeCapacity))
+			{
+				if (freeCapacity < 50) // 50MB
+					return false;
+			}
+
 			mOfflineworker.Put(note);
 
 			return true;
@@ -1096,13 +1103,6 @@ namespace Neosmartpen.Net
 
 		private bool SendReqOfflineData(int sectionId, int ownerId, int noteId)
 		{
-			ulong freeCapacity = 0;
-			if (GetAvailableCapacity(ref freeCapacity))
-			{
-				if (freeCapacity < 50)
-					return false;
-			}
-
 			byte[] ownerByte = ByteConverter.IntToByte(ownerId);
 
 			short length = (short)(5 + 40);

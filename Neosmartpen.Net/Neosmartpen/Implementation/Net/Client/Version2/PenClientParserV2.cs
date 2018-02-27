@@ -166,6 +166,7 @@ namespace Neosmartpen.Net
 			private set;
 		}
 
+		int offlineDataPacketRetryCount = 0;
 		public void ParsePacket(Packet packet)
 		{
 			Cmd cmd = (Cmd)packet.Cmd;
@@ -492,7 +493,16 @@ namespace Neosmartpen.Net
 
 						if (sizeAfter != (packet.Data.Length - 18))
 						{
-							SendOfflinePacketResponse(packetId, false);
+							if ( offlineDataPacketRetryCount < 3)
+							{
+								SendOfflinePacketResponse(packetId, false);
+								++offlineDataPacketRetryCount;
+							}
+							else
+							{
+								offlineDataPacketRetryCount = 0;
+								PenController.onFinishedOfflineDownload(new SimpleResultEventArgs(false));
+							}
 							return;
 						}
 
@@ -504,7 +514,16 @@ namespace Neosmartpen.Net
 
 						if (strData.Length != sizeBefore)
 						{
-							SendOfflinePacketResponse(packetId, false);
+							if ( offlineDataPacketRetryCount < 3)
+							{
+								SendOfflinePacketResponse(packetId, false);
+								++offlineDataPacketRetryCount;
+							}
+							else
+							{
+								offlineDataPacketRetryCount = 0;
+								PenController.onFinishedOfflineDownload(new SimpleResultEventArgs(false));
+							}
 							return;
 						}
 
@@ -559,9 +578,10 @@ namespace Neosmartpen.Net
 
 								if (dotChecksum != checksum)
 								{
-									SendOfflinePacketResponse(packetId, false);
-									result.Clear();
-									return;
+									//SendOfflinePacketResponse(packetId, false);
+									//result.Clear();
+									//return;
+									continue;
 								}
 
 								DotTypes dotType;
@@ -588,6 +608,7 @@ namespace Neosmartpen.Net
 
 						SendOfflinePacketResponse(packetId);
 
+						offlineDataPacketRetryCount = 0;
 						PenController.onReceiveOfflineStrokes(new OfflineStrokeReceivedEventArgs(mTotalOfflineStroke, mReceivedOfflineStroke, result.ToArray()));
 
 						if (location == 2)
