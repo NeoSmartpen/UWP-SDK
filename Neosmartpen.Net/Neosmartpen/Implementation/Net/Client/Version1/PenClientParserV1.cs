@@ -223,8 +223,10 @@ namespace Neosmartpen.Net
                                 builder.dotType(DotTypes.PEN_ERROR);
                                 var errorDot = builder.Build();
                                 PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenDown, errorDot, -1));
-                            }
-                        }
+								IsStartWithDown = true;
+								builder.timestamp(Time.GetUtcTimeStamp());
+							}
+						}
                         else if (timeLong < 10000)
                         {
                             // 타임스템프가 10000보다 작을 경우 도트 필터링
