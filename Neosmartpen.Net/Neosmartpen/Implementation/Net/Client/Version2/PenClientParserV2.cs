@@ -844,7 +844,7 @@ namespace Neosmartpen.Net
 
         private void ParseDotPacket(Cmd cmd, Packet pk)
 		{
-            //Debug.Write("CMD : " + cmd.ToString() + ", ");
+            Debug.Write("CMD : " + cmd.ToString() + ", ");
 
             switch (cmd)
 			{
@@ -1030,9 +1030,17 @@ namespace Neosmartpen.Net
                         {
                             dot = MakeDot(PenMaxForce, mCurOwner, mCurSection, mCurNote, mCurPage, mTime, x, y, fx, fy, force, DotTypes.PEN_HOVER, mPenTipColor);
                         }
-                        else if (IsStartWithDown && IsStartWithPaperInfo)
+                        else if (IsStartWithDown)
                         {
-                            dot = MakeDot(PenMaxForce, mCurOwner, mCurSection, mCurNote, mCurPage, mTime, x, y, fx, fy, force, mDotCount == 0 ? DotTypes.PEN_DOWN : DotTypes.PEN_MOVE, mPenTipColor);
+                            if (IsStartWithPaperInfo)
+                            {
+                                dot = MakeDot(PenMaxForce, mCurOwner, mCurSection, mCurNote, mCurPage, mTime, x, y, fx, fy, force, mDotCount == 0 ? DotTypes.PEN_DOWN : DotTypes.PEN_MOVE, mPenTipColor);
+                            }
+                            else
+                            {
+                                //펜 다운 이후 페이지 체인지 없이 도트가 들어왔을 경우
+                                PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPageChange, SessionTs));
+                            }
                         }
 
                         if (dot != null)
@@ -2053,7 +2061,8 @@ namespace Neosmartpen.Net
 
 					mBuffer.Clear();
 					mBuffer = null;
-                    //if ((Cmd)cmd == Cmd.ONLINE_PEN_UPDOWN_EVENT && data[0] == 0x00)
+                    //if ((Cmd)cmd == Cmd.ONLINE_NEW_PAPER_INFO_EVENT)
+                    //{ }
                     //else
 					    ParsePacket(builder.Build());
 

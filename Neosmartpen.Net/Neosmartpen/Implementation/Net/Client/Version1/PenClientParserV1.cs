@@ -252,8 +252,11 @@ namespace Neosmartpen.Net
                             // 펜다운이 아닌 경우 미들 도트로 저장
                             dot = builder.dotType(DotTypes.PEN_MOVE).Build();
                         }
-
-
+                        else if (IsStartWithDown && !IsStartWithPaperInfo)
+                        {
+                            //펜 다운 이후 페이지 체인지 없이 도트가 들어왔을 경우
+                            PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPageChange, SessionTs));
+                        }
 
                         if (dot != null)
                         {
@@ -1779,7 +1782,7 @@ namespace Neosmartpen.Net
                 byte[] content = mBuffer.GetBytes();
 
                 Packet packet = builder.cmd(cmd).data(content).Build();
-                //if ((Cmd)packet.Cmd == Cmd.A_DotUpDownDataNew && content[8] == 0x00)
+                //if ((Cmd)packet.Cmd == Cmd.A_DotIDChange)
                 //{ }else
                 ParsePacket(packet);
 
