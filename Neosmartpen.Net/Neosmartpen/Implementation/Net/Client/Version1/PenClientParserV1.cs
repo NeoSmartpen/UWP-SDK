@@ -7,6 +7,7 @@ using Neosmartpen.Net.Support;
 using Windows.Storage;
 using Windows.Storage.Streams;
 using Neosmartpen.Net.Filter;
+using System.Threading;
 
 namespace Neosmartpen.Net
 {
@@ -120,6 +121,9 @@ namespace Neosmartpen.Net
 
 		private bool isIgnorePenStatus = false;
 
+		private readonly int UPDOT_TIMEOUT = 1000;
+		private Timer upDotTimer;
+
 		public PenClientParserV1(PenController penClient) 
 		{
 			this.PenController = penClient;
@@ -131,6 +135,7 @@ namespace Neosmartpen.Net
 				mOfflineworker = new OfflineWorker(this);
 				mOfflineworker.Startup();
 			}
+			upDotTimer = new Timer(UpDotTimerCallback, null, Timeout.Infinite, Timeout.Infinite);
 		}
 
 		public void OnDisconnected()
@@ -253,6 +258,7 @@ namespace Neosmartpen.Net
                         if (dot != null)
                         {
                             ProcessDot(dot);
+							upDotTimer.Change(UPDOT_TIMEOUT, Timeout.Infinite);
                         }
 
                         mPrevDot = dot;
@@ -286,6 +292,8 @@ namespace Neosmartpen.Net
                                 var errorDot = mPrevDot.Clone();
                                 errorDot.DotType = DotTypes.PEN_ERROR;
                                 PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenUp, errorDot, SessionTs));
+
+								MakeUpDot();
                             }
 
                             IsStartWithDown = true;
@@ -294,13 +302,12 @@ namespace Neosmartpen.Net
                         }
 						else if (updown == 0x01)
 						{
-                            mPrevDotTime = -1;
+							UpDotTimerStop();
+							mPrevDotTime = -1;
 
                             if (IsStartWithDown && IsBeforeMiddle && mPrevDot != null)
 							{
-                                var udot = mPrevDot.Clone();
-                                udot.DotType = DotTypes.PEN_UP;
-								ProcessDot(udot);
+								MakeUpDot();
 							}
                             else if (!IsStartWithDown && !IsBeforeMiddle)
                             {
@@ -325,9 +332,7 @@ namespace Neosmartpen.Net
                     // 미들도트 중에 페이지가 바뀐다면 강제로 펜업을 만들어 준다.
                     if (IsStartWithDown && IsBeforeMiddle && mPrevDot != null)
                     {
-                        var audot = mPrevDot.Clone();
-                        audot.DotType = DotTypes.PEN_UP;
-						ProcessDot(audot);
+						MakeUpDot();
                     }
 
                     byte[] rb = packet.GetBytes(4);
@@ -804,6 +809,27 @@ namespace Neosmartpen.Net
 
 		//	PenController.onReceiveDot(new DotReceivedEventArgs(builder.Build()));
 		//}
+		private void UpDotTimerStop()
+		{
+			upDotTimer.Change(Timeout.Infinite, Timeout.Infinite);
+		}
+
+		private void UpDotTimerCallback(object state)
+		{
+			if (IsStartWithDown && IsBeforeMiddle && mPrevDot != null)
+
+			{
+				MakeUpDot();
+			}
+		}
+
+		private void MakeUpDot()
+		{
+			var udot = mPrevDot.Clone();
+			udot.DotType = DotTypes.PEN_UP;
+			ProcessDot(udot);
+		}
+
 
 		private void ProcessDot(Dot dot)
 		{
