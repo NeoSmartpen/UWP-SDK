@@ -8,7 +8,8 @@
         MissingPenDownPenMove = 4,
         ImageProcessingError = 5,
         InvalidEventCount = 6,
-        MissingPageChange = 7
+        MissingPageChange = 7,
+        MissingPenMove = 8
     }
 
     public sealed class ErrorDetectedEventArgs

@@ -182,7 +182,7 @@ namespace Neosmartpen.Net
         private bool IsStartWithPaperInfo = false;
         private bool IsBeforePaperInfo = false;
 
-        private long SessionTs = -1;
+        private long PenDownTime = -1;
 
         public void ParsePacket(Packet packet)
 		{
@@ -225,11 +225,11 @@ namespace Neosmartpen.Net
                             else
                             {
                                 timeLong = Time.GetUtcTimeStamp();
-                                SessionTs = timeLong;
+                                PenDownTime = timeLong;
                                 //펜 다운 없이 페이퍼 정보 있고 무브가 오는 현상(다운 - 무브 - 업 - 다운X - 무브)
                                 builder.dotType(DotTypes.PEN_ERROR);
                                 var errorDot = builder.Build();
-                                PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenDown, errorDot, SessionTs));
+                                PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenDown, errorDot, PenDownTime));
 								IsStartWithDown = true;
 								builder.timestamp(timeLong);
 							}
@@ -239,7 +239,7 @@ namespace Neosmartpen.Net
                             // 타임스템프가 10000보다 작을 경우 도트 필터링
                             builder.dotType(DotTypes.PEN_ERROR);
                             var errorDot = builder.Build();
-                            PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.InvalidTime, errorDot, SessionTs));
+                            PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.InvalidTime, errorDot, PenDownTime));
                         }
 
                         Dot dot = null;
@@ -247,7 +247,8 @@ namespace Neosmartpen.Net
                         if (IsStartWithDown && IsStartWithPaperInfo && IsBeforePaperInfo)
 						{
                             // 펜다운의 경우 시작 도트로 저장
-                            dot = builder.dotType(DotTypes.PEN_DOWN).Build();
+                            // 펜다운 도트는 펜다운 시간으로 한다.
+                            dot = builder.timestamp(PenDownTime).dotType(DotTypes.PEN_DOWN).Build();
                         }
 						else if (IsStartWithDown && IsStartWithPaperInfo && !IsBeforePaperInfo && IsBeforeMiddle)
 						{
@@ -257,7 +258,7 @@ namespace Neosmartpen.Net
                         else if (IsStartWithDown && !IsStartWithPaperInfo)
                         {
                             //펜 다운 이후 페이지 체인지 없이 도트가 들어왔을 경우
-                            PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPageChange, SessionTs));
+                            PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPageChange, PenDownTime));
                         }
 
                         if (dot != null)
@@ -280,7 +281,7 @@ namespace Neosmartpen.Net
 						// TODO Check
 						long updownTime = packet.GetLong();
 
-						int updown = packet.GetByteToInt();
+                        int updown = packet.GetByteToInt();
 
 						byte[] cbyte = packet.GetBytes(3);
 
@@ -296,14 +297,14 @@ namespace Neosmartpen.Net
                                 // 펜업이 넘어오지 않는 경우
                                 var errorDot = mPrevDot.Clone();
                                 errorDot.DotType = DotTypes.PEN_ERROR;
-                                PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenUp, errorDot, SessionTs));
+                                PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenUp, errorDot, PenDownTime));
 
 								MakeUpDot();
                             }
 
                             IsStartWithDown = true;
 
-                            SessionTs = updownTime;
+                            PenDownTime = updownTime;
                         }
 						else if (updown == 0x01)
 						{
@@ -316,13 +317,18 @@ namespace Neosmartpen.Net
 							}
                             else if (!IsStartWithDown && !IsBeforeMiddle)
                             {
-                                // 다운업(무브없이) 혹은 업만 들어올 경우 UP dot을 보내지 않음
-                                PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenDownPenMove, SessionTs));
+                                // 다운 무브없이 업만 들어올 경우 UP dot을 보내지 않음
+                                PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenDownPenMove, PenDownTime));
+                            }
+                            else if (!IsBeforeMiddle)
+                            {
+                                // 무브없이 다운-업만 들어올 경우 UP dot을 보내지 않음
+                                PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenMove, PenDownTime));
                             }
 
 							IsStartWithDown = false;
 
-                            SessionTs = -1;
+                            PenDownTime = -1;
                         }
 
                         IsBeforeMiddle = false;
@@ -826,7 +832,7 @@ namespace Neosmartpen.Net
 				MakeUpDot();
 
 				mPrevDotTime = -1;
-				SessionTs = -1;
+				PenDownTime = -1;
 
 				IsStartWithDown = false;
 				IsBeforeMiddle = false;
@@ -862,8 +868,8 @@ namespace Neosmartpen.Net
 			bf.Put((byte)0xC0)
 			  .Put((byte)Cmd.P_PenOnResponse)
 			  .PutShort(9)
-			  .PutLong(Time.GetUtcTimeStamp())
-			  .Put((byte)0x00)
+              .PutLong(Time.GetUtcTimeStamp())
+              .Put((byte)0x00)
 			  .Put((byte)0xC1);
 
 			PenController.PenClient.Write(bf.ToArray());

@@ -917,6 +917,11 @@ namespace Neosmartpen.Net
                             // 즉 다운업(무브없이) 혹은 업만 들어올 경우 UP dot을 보내지 않음
                             PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenDownPenMove, -1));
                         }
+                        else if (!IsBeforeMiddle)
+                        {
+                            // 무브없이 다운-업만 들어올 경우 UP dot을 보내지 않음
+                            PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenMove, SessionTs));
+                        }
 
                         mTime = -1;
                         SessionTs = -1;
@@ -964,6 +969,11 @@ namespace Neosmartpen.Net
                             {
                                 // 즉 다운업(무브없이) 혹은 업만 들어올 경우 UP dot을 보내지 않음
                                 PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenDownPenMove, -1));
+                            }
+                            else if (!IsBeforeMiddle)
+                            {
+                                // 무브없이 다운-업만 들어올 경우 UP dot을 보내지 않음
+                                PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenMove, SessionTs));
                             }
 
                             IsStartWithDown = false;
