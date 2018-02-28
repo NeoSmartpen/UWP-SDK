@@ -814,7 +814,7 @@ namespace Neosmartpen.Net
 
         private void CheckEventCount(int ecount)
         {
-            Debug.WriteLine("COUNT : " + ecount + ", " + EventCount);
+            //Debug.WriteLine("COUNT : " + ecount + ", " + EventCount);
 
             if (ecount - EventCount != 1 && (ecount != 0 || EventCount != 255))
             {
@@ -844,7 +844,7 @@ namespace Neosmartpen.Net
 
         private void ParseDotPacket(Cmd cmd, Packet pk)
 		{
-            Debug.Write("CMD : " + cmd.ToString() + ", ");
+            //Debug.Write("CMD : " + cmd.ToString() + ", ");
 
             switch (cmd)
 			{
@@ -1018,11 +1018,14 @@ namespace Neosmartpen.Net
                             }
                             else
                             {
+                                mTime = Time.GetUtcTimeStamp();
+
+                                SessionTs = mTime;
+
                                 var errorDot = MakeDot(PenMaxForce, mCurOwner, mCurSection, mCurNote, mCurPage, mTime, x, y, fx, fy, force, DotTypes.PEN_ERROR, mPenTipColor);
                                 //펜 다운 없이 페이퍼 정보 있고 무브가 오는 현상(다운 - 무브 - 업 - 다운X - 무브)
-                                PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenDown, errorDot, -1));
+                                PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenDown, errorDot, SessionTs));
 								IsStartWithDown = true;
-								mTime = Time.GetUtcTimeStamp();
 							}
 						}
 

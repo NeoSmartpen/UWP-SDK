@@ -224,12 +224,14 @@ namespace Neosmartpen.Net
                             }
                             else
                             {
+                                timeLong = Time.GetUtcTimeStamp();
+                                SessionTs = timeLong;
                                 //펜 다운 없이 페이퍼 정보 있고 무브가 오는 현상(다운 - 무브 - 업 - 다운X - 무브)
                                 builder.dotType(DotTypes.PEN_ERROR);
                                 var errorDot = builder.Build();
-                                PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenDown, errorDot, -1));
+                                PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenDown, errorDot, SessionTs));
 								IsStartWithDown = true;
-								builder.timestamp(Time.GetUtcTimeStamp());
+								builder.timestamp(timeLong);
 							}
 						}
                         else if (timeLong < 10000)
@@ -1782,7 +1784,7 @@ namespace Neosmartpen.Net
                 byte[] content = mBuffer.GetBytes();
 
                 Packet packet = builder.cmd(cmd).data(content).Build();
-                //if ((Cmd)packet.Cmd == Cmd.A_DotIDChange)
+                //if ((Cmd)packet.Cmd == Cmd.A_DotUpDownDataNew && content[8] == 0x00)
                 //{ }else
                 ParsePacket(packet);
 

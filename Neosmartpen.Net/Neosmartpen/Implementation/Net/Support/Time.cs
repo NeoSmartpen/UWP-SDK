@@ -11,7 +11,8 @@ namespace Neosmartpen.Net.Support
         public static long GetUtcTimeStamp()
         {
             TimeSpan t = ( DateTime.UtcNow - new DateTime( 1970, 1, 1 ) );
-            long ts = (long)t.TotalSeconds * 1000;
+            long ts = (long)t.TotalMilliseconds;
+            //long ts = (long)t.TotalSeconds * 1000;
             return ts;
         }
         /// <summary>
