@@ -23,5 +23,7 @@ namespace Neosmartpen.Net
         public int ErrorCode { get; set; }
 
         public int ClassType { get; set; }
+
+        public int ErrorCount { get; set; }
     }
 }

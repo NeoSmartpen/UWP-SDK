@@ -1116,6 +1116,8 @@ namespace Neosmartpen.Net
                         int ndacProcessTime = pk.GetByteToInt();
                         int labelCount = pk.GetByteToInt();
                         int ndacErrorCode = pk.GetByteToInt();
+                        int classType = pk.GetByteToInt();
+                        int errorCount = pk.GetByteToInt();
 
                         ImageProcessErrorInfo newInfo = new ImageProcessErrorInfo {
                             Timestamp = mTime,
@@ -1124,7 +1126,9 @@ namespace Neosmartpen.Net
                             ExposureTime = exposureTime,
                             ProcessTime = ndacProcessTime,
                             LabelCount = labelCount,
-                            ErrorCode = ndacErrorCode
+                            ErrorCode = ndacErrorCode,
+                            ClassType = classType,
+                            ErrorCount = errorCount
                         };
 
                         Dot errorDot = null;
@@ -1143,8 +1147,8 @@ namespace Neosmartpen.Net
 
 		private void ProcessDot(Dot dot, object obj)
 		{
-            //dotFilterForPaper.Put(dot);
-            SendDotReceiveEvent(dot, obj);
+            dotFilterForPaper.Put(dot, obj);
+            //SendDotReceiveEvent(dot, obj);
         }
 
 		private void SendDotReceiveEvent(Dot dot, object obj)
