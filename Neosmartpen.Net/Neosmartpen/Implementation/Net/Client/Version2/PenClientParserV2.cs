@@ -1114,7 +1114,7 @@ namespace Neosmartpen.Net
                         int brightness = pk.GetByteToInt();
                         int exposureTime = pk.GetByteToInt();
                         int ndacProcessTime = pk.GetByteToInt();
-                        int labelCount = pk.GetByteToInt();
+                        int labelCount = pk.GetShort();
                         int ndacErrorCode = pk.GetByteToInt();
                         int classType = pk.GetByteToInt();
                         int errorCount = pk.GetByteToInt();
