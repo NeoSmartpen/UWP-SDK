@@ -853,9 +853,9 @@ namespace Neosmartpen.Net
                         if (IsStartWithDown && IsBeforeMiddle && mPrevDot != null)
                         {
                             // 펜업이 넘어오지 않음
-                            var errorDot = mPrevDot.Clone();
-                            errorDot.DotType = DotTypes.PEN_ERROR;
-                            PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenUp, errorDot, SessionTs));
+                            //var errorDot = mPrevDot.Clone();
+                            //errorDot.DotType = DotTypes.PEN_ERROR;
+                            //PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenUp, errorDot, SessionTs));
 
 							MakeUpDot();
 						}
@@ -945,9 +945,9 @@ namespace Neosmartpen.Net
                             if (IsStartWithDown && IsBeforeMiddle && mPrevDot != null)
                             {
                                 // 펜업이 넘어오지 않음
-                                var errorDot = mPrevDot.Clone();
-                                errorDot.DotType = DotTypes.PEN_ERROR;
-                                PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenUp, errorDot, SessionTs));
+                                //var errorDot = mPrevDot.Clone();
+                                //errorDot.DotType = DotTypes.PEN_ERROR;
+                                //PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenUp, errorDot, SessionTs));
 
 								MakeUpDot();
                             }
@@ -1147,8 +1147,8 @@ namespace Neosmartpen.Net
 
 		private void ProcessDot(Dot dot, object obj)
 		{
-            dotFilterForPaper.Put(dot, obj);
-            //SendDotReceiveEvent(dot, obj);
+            //dotFilterForPaper.Put(dot, obj);
+            SendDotReceiveEvent(dot, obj);
         }
 
 		private void SendDotReceiveEvent(Dot dot, object obj)
@@ -1211,10 +1211,14 @@ namespace Neosmartpen.Net
 
 		private void MakeUpDot()
 		{
-			var audot = mPrevDot.Clone();
+            var errorDot = mPrevDot.Clone();
+            errorDot.DotType = DotTypes.PEN_ERROR;
+            PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenUp, errorDot, SessionTs));
+
+            var audot = mPrevDot.Clone();
 			audot.DotType = DotTypes.PEN_UP;
 			ProcessDot(audot, null);
-		}
+        }
 
 		private byte[] Escape(byte input)
 		{
