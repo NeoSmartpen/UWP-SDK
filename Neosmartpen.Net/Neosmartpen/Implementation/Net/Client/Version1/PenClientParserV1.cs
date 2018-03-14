@@ -295,9 +295,9 @@ namespace Neosmartpen.Net
                             if (IsBeforeMiddle && mPrevDot != null)
                             {
                                 // 펜업이 넘어오지 않는 경우
-                                var errorDot = mPrevDot.Clone();
-                                errorDot.DotType = DotTypes.PEN_ERROR;
-                                PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenUp, errorDot, PenDownTime));
+                                //var errorDot = mPrevDot.Clone();
+                                //errorDot.DotType = DotTypes.PEN_ERROR;
+                                //PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenUp, errorDot, PenDownTime));
 
 								MakeUpDot();
                             }
@@ -313,7 +313,7 @@ namespace Neosmartpen.Net
 
                             if (IsStartWithDown && IsBeforeMiddle && mPrevDot != null)
 							{
-								MakeUpDot();
+								MakeUpDot(false);
 							}
                             else if (!IsStartWithDown && !IsBeforeMiddle)
                             {
@@ -343,7 +343,7 @@ namespace Neosmartpen.Net
                     // 미들도트 중에 페이지가 바뀐다면 강제로 펜업을 만들어 준다.
                     if (IsStartWithDown && IsBeforeMiddle && mPrevDot != null)
                     {
-						MakeUpDot();
+						MakeUpDot(false);
                     }
 
                     byte[] rb = packet.GetBytes(4);
@@ -842,9 +842,16 @@ namespace Neosmartpen.Net
 			}
 		}
 
-		private void MakeUpDot()
-		{
-			var udot = mPrevDot.Clone();
+        private void MakeUpDot(bool isError = true)
+        {
+            if (isError)
+            {
+                var errorDot = mPrevDot.Clone();
+                errorDot.DotType = DotTypes.PEN_ERROR;
+                PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenUp, errorDot, PenDownTime));
+            }
+
+            var udot = mPrevDot.Clone();
 			udot.DotType = DotTypes.PEN_UP;
 			ProcessDot(udot);
 		}

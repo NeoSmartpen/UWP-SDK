@@ -808,6 +808,8 @@ namespace Neosmartpen.Net
 
         private bool IsStartWithPaperInfo = false;
 
+        private bool IsDownCreated = false;
+
         private long SessionTs = -1;
 
         private int EventCount = -1;
@@ -873,6 +875,8 @@ namespace Neosmartpen.Net
                         IsBeforeMiddle = false;
                         IsStartWithPaperInfo = false;
 
+                        IsDownCreated = false;
+
                         mDotCount = 0;
 
                         mPenTipType = pk.GetByte() == 0x00 ? PenTipType.Normal : PenTipType.Eraser;
@@ -885,6 +889,7 @@ namespace Neosmartpen.Net
                 case Cmd.ONLINE_NEW_PEN_UP_EVENT:
                     {
 						UpDotTimerStop();
+
                         int ecount = pk.GetByteToInt();
 
                         CheckEventCount(ecount);
@@ -902,13 +907,19 @@ namespace Neosmartpen.Net
                             var udot = mPrevDot.Clone();
                             udot.DotType = DotTypes.PEN_UP;
 
-                            ImageProcessingInfo imageInfo = new ImageProcessingInfo {
-                                DotCount = dotCount,
-                                Total = totalImageCount,
-                                Processed = procImageCount,
-                                Success = succImageCount,
-                                Transferred = sendImageCount
-                            };
+                            ImageProcessingInfo imageInfo = null;
+
+                            if (!IsDownCreated)
+                            {
+                                imageInfo = new ImageProcessingInfo
+                                {
+                                    DotCount = dotCount,
+                                    Total = totalImageCount,
+                                    Processed = procImageCount,
+                                    Success = succImageCount,
+                                    Transferred = sendImageCount
+                                };
+                            }
 
                             ProcessDot(udot, imageInfo);
                         }
@@ -929,6 +940,7 @@ namespace Neosmartpen.Net
                         IsStartWithDown = false;
                         IsBeforeMiddle = false;
                         IsStartWithPaperInfo = false;
+                        IsDownCreated = false;
 
                         mDotCount = 0;
 
@@ -961,9 +973,10 @@ namespace Neosmartpen.Net
                         else
                         {
 							UpDotTimerStop();
+
 							if (IsStartWithDown && IsBeforeMiddle && mPrevDot != null)
                             {
-								MakeUpDot();
+								MakeUpDot(false);
                             }
                             else if (!IsStartWithDown && !IsBeforeMiddle)
                             {
@@ -985,6 +998,7 @@ namespace Neosmartpen.Net
 
                         IsBeforeMiddle = false;
                         IsStartWithPaperInfo = false;
+                        IsDownCreated = false;
 
                         mDotCount = 0;
 
@@ -1033,10 +1047,14 @@ namespace Neosmartpen.Net
                                 SessionTs = mTime;
 
                                 var errorDot = MakeDot(PenMaxForce, mCurOwner, mCurSection, mCurNote, mCurPage, mTime, x, y, fx, fy, force, DotTypes.PEN_ERROR, mPenTipColor);
+
                                 //펜 다운 없이 페이퍼 정보 있고 무브가 오는 현상(다운 - 무브 - 업 - 다운X - 무브)
                                 PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenDown, errorDot, SessionTs));
+
 								IsStartWithDown = true;
-							}
+                                IsDownCreated = true;
+
+                            }
 						}
 
                         if (HoverMode && !IsStartWithDown && IsStartWithPaperInfo)
@@ -1081,7 +1099,7 @@ namespace Neosmartpen.Net
                         // 미들도트 중에 페이지가 바뀐다면 강제로 펜업을 만들어 준다.
                         if (IsStartWithDown && IsBeforeMiddle && mPrevDot != null)
                         {
-							MakeUpDot();
+							MakeUpDot(false);
                         }
 
                         byte[] rb = pk.GetBytes(4);
@@ -1100,6 +1118,8 @@ namespace Neosmartpen.Net
                 case Cmd.ONLINE_PEN_ERROR_EVENT:
                 case Cmd.ONLINE_NEW_PEN_ERROR_EVENT:
                     {
+                        upDotTimer.Change(UPDOT_TIMEOUT, Timeout.Infinite);
+
                         if (cmd == Cmd.ONLINE_NEW_PEN_ERROR_EVENT)
                         {
                             int ecount = pk.GetByteToInt();
@@ -1209,11 +1229,14 @@ namespace Neosmartpen.Net
 			}
 		}
 
-		private void MakeUpDot()
+		private void MakeUpDot(bool isError = true)
 		{
-            var errorDot = mPrevDot.Clone();
-            errorDot.DotType = DotTypes.PEN_ERROR;
-            PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenUp, errorDot, SessionTs));
+            if (isError)
+            {
+                var errorDot = mPrevDot.Clone();
+                errorDot.DotType = DotTypes.PEN_ERROR;
+                PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenUp, errorDot, SessionTs));
+            }
 
             var audot = mPrevDot.Clone();
 			audot.DotType = DotTypes.PEN_UP;
