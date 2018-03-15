@@ -709,6 +709,9 @@ namespace Neosmartpen.Net
         {
 			if (Protocol == Protocols.V1)
 				mClientV1.OnDisconnected();
+            else
+                mClientV2.OnDisconnected();
+
             onDisconnected();
         }
 

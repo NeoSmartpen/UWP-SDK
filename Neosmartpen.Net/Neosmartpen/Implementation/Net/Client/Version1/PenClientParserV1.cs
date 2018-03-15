@@ -121,9 +121,6 @@ namespace Neosmartpen.Net
 
 		private bool isIgnorePenStatus = false;
 
-		private readonly int UPDOT_TIMEOUT = 1000;
-		private Timer upDotTimer;
-
 		public PenClientParserV1(PenController penClient) 
 		{
 			this.PenController = penClient;
@@ -135,12 +132,16 @@ namespace Neosmartpen.Net
 				mOfflineworker = new OfflineWorker(this);
 				mOfflineworker.Startup();
 			}
-			upDotTimer = new Timer(UpDotTimerCallback, null, Timeout.Infinite, Timeout.Infinite);
 		}
 
 		public void OnDisconnected()
 		{
-			mOfflineworker.Reset();
+            if (IsStartWithDown && IsBeforeMiddle && mPrevDot != null)
+            {
+                MakeUpDot();
+            }
+
+            mOfflineworker.Reset();
 		}
 
 		public PenController PenController { get; private set; }
@@ -264,7 +265,6 @@ namespace Neosmartpen.Net
                         if (dot != null)
                         {
                             ProcessDot(dot);
-							upDotTimer.Change(UPDOT_TIMEOUT, Timeout.Infinite);
                         }
 
                         mPrevDot = dot;
@@ -294,11 +294,6 @@ namespace Neosmartpen.Net
 
                             if (IsBeforeMiddle && mPrevDot != null)
                             {
-                                // 펜업이 넘어오지 않는 경우
-                                //var errorDot = mPrevDot.Clone();
-                                //errorDot.DotType = DotTypes.PEN_ERROR;
-                                //PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenUp, errorDot, PenDownTime));
-
 								MakeUpDot();
                             }
 
@@ -308,7 +303,6 @@ namespace Neosmartpen.Net
                         }
 						else if (updown == 0x01)
 						{
-							UpDotTimerStop();
 							mPrevDotTime = -1;
 
                             if (IsStartWithDown && IsBeforeMiddle && mPrevDot != null)
@@ -798,47 +792,6 @@ namespace Neosmartpen.Net
 				case Cmd.A_PenColorSetResponse:
 					PenController.onPenColorSetupResponse(new SimpleResultEventArgs(result));
 					break;
-			}
-		}
-
-		//private void ProcessDot(int ownerId, int sectionId, int noteId, int pageId, long timeLong, int x, int y, int fx, int fy, int force, DotTypes type, int color)
-		//{
-		//	Dot.Builder builder = null;
-		//	if (PenMaxForce == 0)
-		//		builder = new Dot.Builder();
-		//	else builder = new Dot.Builder(PenMaxForce);
-
-		//	builder.owner(ownerId)
-		//		.section(sectionId)
-		//		.note(noteId)
-		//		.page(pageId)
-		//		.timestamp(timeLong)
-		//		.coord(x + fx * 0.01f, y + fy * 0.01f)
-		//		.force(force)
-		//		.dotType(type)
-		//		.color(color);
-
-		//	PenController.onReceiveDot(new DotReceivedEventArgs(builder.Build()));
-		//}
-		private void UpDotTimerStop()
-		{
-			upDotTimer.Change(Timeout.Infinite, Timeout.Infinite);
-		}
-
-		private void UpDotTimerCallback(object state)
-		{
-			if (IsStartWithDown && IsBeforeMiddle && mPrevDot != null)
-			{
-				MakeUpDot();
-
-				mPrevDotTime = -1;
-				PenDownTime = -1;
-
-				IsStartWithDown = false;
-				IsBeforeMiddle = false;
-				IsStartWithPaperInfo = false;
-
-				mPrevDot = null;
 			}
 		}
 

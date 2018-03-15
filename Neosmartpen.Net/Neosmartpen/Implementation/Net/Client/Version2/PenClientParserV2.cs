@@ -94,8 +94,10 @@ namespace Neosmartpen.Net
 		public PenClientParserV2(PenController penClient)
 		{
 			this.PenController = penClient;
-			dotFilterForPaper = new FilterForPaper(SendDotReceiveEvent);
+
+            dotFilterForPaper = new FilterForPaper(SendDotReceiveEvent);
 			offlineFilterForPaper = new FilterForPaper(AddOfflineFilteredDot);
+
 			upDotTimer = new Timer(UpDotTimerCallback, null, Timeout.Infinite, Timeout.Infinite);
 		}
 
@@ -854,11 +856,6 @@ namespace Neosmartpen.Net
                     {
                         if (IsStartWithDown && IsBeforeMiddle && mPrevDot != null)
                         {
-                            // 펜업이 넘어오지 않음
-                            //var errorDot = mPrevDot.Clone();
-                            //errorDot.DotType = DotTypes.PEN_ERROR;
-                            //PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenUp, errorDot, SessionTs));
-
 							MakeUpDot();
 						}
 
@@ -972,8 +969,6 @@ namespace Neosmartpen.Net
                         }
                         else
                         {
-							UpDotTimerStop();
-
 							if (IsStartWithDown && IsBeforeMiddle && mPrevDot != null)
                             {
 								MakeUpDot(false);
@@ -1077,7 +1072,11 @@ namespace Neosmartpen.Net
                         if (dot != null)
                         {
                             ProcessDot(dot, null);
-							upDotTimer.Change(UPDOT_TIMEOUT, Timeout.Infinite);
+
+                            if (cmd == Cmd.ONLINE_NEW_PEN_DOT_EVENT)
+                            {
+                                upDotTimer.Change(UPDOT_TIMEOUT, Timeout.Infinite);
+                            }
                         }
 
                         IsBeforeMiddle = true;
@@ -1118,7 +1117,10 @@ namespace Neosmartpen.Net
                 case Cmd.ONLINE_PEN_ERROR_EVENT:
                 case Cmd.ONLINE_NEW_PEN_ERROR_EVENT:
                     {
-                        upDotTimer.Change(UPDOT_TIMEOUT, Timeout.Infinite);
+                        if (cmd == Cmd.ONLINE_NEW_PEN_ERROR_EVENT)
+                        {
+                            upDotTimer.Change(UPDOT_TIMEOUT, Timeout.Infinite);
+                        }
 
                         if (cmd == Cmd.ONLINE_NEW_PEN_ERROR_EVENT)
                         {
@@ -1165,7 +1167,26 @@ namespace Neosmartpen.Net
             }
 		}
 
-		private void ProcessDot(Dot dot, object obj)
+        internal void OnDisconnected()
+        {
+            if (IsStartWithDown && IsBeforeMiddle && mPrevDot != null)
+            {
+                MakeUpDot();
+
+                mTime = -1;
+                SessionTs = -1;
+
+                IsStartWithDown = false;
+                IsBeforeMiddle = false;
+                IsStartWithPaperInfo = false;
+
+                mDotCount = 0;
+
+                mPrevDot = null;
+            }
+        }
+
+        private void ProcessDot(Dot dot, object obj)
 		{
             //dotFilterForPaper.Put(dot, obj);
             SendDotReceiveEvent(dot, obj);
