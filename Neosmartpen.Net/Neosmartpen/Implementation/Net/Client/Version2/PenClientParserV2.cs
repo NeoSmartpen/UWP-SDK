@@ -98,7 +98,7 @@ namespace Neosmartpen.Net
             dotFilterForPaper = new FilterForPaper(SendDotReceiveEvent);
 			offlineFilterForPaper = new FilterForPaper(AddOfflineFilteredDot);
 
-			upDotTimer = new Timer(UpDotTimerCallback, null, Timeout.Infinite, Timeout.Infinite);
+			//upDotTimer = new Timer(UpDotTimerCallback, null, Timeout.Infinite, Timeout.Infinite);
 		}
 
 		public PenController PenController { get; private set; }
@@ -163,8 +163,8 @@ namespace Neosmartpen.Net
 
 		private bool isConnectWrite = false;
 
-		private readonly int UPDOT_TIMEOUT = 1000;
-		private Timer upDotTimer;
+		//private readonly int UPDOT_TIMEOUT = 1000;
+		//private Timer upDotTimer;
 
 		public bool HoverMode
 		{
@@ -885,7 +885,7 @@ namespace Neosmartpen.Net
 
                 case Cmd.ONLINE_NEW_PEN_UP_EVENT:
                     {
-						UpDotTimerStop();
+						//UpDotTimerStop();
 
                         int ecount = pk.GetByteToInt();
 
@@ -1072,11 +1072,12 @@ namespace Neosmartpen.Net
                         if (dot != null)
                         {
                             ProcessDot(dot, null);
-
+                            /*
                             if (cmd == Cmd.ONLINE_NEW_PEN_DOT_EVENT)
                             {
                                 upDotTimer.Change(UPDOT_TIMEOUT, Timeout.Infinite);
                             }
+                            */
                         }
 
                         IsBeforeMiddle = true;
@@ -1117,11 +1118,12 @@ namespace Neosmartpen.Net
                 case Cmd.ONLINE_PEN_ERROR_EVENT:
                 case Cmd.ONLINE_NEW_PEN_ERROR_EVENT:
                     {
+                        /*
                         if (cmd == Cmd.ONLINE_NEW_PEN_ERROR_EVENT)
                         {
                             upDotTimer.Change(UPDOT_TIMEOUT, Timeout.Infinite);
                         }
-
+                        */
                         if (cmd == Cmd.ONLINE_NEW_PEN_ERROR_EVENT)
                         {
                             int ecount = pk.GetByteToInt();
@@ -1225,14 +1227,18 @@ namespace Neosmartpen.Net
 			ProcessDot(MakeDot(PenMaxForce, mCurOwner, mCurSection, mCurNote, mCurPage, mTime, x, y, fx, fy, force, type, mPenTipColor), null);
 			//PenController.onReceiveDot(new DotReceivedEventArgs(MakeDot(PenMaxForce, mCurOwner, mCurSection, mCurNote, mCurPage, mTime, x, y, fx, fy, force, type, mPenTipColor)));
 		}
-
+        
+        /*
 		private void UpDotTimerStop()
 		{
 			upDotTimer.Change(Timeout.Infinite, Timeout.Infinite);
 		}
+        */
 
 		private void UpDotTimerCallback(object state)
 		{
+            Debug.WriteLine("UpDotTimerCallback");
+
 			if (IsStartWithDown && IsBeforeMiddle && mPrevDot != null)
 			{
 				MakeUpDot();
@@ -2126,10 +2132,10 @@ namespace Neosmartpen.Net
 
 					mBuffer.Clear();
 					mBuffer = null;
-                    //if ((Cmd)cmd == Cmd.ONLINE_NEW_PAPER_INFO_EVENT)
+                    //if ((Cmd)cmd == Cmd.ONLINE_NEW_PEN_UP_EVENT)
                     //{ }
                     //else
-					    ParsePacket(builder.Build());
+					ParsePacket(builder.Build());
 
 					IsEscape = false;
 				}
