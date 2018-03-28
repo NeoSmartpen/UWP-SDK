@@ -289,7 +289,7 @@ namespace Neosmartpen.Net
                             .force( force )
                             .color( color )
                             .timestamp( timestamp )
-                            .dotType( dotType ).Build()
+                            .dotType( dotType ).Build(), null
                      );
 
                     dotSize += 8;
@@ -319,7 +319,7 @@ namespace Neosmartpen.Net
         }
 
 		private List<Dot> offlineDots;
-		private void AddOfflineFilteredDot(Dot dot)
+		private void AddOfflineFilteredDot(Dot dot, object obj)
 		{
 			offlineDots.Add(dot);
 		}

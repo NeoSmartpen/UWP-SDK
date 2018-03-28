@@ -107,6 +107,7 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Neosmartpen\Implementation\Net\Client\Event\ErrorDetectedEventArgs.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Client\Event\PenProfile\PenProfileCreateEventArgs.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Client\Event\PenProfile\PenProfileDeleteEventArgs.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Client\Event\PenProfile\PenProfileDeleteValueEventArgs.cs" />
@@ -114,7 +115,13 @@
     <Compile Include="Neosmartpen\Implementation\Net\Client\Event\PenProfile\PenProfileReadValueEventArgs.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Client\Event\PenProfile\PenProfileReceivedEventArgs.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Client\Event\PenProfile\PenProfileWriteValueEventArgs.cs" />
+    <Compile Include="Neosmartpen\Implementation\Net\Client\ImageProcessErrorInfo.cs" />
+    <Compile Include="Neosmartpen\Implementation\Net\Client\ImageProcessingInfo.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Client\PenProfile.cs" />
+    <Compile Include="Neosmartpen\Implementation\Net\Encryption\AES256Chiper.cs" />
+    <Compile Include="Neosmartpen\Implementation\Net\Encryption\PrivateKey.cs" />
+    <Compile Include="Neosmartpen\Implementation\Net\Encryption\PublicKey.cs" />
+    <Compile Include="Neosmartpen\Implementation\Net\Encryption\RSAChiper.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Filter\FilterForPaper.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Bluetooth\BluetoothPenClient.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Bluetooth\PenInfomation.cs" />

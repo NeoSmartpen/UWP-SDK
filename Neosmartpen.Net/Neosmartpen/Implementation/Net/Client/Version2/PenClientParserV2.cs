@@ -7,6 +7,7 @@ using System.Text;
 using Neosmartpen.Net.Support;
 using Windows.Storage;
 using Neosmartpen.Net.Filter;
+using Neosmartpen.Net.Encryption;
 
 namespace Neosmartpen.Net
 {
@@ -53,8 +54,18 @@ namespace Neosmartpen.Net
 			ONLINE_PEN_UPDOWN_EVENT = 0X63,
 			ONLINE_PAPER_INFO_EVENT = 0X64,
 			ONLINE_PEN_DOT_EVENT = 0X65,
+            ONLINE_PEN_ERROR_EVENT = 0X68,
 
-			OFFLINE_NOTE_LIST_REQUEST = 0X21,
+            ONLINE_NEW_PEN_DOWN_EVENT = 0X69,
+            ONLINE_NEW_PEN_UP_EVENT = 0X6A,
+            ONLINE_NEW_PAPER_INFO_EVENT = 0X6B,
+            ONLINE_NEW_PEN_DOT_EVENT = 0X6C,
+            ONLINE_NEW_PEN_ERROR_EVENT = 0X6D,
+
+            ONLINE_ENCRYPTION_PAPER_INFO_EVENT = 0X6E,
+            ONLINE_ENCRYPTION_PEN_DOT_EVENT = 0X6F,
+
+            OFFLINE_NOTE_LIST_REQUEST = 0X21,
 			OFFLINE_NOTE_LIST_RESPONSE = 0XA1,
 
 			OFFLINE_PAGE_LIST_REQUEST = 0X22,
@@ -74,7 +85,10 @@ namespace Neosmartpen.Net
 			FIRMWARE_PACKET_RESPONSE = 0XB2,
 
 			PEN_PROFILE_REQUEST =0x41,
-			PEN_PROFILE_RESPONSE = 0xC1
+			PEN_PROFILE_RESPONSE = 0xC1,
+
+			AES_KEY_REQUEST = 0X74,
+			AES_KEY_RESPONSE = 0XF4
 		};
 
 		public static readonly float PEN_PROFILE_SUPPORT_PROTOCOL_VERSION = 2.10f;
@@ -85,8 +99,11 @@ namespace Neosmartpen.Net
 		public PenClientParserV2(PenController penClient)
 		{
 			this.PenController = penClient;
-			dotFilterForPaper = new FilterForPaper(SendDotReceiveEvent);
+
+            dotFilterForPaper = new FilterForPaper(SendDotReceiveEvent);
 			offlineFilterForPaper = new FilterForPaper(AddOfflineFilteredDot);
+
+			//upDotTimer = new Timer(UpDotTimerCallback, null, Timeout.Infinite, Timeout.Infinite);
 		}
 
 		public PenController PenController { get; private set; }
@@ -120,7 +137,9 @@ namespace Neosmartpen.Net
 		/// </summary>
 		public short MaxForce { get; private set; }
 
-		private long mTime = -1L;
+        public const string SupportedProtocolVersion = "2.12";
+
+        private long mTime = -1L;
 
 		private PenTipType mPenTipType = PenTipType.Normal;
 
@@ -147,8 +166,12 @@ namespace Neosmartpen.Net
 		private FilterForPaper dotFilterForPaper = null;
 		private FilterForPaper offlineFilterForPaper = null;
 
-
 		private bool isConnectWrite = false;
+
+		private AES256Chiper aesChiper;
+
+		//private readonly int UPDOT_TIMEOUT = 1000;
+		//private Timer upDotTimer;
 
 		public bool HoverMode
 		{
@@ -156,6 +179,7 @@ namespace Neosmartpen.Net
 			private set;
 		}
 
+		int offlineDataPacketRetryCount = 0;
 		public void ParsePacket(Packet packet)
 		{
 			Cmd cmd = (Cmd)packet.Cmd;
@@ -181,7 +205,12 @@ namespace Neosmartpen.Net
 
 						IsUploading = false;
 
-						ReqPenStatus();
+                        EventCount = 0;
+
+						aesChiper = null;
+						rsaChiper = null;
+
+                        ReqPenStatus();
 					}
 					break;
 
@@ -204,8 +233,20 @@ namespace Neosmartpen.Net
 				case Cmd.ONLINE_PEN_UPDOWN_EVENT:
 				case Cmd.ONLINE_PEN_DOT_EVENT:
 				case Cmd.ONLINE_PAPER_INFO_EVENT:
-					{
+                case Cmd.ONLINE_PEN_ERROR_EVENT:
+                case Cmd.ONLINE_NEW_PEN_DOWN_EVENT:
+                case Cmd.ONLINE_NEW_PEN_UP_EVENT:
+                case Cmd.ONLINE_NEW_PEN_DOT_EVENT:
+                case Cmd.ONLINE_NEW_PAPER_INFO_EVENT:
+                case Cmd.ONLINE_NEW_PEN_ERROR_EVENT:
+                    {
 						ParseDotPacket(cmd, packet);
+					}
+					break;
+				case Cmd.ONLINE_ENCRYPTION_PAPER_INFO_EVENT:
+				case Cmd.ONLINE_ENCRYPTION_PEN_DOT_EVENT:
+					{
+						ParseEncryptionDotPacket(cmd, packet);
 					}
 					break;
 				#endregion
@@ -273,6 +314,7 @@ namespace Neosmartpen.Net
 							{
 								ReqSetupTime(Time.GetUtcTimeStamp());
 								PenController.onPenAuthenticated();
+								//AesKeyRequest();
 							}
 						}
 						else
@@ -474,7 +516,16 @@ namespace Neosmartpen.Net
 
 						if (sizeAfter != (packet.Data.Length - 18))
 						{
-							SendOfflinePacketResponse(packetId, false);
+							if ( offlineDataPacketRetryCount < 3)
+							{
+								SendOfflinePacketResponse(packetId, false);
+								++offlineDataPacketRetryCount;
+							}
+							else
+							{
+								offlineDataPacketRetryCount = 0;
+								PenController.onFinishedOfflineDownload(new SimpleResultEventArgs(false));
+							}
 							return;
 						}
 
@@ -486,7 +537,16 @@ namespace Neosmartpen.Net
 
 						if (strData.Length != sizeBefore)
 						{
-							SendOfflinePacketResponse(packetId, false);
+							if ( offlineDataPacketRetryCount < 3)
+							{
+								SendOfflinePacketResponse(packetId, false);
+								++offlineDataPacketRetryCount;
+							}
+							else
+							{
+								offlineDataPacketRetryCount = 0;
+								PenController.onFinishedOfflineDownload(new SimpleResultEventArgs(false));
+							}
 							return;
 						}
 
@@ -541,9 +601,10 @@ namespace Neosmartpen.Net
 
 								if (dotChecksum != checksum)
 								{
-									SendOfflinePacketResponse(packetId, false);
-									result.Clear();
-									return;
+									//SendOfflinePacketResponse(packetId, false);
+									//result.Clear();
+									//return;
+									continue;
 								}
 
 								DotTypes dotType;
@@ -554,6 +615,7 @@ namespace Neosmartpen.Net
 								}
 								else if (j == dotCount - 1)
 								{
+
 									dotType = DotTypes.PEN_UP;
 								}
 								else
@@ -561,7 +623,7 @@ namespace Neosmartpen.Net
 									dotType = DotTypes.PEN_MOVE;
 								}
 
-								offlineFilterForPaper.Put(MakeDot(PenMaxForce, owner, section, note, pageId, time, x, y, fx, fy, force, dotType, color));
+								offlineFilterForPaper.Put(MakeDot(PenMaxForce, owner, section, note, pageId, time, x, y, fx, fy, force, dotType, color), null);
 								//stroke.Add(MakeDot(PenMaxForce, owner, section, note, pageId, time, x, y, fx, fy, force, dotType, color));
 							}
 
@@ -570,6 +632,7 @@ namespace Neosmartpen.Net
 
 						SendOfflinePacketResponse(packetId);
 
+						offlineDataPacketRetryCount = 0;
 						PenController.onReceiveOfflineStrokes(new OfflineStrokeReceivedEventArgs(mTotalOfflineStroke, mReceivedOfflineStroke, result.ToArray()));
 
 						if (location == 2)
@@ -649,6 +712,23 @@ namespace Neosmartpen.Net
 						}
 						else
 							PenController.onPenProfileReceived(new PenProfileReceivedEventArgs(PenProfileReceivedEventArgs.ResultType.Falied));
+					}
+					break;
+				#endregion
+
+				#region Encryption
+				case Cmd.AES_KEY_RESPONSE:
+					byte[] keyBytes = packet.GetBytes(256);
+
+					if (rsaChiper != null)
+					{
+						//Debug.WriteLine("Receive data Enc : " + BitConverter.ToString(keyBytes));
+						var aesKey = rsaChiper.Decrypt(keyBytes);
+
+						//Debug.WriteLine("Receive data Enc : " + BitConverter.ToString(aesKey));
+						//Debug.WriteLine("Receive data Enc : " + Encoding.UTF8.GetString(aesKey));
+						aesChiper = new AES256Chiper(aesKey);
+						rsaChiper = null;
 					}
 					break;
 				#endregion
@@ -762,114 +842,435 @@ namespace Neosmartpen.Net
 
         private bool IsBeforeMiddle = false;
 
+        private bool IsStartWithPaperInfo = false;
+
+        private bool IsDownCreated = false;
+
+        private long SessionTs = -1;
+
+        private int EventCount = -1;
+
+        private void CheckEventCount(int ecount)
+        {
+            //Debug.WriteLine("COUNT : " + ecount + ", " + EventCount);
+
+            if (ecount - EventCount != 1 && (ecount != 0 || EventCount != 255))
+            {
+                // 이벤트 카운트 오류
+                Dot errorDot = null;
+
+                if (mPrevDot != null)
+                {
+                    errorDot = mPrevDot.Clone();
+                    errorDot.DotType = DotTypes.PEN_ERROR;
+                }
+
+                if (ecount - EventCount > 1)
+                {
+                    string extraData = string.Format("missed event count {0}-{1}", EventCount + 1, ecount - 1);
+                    PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.InvalidEventCount, errorDot, SessionTs, extraData));
+                }
+                else if (ecount < EventCount)
+                {
+                    string extraData = string.Format("invalid event count {0},{1}", EventCount, ecount);
+                    PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.InvalidEventCount, errorDot, SessionTs, extraData));
+                }
+            }
+
+            EventCount = ecount;
+        }
+
         private void ParseDotPacket(Cmd cmd, Packet pk)
 		{
-			switch (cmd)
+            //Debug.Write("CMD : " + cmd.ToString() + ", ");
+
+            switch (cmd)
 			{
-				case Cmd.ONLINE_PEN_UPDOWN_EVENT:
+                case Cmd.ONLINE_NEW_PEN_DOWN_EVENT:
+                    {
+                        if (IsStartWithDown && IsBeforeMiddle && mPrevDot != null)
+                        {
+							MakeUpDot();
+						}
 
-					IsStartWithDown = pk.GetByte() == 0x00;
+						int ecount = pk.GetByteToInt();
 
-                    IsBeforeMiddle = false;
+                        CheckEventCount(ecount);
 
-                    mDotCount = 0;
+                        IsStartWithDown = true;
 
-					mTime = pk.GetLong();
+                        mTime = pk.GetLong();
 
-					mPenTipType = pk.GetByte() == 0x00 ? PenTipType.Normal : PenTipType.Eraser;
+                        SessionTs = mTime;
 
-					mPenTipColor = pk.GetInt();
+                        IsBeforeMiddle = false;
+                        IsStartWithPaperInfo = false;
 
-					if (mPrevDot != null && !IsStartWithDown)
-					{
-                        //mPrevPacket.Reset();
-                        //ParseDot(mPrevPacket, DotTypes.PEN_UP);
-                        var udot = mPrevDot.Clone();
-                        udot.DotType = DotTypes.PEN_UP;
-						ProcessDot(udot);
-                        //PenController.onReceiveDot(new DotReceivedEventArgs(udot));
+                        IsDownCreated = false;
+
+                        mDotCount = 0;
+
+                        mPenTipType = pk.GetByte() == 0x00 ? PenTipType.Normal : PenTipType.Eraser;
+                        mPenTipColor = pk.GetInt();
+
                         mPrevDot = null;
                     }
+                    break;
 
-					break;
+                case Cmd.ONLINE_NEW_PEN_UP_EVENT:
+                    {
+						//UpDotTimerStop();
+
+                        int ecount = pk.GetByteToInt();
+
+                        CheckEventCount(ecount);
+
+                        long timestamp = pk.GetLong();
+
+                        int dotCount = pk.GetShort();
+                        int totalImageCount = pk.GetShort();
+                        int procImageCount = pk.GetShort();
+                        int succImageCount = pk.GetShort();
+                        int sendImageCount = pk.GetShort();
+
+                        if (IsStartWithDown && IsBeforeMiddle && mPrevDot != null)
+                        {
+                            var udot = mPrevDot.Clone();
+                            udot.DotType = DotTypes.PEN_UP;
+
+                            ImageProcessingInfo imageInfo = null;
+
+                            if (!IsDownCreated)
+                            {
+                                imageInfo = new ImageProcessingInfo
+                                {
+                                    DotCount = dotCount,
+                                    Total = totalImageCount,
+                                    Processed = procImageCount,
+                                    Success = succImageCount,
+                                    Transferred = sendImageCount
+                                };
+                            }
+
+                            ProcessDot(udot, imageInfo);
+                        }
+                        else if (!IsStartWithDown && !IsBeforeMiddle)
+                        {
+                            // 즉 다운업(무브없이) 혹은 업만 들어올 경우 UP dot을 보내지 않음
+                            PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenDownPenMove, -1));
+                        }
+                        else if (!IsBeforeMiddle)
+                        {
+                            // 무브없이 다운-업만 들어올 경우 UP dot을 보내지 않음
+                            PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenMove, SessionTs));
+                        }
+
+                        mTime = -1;
+                        SessionTs = -1;
+
+                        IsStartWithDown = false;
+                        IsBeforeMiddle = false;
+                        IsStartWithPaperInfo = false;
+                        IsDownCreated = false;
+
+                        mDotCount = 0;
+
+                        mPrevDot = null;
+                    }
+                    break;
+
+                case Cmd.ONLINE_PEN_UPDOWN_EVENT:
+                    {
+                        bool IsDown = pk.GetByte() == 0x00;
+
+                        if (IsDown)
+                        {
+                            if (IsStartWithDown && IsBeforeMiddle && mPrevDot != null)
+                            {
+                                // 펜업이 넘어오지 않음
+                                //var errorDot = mPrevDot.Clone();
+                                //errorDot.DotType = DotTypes.PEN_ERROR;
+                                //PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenUp, errorDot, SessionTs));
+
+								MakeUpDot();
+                            }
+
+                            IsStartWithDown = true;
+
+                            mTime = pk.GetLong();
+
+                            SessionTs = mTime;
+                        }
+                        else
+                        {
+							if (IsStartWithDown && IsBeforeMiddle && mPrevDot != null)
+                            {
+								MakeUpDot(false);
+                            }
+                            else if (!IsStartWithDown && !IsBeforeMiddle)
+                            {
+                                // 즉 다운업(무브없이) 혹은 업만 들어올 경우 UP dot을 보내지 않음
+                                PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenDownPenMove, -1));
+                            }
+                            else if (!IsBeforeMiddle)
+                            {
+                                // 무브없이 다운-업만 들어올 경우 UP dot을 보내지 않음
+                                PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenMove, SessionTs));
+                            }
+
+                            IsStartWithDown = false;
+
+                            mTime = -1;
+
+                            SessionTs = -1;
+                        }
+
+                        IsBeforeMiddle = false;
+                        IsStartWithPaperInfo = false;
+                        IsDownCreated = false;
+
+                        mDotCount = 0;
+
+                        mPenTipType = pk.GetByte() == 0x00 ? PenTipType.Normal : PenTipType.Eraser;
+                        mPenTipColor = pk.GetInt();
+
+                        mPrevDot = null;
+                    }
+                    break;
 
 				case Cmd.ONLINE_PEN_DOT_EVENT:
-
-                    int timeadd = pk.GetByte();
-
-                    mTime += timeadd;
-
-                    int force = pk.GetShort();
-
-                    int x = pk.GetShort();
-                    int y = pk.GetShort();
-
-                    int fx = pk.GetByte();
-                    int fy = pk.GetByte();
-
-                    Dot dot = null;
-
-                    if (HoverMode && !IsStartWithDown)
+                case Cmd.ONLINE_NEW_PEN_DOT_EVENT:
                     {
-                        dot = MakeDot(PenMaxForce, mCurOwner, mCurSection, mCurNote, mCurPage, mTime, x, y, fx, fy, force, DotTypes.PEN_HOVER, mPenTipColor);
+						PenDotEvent(cmd, pk);
                     }
-                    else if (IsStartWithDown)
-                    {
-                        dot = MakeDot(PenMaxForce, mCurOwner, mCurSection, mCurNote, mCurPage, mTime, x, y, fx, fy, force, mDotCount == 0 ? DotTypes.PEN_DOWN : DotTypes.PEN_MOVE, mPenTipColor);
-                    }
-                    else
-                    {
-                        //오류
-                    }
-
-                    if (dot != null)
-                    {
-						ProcessDot(dot);
-                        //PenController.onReceiveDot(new DotReceivedEventArgs(dot));
-                    }
-                    IsBeforeMiddle = true;
-                    mPrevDot = dot;
-                    //mPrevPacket = pk;
-					mDotCount++;
-
 					break;
 
 				case Cmd.ONLINE_PAPER_INFO_EVENT:
-                    
-                    // 미들도트 중에 페이지가 바뀐다면 강제로 펜업을 만들어 준다.
-                    if (IsBeforeMiddle)
+                case Cmd.ONLINE_NEW_PAPER_INFO_EVENT:
                     {
-                        var audot = mPrevDot.Clone();
-                        audot.DotType = DotTypes.PEN_UP;
-						ProcessDot(audot);
-                        //PenController.onReceiveDot(new DotReceivedEventArgs(audot));
+						PaperInfoEvent(cmd, pk);
                     }
-
-					byte[] rb = pk.GetBytes(4);
-
-					mCurSection = (int)(rb[3] & 0xFF);
-					mCurOwner = ByteConverter.ByteToInt(new byte[] { rb[0], rb[1], rb[2], (byte)0x00 });
-					mCurNote = pk.GetInt();
-					mCurPage = pk.GetInt();
-
-                    mDotCount = 0;
-
                     break;
+                    
+                case Cmd.ONLINE_PEN_ERROR_EVENT:
+                case Cmd.ONLINE_NEW_PEN_ERROR_EVENT:
+                    {
+                        /*
+                        if (cmd == Cmd.ONLINE_NEW_PEN_ERROR_EVENT)
+                        {
+                            upDotTimer.Change(UPDOT_TIMEOUT, Timeout.Infinite);
+                        }
+                        */
+                        if (cmd == Cmd.ONLINE_NEW_PEN_ERROR_EVENT)
+                        {
+                            int ecount = pk.GetByteToInt();
+
+                            CheckEventCount(ecount);
+                        }
+
+                        int timeadd = pk.GetByteToInt();
+                        mTime += timeadd;
+
+                        int force = pk.GetShort();
+                        int brightness = pk.GetByteToInt();
+                        int exposureTime = pk.GetByteToInt();
+                        int ndacProcessTime = pk.GetByteToInt();
+                        int labelCount = pk.GetShort();
+                        int ndacErrorCode = pk.GetByteToInt();
+                        int classType = pk.GetByteToInt();
+                        int errorCount = pk.GetByteToInt();
+
+                        ImageProcessErrorInfo newInfo = new ImageProcessErrorInfo {
+                            Timestamp = mTime,
+                            Force = force,
+                            Brightness = brightness,
+                            ExposureTime = exposureTime,
+                            ProcessTime = ndacProcessTime,
+                            LabelCount = labelCount,
+                            ErrorCode = ndacErrorCode,
+                            ClassType = classType,
+                            ErrorCount = errorCount
+                        };
+
+                        Dot errorDot = null;
+
+                        if (mPrevDot != null)
+                        {
+                            errorDot = mPrevDot.Clone();
+                            errorDot.DotType = DotTypes.PEN_UP;
+                        }
+
+                        PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.ImageProcessingError, errorDot, SessionTs, newInfo));
+                    }
+                    break;
+            }
+		}
+
+        private void ParseEncryptionDotPacket(Cmd cmd, Packet pk)
+		{
+			if (aesChiper == null)	// Do not ready to decoding
+				throw new NullReferenceException("Do not ready to aes encryption");
+
+			var decrypt = aesChiper.Decrypt(pk.Data);
+			if ( decrypt == null )
+			{
+				// TODO Decoding failed
+				return;
+			}
+			var newPacket = new Packet.Builder();
+			newPacket.cmd(pk.Cmd);
+			newPacket.result(pk.Result);
+			newPacket.data(decrypt);
+			switch(cmd)
+			{
+				case Cmd.ONLINE_ENCRYPTION_PAPER_INFO_EVENT:
+					PaperInfoEvent(cmd, newPacket.Build());
+					break;
+				case Cmd.ONLINE_ENCRYPTION_PEN_DOT_EVENT:
+					PenDotEvent(cmd, newPacket.Build());
+					break;
 			}
 		}
 
-		private void ProcessDot(Dot dot)
+		private void PaperInfoEvent(Cmd cmd, Packet pk)
 		{
-			dotFilterForPaper.Put(dot);
+			if (cmd == Cmd.ONLINE_NEW_PAPER_INFO_EVENT || cmd == Cmd.ONLINE_ENCRYPTION_PAPER_INFO_EVENT)
+			{
+				int ecount = pk.GetByteToInt();
+
+				CheckEventCount(ecount);
+			}
+
+			// 미들도트 중에 페이지가 바뀐다면 강제로 펜업을 만들어 준다.
+			if (IsStartWithDown && IsBeforeMiddle && mPrevDot != null)
+			{
+				MakeUpDot(false);
+			}
+
+			byte[] rb = pk.GetBytes(4);
+
+			mCurSection = (int)(rb[3] & 0xFF);
+			mCurOwner = ByteConverter.ByteToInt(new byte[] { rb[0], rb[1], rb[2], (byte)0x00 });
+			mCurNote = pk.GetInt();
+			mCurPage = pk.GetInt();
+
+			mDotCount = 0;
+
+			IsStartWithPaperInfo = true;
 		}
 
-		private void SendDotReceiveEvent(Dot dot)
+		private void PenDotEvent(Cmd cmd, Packet pk)
 		{
-			PenController.onReceiveDot(new DotReceivedEventArgs(dot));
+			if (cmd == Cmd.ONLINE_NEW_PEN_DOT_EVENT || cmd == Cmd.ONLINE_ENCRYPTION_PEN_DOT_EVENT)
+			{
+				int ecount = pk.GetByteToInt();
+
+				CheckEventCount(ecount);
+			}
+
+			int timeadd = pk.GetByte();
+
+			mTime += timeadd;
+
+			int force = pk.GetShort();
+
+			int x = pk.GetShort();
+			int y = pk.GetShort();
+
+			int fx = pk.GetByte();
+			int fy = pk.GetByte();
+
+			Dot dot = null;
+
+			if (!HoverMode && !IsStartWithDown)
+			{
+				if (!IsStartWithPaperInfo)
+				{
+					//펜 다운 없이 페이퍼 정보 없고 무브가 오는 현상(다운 - 무브 - 업 - 다운X - 무브)
+					PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenDown, -1));
+				}
+				else
+				{
+					mTime = Time.GetUtcTimeStamp();
+
+					SessionTs = mTime;
+
+					var errorDot = MakeDot(PenMaxForce, mCurOwner, mCurSection, mCurNote, mCurPage, mTime, x, y, fx, fy, force, DotTypes.PEN_ERROR, mPenTipColor);
+
+					//펜 다운 없이 페이퍼 정보 있고 무브가 오는 현상(다운 - 무브 - 업 - 다운X - 무브)
+					PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenDown, errorDot, SessionTs));
+
+					IsStartWithDown = true;
+					IsDownCreated = true;
+
+				}
+			}
+
+			if (HoverMode && !IsStartWithDown && IsStartWithPaperInfo)
+			{
+				dot = MakeDot(PenMaxForce, mCurOwner, mCurSection, mCurNote, mCurPage, mTime, x, y, fx, fy, force, DotTypes.PEN_HOVER, mPenTipColor);
+			}
+			else if (IsStartWithDown)
+			{
+				if (IsStartWithPaperInfo)
+				{
+					dot = MakeDot(PenMaxForce, mCurOwner, mCurSection, mCurNote, mCurPage, mTime, x, y, fx, fy, force, mDotCount == 0 ? DotTypes.PEN_DOWN : DotTypes.PEN_MOVE, mPenTipColor);
+				}
+				else
+				{
+					//펜 다운 이후 페이지 체인지 없이 도트가 들어왔을 경우
+					PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPageChange, SessionTs));
+				}
+			}
+
+			if (dot != null)
+			{
+				ProcessDot(dot, null);
+				/*
+				if (cmd == Cmd.ONLINE_NEW_PEN_DOT_EVENT)
+				{
+					upDotTimer.Change(UPDOT_TIMEOUT, Timeout.Infinite);
+				}
+				*/
+			}
+
+			IsBeforeMiddle = true;
+			mPrevDot = dot;
+			mDotCount++;
+		}
+
+		internal void OnDisconnected()
+        {
+            if (IsStartWithDown && IsBeforeMiddle && mPrevDot != null)
+            {
+                MakeUpDot();
+
+                mTime = -1;
+                SessionTs = -1;
+
+                IsStartWithDown = false;
+                IsBeforeMiddle = false;
+                IsStartWithPaperInfo = false;
+
+                mDotCount = 0;
+
+                mPrevDot = null;
+            }
+        }
+
+        private void ProcessDot(Dot dot, object obj)
+		{
+            //dotFilterForPaper.Put(dot, obj);
+            SendDotReceiveEvent(dot, obj);
+        }
+
+		private void SendDotReceiveEvent(Dot dot, object obj)
+		{
+			PenController.onReceiveDot(new DotReceivedEventArgs(dot, obj == null? null : (ImageProcessingInfo)obj));
 		}
 
 		private Stroke offlineStroke;
-		private void AddOfflineFilteredDot(Dot dot)
+		private void AddOfflineFilteredDot(Dot dot, object obj)
 		{
 			offlineStroke.Add(dot);
 		}
@@ -893,9 +1294,51 @@ namespace Neosmartpen.Net
 
 			int twist = mPack.GetShort();
 
-			ProcessDot(MakeDot(PenMaxForce, mCurOwner, mCurSection, mCurNote, mCurPage, mTime, x, y, fx, fy, force, type, mPenTipColor));
+			ProcessDot(MakeDot(PenMaxForce, mCurOwner, mCurSection, mCurNote, mCurPage, mTime, x, y, fx, fy, force, type, mPenTipColor), null);
 			//PenController.onReceiveDot(new DotReceivedEventArgs(MakeDot(PenMaxForce, mCurOwner, mCurSection, mCurNote, mCurPage, mTime, x, y, fx, fy, force, type, mPenTipColor)));
 		}
+        
+        /*
+		private void UpDotTimerStop()
+		{
+			upDotTimer.Change(Timeout.Infinite, Timeout.Infinite);
+		}
+        */
+
+		private void UpDotTimerCallback(object state)
+		{
+            Debug.WriteLine("UpDotTimerCallback");
+
+			if (IsStartWithDown && IsBeforeMiddle && mPrevDot != null)
+			{
+				MakeUpDot();
+
+				mTime = -1;
+				SessionTs = -1;
+
+				IsStartWithDown = false;
+				IsBeforeMiddle = false;
+				IsStartWithPaperInfo = false;
+
+				mDotCount = 0;
+
+				mPrevDot = null;
+			}
+		}
+
+		private void MakeUpDot(bool isError = true)
+		{
+            if (isError)
+            {
+                var errorDot = mPrevDot.Clone();
+                errorDot.DotType = DotTypes.PEN_ERROR;
+                PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenUp, errorDot, SessionTs));
+            }
+
+            var audot = mPrevDot.Clone();
+			audot.DotType = DotTypes.PEN_UP;
+			ProcessDot(audot, null);
+        }
 
 		private byte[] Escape(byte input)
 		{
@@ -927,16 +1370,18 @@ namespace Neosmartpen.Net
 			Assembly assemObj = this.GetType().GetTypeInfo().Assembly;
 			Version v = assemObj.GetName().Version; // 현재 실행되는 어셈블리..dll의 버전 가져오기
 
-			byte[] StrByte = Encoding.UTF8.GetBytes(String.Format("{0}.{1}.{2}.{3}", v.Major, v.Minor, v.Build, v.Revision));
+			byte[] StrAppVersion = Encoding.UTF8.GetBytes(String.Format("{0}.{1}.{2}.{3}", v.Major, v.Minor, v.Build, v.Revision));
+            byte[] StrProtocolVersion = Encoding.UTF8.GetBytes(SupportedProtocolVersion);
 
-			bf.Put(Const.PK_STX, false)
+            bf.Put(Const.PK_STX, false)
 			  .Put((byte)Cmd.VERSION_REQUEST)
-			  .PutShort(34)
+			  .PutShort(42)
 			  .PutNull(16)
 			  .Put(0x12)
 			  .Put(0x01)
-			  .Put(StrByte, 16)
-			  .Put(Const.PK_ETX, false);
+			  .Put(StrAppVersion, 16)
+              .Put(StrProtocolVersion, 8)
+              .Put(Const.PK_ETX, false);
 
 			Send(bf);
 		}
@@ -1663,6 +2108,35 @@ namespace Neosmartpen.Net
 		}
 		#endregion
 
+		#region Encryption
+		RSAChiper rsaChiper = null;
+		public bool AesKeyRequest()
+		{
+			if (rsaChiper == null)
+			{
+				rsaChiper = new RSAChiper();
+				rsaChiper.CreateKey();
+				// test
+				//var ret = rsaChiper.Encrypt("NEOLAP_123456789ABCDEFGHIJKLMNOP");
+				//Debug.WriteLine("ret : " + BitConverter.ToString(ret));
+				//var ret2 = rsaChiper.Decrypt(ret);
+			//return Encoding.UTF8.GetString(result.ToByteArray());
+				//Debug.WriteLine("ret2 : " + BitConverter.ToString(ret2));
+				//Debug.WriteLine("ret2 str : " + Encoding.UTF8.GetString(ret2));
+			}
+
+			ByteUtil bf = new ByteUtil(Escape);
+			bf.Put(Const.PK_STX, false)
+				.Put((byte)Cmd.AES_KEY_REQUEST) // command
+				.PutShort(256 + 3)
+				.Put(rsaChiper.GetPublicKeyModulus())
+				.Put(rsaChiper.GetPublicExponent())
+				.Put(Const.PK_ETX, false);
+
+			return Send(bf);
+		}
+		#endregion
+
 		#region util
 
 		private static byte[] GetSectionOwnerByte(int section, int owner)
@@ -1757,7 +2231,9 @@ namespace Neosmartpen.Net
 
 					mBuffer.Clear();
 					mBuffer = null;
-
+                    //if ((Cmd)cmd == Cmd.ONLINE_NEW_PEN_UP_EVENT)
+                    //{ }
+                    //else
 					ParsePacket(builder.Build());
 
 					IsEscape = false;

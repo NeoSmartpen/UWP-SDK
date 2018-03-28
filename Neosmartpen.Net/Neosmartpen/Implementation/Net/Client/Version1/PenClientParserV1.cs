@@ -7,11 +7,15 @@ using Neosmartpen.Net.Support;
 using Windows.Storage;
 using Windows.Storage.Streams;
 using Neosmartpen.Net.Filter;
+using System.Threading;
 
 namespace Neosmartpen.Net
 {
     internal class PenClientParserV1 : IPenClientParser, OfflineWorkResponseHandler
 	{
+		[System.Runtime.InteropServices.DllImport("Kernel32.dll")]
+		private static extern bool GetDiskFreeSpace(string lpRootPathName, ref ulong lpSectorsPerCluster, ref ulong lpBytesPerSector, ref ulong lpNumberOfFreeClusters, ref ulong lpTotalNumberOfClusters );
+
 		public enum Cmd : byte
 		{
 			A_PenOnState = 0x01,
@@ -89,7 +93,7 @@ namespace Neosmartpen.Net
 		//private IPacket mPrevPacket;
 		private int mOwnerId = 0, mSectionId = 0, mNoteId = 0, mPageId = 0;
 		private long mPrevDotTime = 0;
-		private bool IsPrevDotDown = false;
+		//private bool IsPrevDotDown = false;
 		private bool IsStartWithDown = false;
 		private int mCurrentColor = 0x000000;
 		private String mOfflineFileName;
@@ -132,7 +136,12 @@ namespace Neosmartpen.Net
 
 		public void OnDisconnected()
 		{
-			mOfflineworker.Reset();
+            if (IsStartWithDown && IsBeforeMiddle && mPrevDot != null)
+            {
+                MakeUpDot();
+            }
+
+            mOfflineworker.Reset();
 		}
 
 		public PenController PenController { get; private set; }
@@ -155,18 +164,26 @@ namespace Neosmartpen.Net
 		{
 			Debug.WriteLine("[PenCommCore] Reset");
 
-			IsPrevDotDown = false;
 			IsStartWithDown = false;
+            IsBeforeMiddle = false;
+            IsStartWithPaperInfo = false;
+            IsBeforePaperInfo = false;
 
-			Authenticated = false;
+            Authenticated = false;
 
 			IsUploading = false;
 
 			IsStartOfflineTask = false;
 		}
 
-        Dot mPrevDot;
-        bool IsBeforeMiddle = false;
+        private Dot mPrevDot;
+
+        private bool IsBeforeMiddle = false;
+
+        private bool IsStartWithPaperInfo = false;
+        private bool IsBeforePaperInfo = false;
+
+        private long PenDownTime = -1;
 
         public void ParsePacket(Packet packet)
 		{
@@ -185,12 +202,6 @@ namespace Neosmartpen.Net
 
 						long timeLong = mPrevDotTime + time;
 
-						if (!IsStartWithDown || timeLong < 10000)
-						{
-							Debug.WriteLine("[PenCommCore] this stroke start with middle dot.");
-							return;
-						}
-
                         Dot.Builder builder = null;
                         if (PenMaxForce == 0)
                             builder = new Dot.Builder();
@@ -205,26 +216,62 @@ namespace Neosmartpen.Net
                             .force(force)
                             .color(mCurrentColor);
 
-                        if (IsPrevDotDown)
-						{
-							// 펜업의 경우 시작 도트로 저장
-                            builder.dotType(DotTypes.PEN_DOWN);
-                            IsPrevDotDown = false;
-                        }
-						else
-						{
-                            // 펜업이 아닌 경우 미들 도트로 저장
-                            builder.dotType(DotTypes.PEN_MOVE);
+                        if (!IsStartWithDown)
+                        {
+                            if (!IsStartWithPaperInfo)
+                            {
+                                //펜 다운 없이 페이퍼 정보 없고 무브가 오는 현상(다운 - 무브 - 업 - 다운X - 무브)
+                                PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenDown, -1));
+                            }
+                            else
+                            {
+                                timeLong = Time.GetUtcTimeStamp();
+                                PenDownTime = timeLong;
+                                //펜 다운 없이 페이퍼 정보 있고 무브가 오는 현상(다운 - 무브 - 업 - 다운X - 무브)
+                                builder.dotType(DotTypes.PEN_ERROR);
+                                var errorDot = builder.Build();
+                                PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenDown, errorDot, PenDownTime));
+								IsStartWithDown = true;
+								builder.timestamp(timeLong);
+							}
+						}
+                        else if (timeLong < 10000)
+                        {
+                            // 타임스템프가 10000보다 작을 경우 도트 필터링
+                            builder.dotType(DotTypes.PEN_ERROR);
+                            var errorDot = builder.Build();
+                            PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.InvalidTime, errorDot, PenDownTime));
                         }
 
-                        Dot dot = builder.Build();
+                        Dot dot = null;
 
-						ProcessDot(dot);
-                        //PenController.onReceiveDot(new DotReceivedEventArgs(dot));
+                        if (IsStartWithDown && IsStartWithPaperInfo && IsBeforePaperInfo)
+						{
+                            // 펜다운의 경우 시작 도트로 저장
+                            // 펜다운 도트는 펜다운 시간으로 한다.
+                            dot = builder.timestamp(PenDownTime).dotType(DotTypes.PEN_DOWN).Build();
+                        }
+						else if (IsStartWithDown && IsStartWithPaperInfo && !IsBeforePaperInfo && IsBeforeMiddle)
+						{
+                            // 펜다운이 아닌 경우 미들 도트로 저장
+                            dot = builder.dotType(DotTypes.PEN_MOVE).Build();
+                        }
+                        else if (IsStartWithDown && !IsStartWithPaperInfo)
+                        {
+                            //펜 다운 이후 페이지 체인지 없이 도트가 들어왔을 경우
+                            PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPageChange, PenDownTime));
+                        }
+
+                        if (dot != null)
+                        {
+                            ProcessDot(dot);
+                        }
 
                         mPrevDot = dot;
                         mPrevDotTime = timeLong;
+
                         IsBeforeMiddle = true;
+                        IsBeforePaperInfo = false;
                     }
 					break;
 
@@ -234,7 +281,7 @@ namespace Neosmartpen.Net
 						// TODO Check
 						long updownTime = packet.GetLong();
 
-						int updown = packet.GetByteToInt();
+                        int updown = packet.GetByteToInt();
 
 						byte[] cbyte = packet.GetBytes(3);
 
@@ -242,25 +289,45 @@ namespace Neosmartpen.Net
 
 						if (updown == 0x00)
 						{
-							// 펜 다운 일 경우 Start Dot의 timestamp 설정
-							mPrevDotTime = updownTime;
-							IsPrevDotDown = true;
-							IsStartWithDown = true;
-						}
+                            // 펜 다운 일 경우 Start Dot의 timestamp 설정
+                            mPrevDotTime = updownTime;
+
+                            if (IsBeforeMiddle && mPrevDot != null)
+                            {
+								MakeUpDot();
+                            }
+
+                            IsStartWithDown = true;
+
+                            PenDownTime = updownTime;
+                        }
 						else if (updown == 0x01)
 						{
-							if (mPrevDot != null)
+							mPrevDotTime = -1;
+
+                            if (IsStartWithDown && IsBeforeMiddle && mPrevDot != null)
 							{
-                                var udot = mPrevDot.Clone();
-                                udot.DotType = DotTypes.PEN_UP;
-								ProcessDot(udot);
-                                //PenController.onReceiveDot(new DotReceivedEventArgs(udot));
+								MakeUpDot(false);
 							}
+                            else if (!IsStartWithDown && !IsBeforeMiddle)
+                            {
+                                // 다운 무브없이 업만 들어올 경우 UP dot을 보내지 않음
+                                PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenDownPenMove, PenDownTime));
+                            }
+                            else if (!IsBeforeMiddle)
+                            {
+                                // 무브없이 다운-업만 들어올 경우 UP dot을 보내지 않음
+                                PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenMove, PenDownTime));
+                            }
 
 							IsStartWithDown = false;
-						}
+
+                            PenDownTime = -1;
+                        }
 
                         IsBeforeMiddle = false;
+                        IsStartWithPaperInfo = false;
+
                         mPrevDot = null;
                     }
 					break;
@@ -268,12 +335,9 @@ namespace Neosmartpen.Net
 				case Cmd.A_DotIDChange:
 
                     // 미들도트 중에 페이지가 바뀐다면 강제로 펜업을 만들어 준다.
-                    if (IsBeforeMiddle)
+                    if (IsStartWithDown && IsBeforeMiddle && mPrevDot != null)
                     {
-                        var audot = mPrevDot.Clone();
-                        audot.DotType = DotTypes.PEN_UP;
-						ProcessDot(audot);
-                        //PenController.onReceiveDot(new DotReceivedEventArgs(audot));
+						MakeUpDot(false);
                     }
 
                     byte[] rb = packet.GetBytes(4);
@@ -283,7 +347,10 @@ namespace Neosmartpen.Net
 					mNoteId = packet.GetInt();
 					mPageId = packet.GetInt();
 
-                    IsPrevDotDown = true;
+                    //IsPrevDotDown = true;
+
+                    IsBeforePaperInfo = true;
+                    IsStartWithPaperInfo = true;
 
                     break;
 
@@ -728,32 +795,28 @@ namespace Neosmartpen.Net
 			}
 		}
 
-		//private void ProcessDot(int ownerId, int sectionId, int noteId, int pageId, long timeLong, int x, int y, int fx, int fy, int force, DotTypes type, int color)
-		//{
-		//	Dot.Builder builder = null;
-		//	if (PenMaxForce == 0)
-		//		builder = new Dot.Builder();
-		//	else builder = new Dot.Builder(PenMaxForce);
+        private void MakeUpDot(bool isError = true)
+        {
+            if (isError)
+            {
+                var errorDot = mPrevDot.Clone();
+                errorDot.DotType = DotTypes.PEN_ERROR;
+                PenController.onErrorDetected(new ErrorDetectedEventArgs(ErrorType.MissingPenUp, errorDot, PenDownTime));
+            }
 
-		//	builder.owner(ownerId)
-		//		.section(sectionId)
-		//		.note(noteId)
-		//		.page(pageId)
-		//		.timestamp(timeLong)
-		//		.coord(x + fx * 0.01f, y + fy * 0.01f)
-		//		.force(force)
-		//		.dotType(type)
-		//		.color(color);
+            var udot = mPrevDot.Clone();
+			udot.DotType = DotTypes.PEN_UP;
+			ProcessDot(udot);
+		}
 
-		//	PenController.onReceiveDot(new DotReceivedEventArgs(builder.Build()));
-		//}
 
 		private void ProcessDot(Dot dot)
 		{
-			dotFilterForPaper.Put(dot);
-		}
+            SendDotReceiveEvent(dot, null);
+            //dotFilterForPaper.Put(dot);
+        }
 
-		private void SendDotReceiveEvent(Dot dot)
+		private void SendDotReceiveEvent(Dot dot, object obj)
 		{
 			PenController.onReceiveDot(new DotReceivedEventArgs(dot));
 		}
@@ -765,8 +828,8 @@ namespace Neosmartpen.Net
 			bf.Put((byte)0xC0)
 			  .Put((byte)Cmd.P_PenOnResponse)
 			  .PutShort(9)
-			  .PutLong(Time.GetUtcTimeStamp())
-			  .Put((byte)0x00)
+              .PutLong(Time.GetUtcTimeStamp())
+              .Put((byte)0x00)
 			  .Put((byte)0xC1);
 
 			PenController.PenClient.Write(bf.ToArray());
@@ -1021,6 +1084,13 @@ namespace Neosmartpen.Net
 		/// <returns>true if the request is accepted; otherwise, false.</returns>
 		public bool ReqOfflineData(OfflineDataInfo note)
 		{
+			ulong freeCapacity = 0;
+			if (GetAvailableCapacity(ref freeCapacity))
+			{
+				if (freeCapacity < 50) // 50MB
+					return false;
+			}
+
 			mOfflineworker.Put(note);
 
 			return true;
@@ -1680,7 +1750,8 @@ namespace Neosmartpen.Net
                 byte[] content = mBuffer.GetBytes();
 
                 Packet packet = builder.cmd(cmd).data(content).Build();
-
+                //if ((Cmd)packet.Cmd == Cmd.A_DotUpDownDataNew && content[8] == 0x00)
+                //{ }else
                 ParsePacket(packet);
 
                 dataLength = 0;
@@ -1725,5 +1796,19 @@ namespace Neosmartpen.Net
 
 			return true;
 		}
-    }
+
+
+		/// <summary>
+		/// Get Free Capacity For local folder
+		/// </summary>
+		/// <param name="capacity">get capaticy for MB</param>
+		/// <returns></returns>
+		private bool GetAvailableCapacity(ref ulong capacity)
+		{
+			ulong sectionPerCluster = 0, bytesPerSection = 0, freeClusters = 0, totalClusters = 0;
+			var ret = GetDiskFreeSpace(ApplicationData.Current.LocalFolder.Path, ref sectionPerCluster, ref bytesPerSection, ref freeClusters, ref totalClusters);
+			capacity = ((sectionPerCluster * bytesPerSection * freeClusters) / 1024) / 1024;
+			return ret;
+		}
+	}
 }

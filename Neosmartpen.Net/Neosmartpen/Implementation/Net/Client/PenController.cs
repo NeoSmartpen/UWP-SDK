@@ -25,7 +25,7 @@ namespace Neosmartpen.Net
             get;set;
         }
 
-        void IPenController.OnDataReceived( byte[] buff )
+        public void OnDataReceived( byte[] buff )
         {
             if ( Protocol == Protocols.V1 )
             {
@@ -276,6 +276,15 @@ namespace Neosmartpen.Net
 		{
 			OfflineDataDownloadStarted?.Invoke(PenClient, new object());
 		}
+
+        /// <summary>
+        /// Occurs when error received
+        /// </summary>
+        public event TypedEventHandler<IPenClient, ErrorDetectedEventArgs> ErrorDetected;
+        internal void onErrorDetected(ErrorDetectedEventArgs args)
+        {
+            ErrorDetected?.Invoke(PenClient, args);
+        }
         #endregion
 
         #region Request
@@ -429,28 +438,28 @@ namespace Neosmartpen.Net
             Request(() => mClientV1.ReqOfflineDataList(), () => mClientV2.ReqOfflineDataList());
         }
 
-        /// <summary>
-        /// Requests the transmission of offline data 
-        /// </summary>
-        /// <param name="section">The section Id of the paper</param>
-        /// <param name="owner">The owner Id of the paper</param>
-        /// <param name="notes">The array of notebook Id list</param>
-        /// <param name="deleteOnFinished">delete offline data when transmission is finished</param>
-        /// <param name="pages">The array of page's number</param>
-        public void RequestOfflineData(int section, int owner, int note, bool deleteOnFinished = true, int[] pages = null)
-        {
-            Request(() => mClientV1.ReqOfflineData(new OfflineDataInfo(section, owner, note, pages)), () => mClientV2.ReqOfflineData(section, owner, note, deleteOnFinished, pages));
+		/// <summary>
+		/// Requests the transmission of offline data 
+		/// </summary>
+		/// <param name="section">The section Id of the paper</param>
+		/// <param name="owner">The owner Id of the paper</param>
+		/// <param name="notes">The array of notebook Id list</param>
+		/// <param name="deleteOnFinished">delete offline data when transmission is finished</param>
+		/// <param name="pages">The array of page's number</param>
+		public bool RequestOfflineData(int section, int owner, int note, bool deleteOnFinished = true, int[] pages = null)
+		{
+			return Request(() => { return mClientV1.ReqOfflineData(new OfflineDataInfo(section, owner, note, pages)); }, () => { return mClientV2.ReqOfflineData(section, owner, note, deleteOnFinished, pages); });
         }
 
-        /// <summary>
-        /// Requests the transmission of offline data 
-        /// </summary>
-        /// <param name="section">The section Id of the paper</param>
-        /// <param name="owner">The owner Id of the paper</param>
-        /// <param name="notes">The array of notebook Id list</param>
-        public void RequestOfflineData(int section, int owner, int[] notes)
-        {
-            Request(() => mClientV1.ReqOfflineData(new OfflineDataInfo(section, owner, notes[0])), () => mClientV2.ReqOfflineData(section, owner, notes[0]));
+		/// <summary>
+		/// Requests the transmission of offline data 
+		/// </summary>
+		/// <param name="section">The section Id of the paper</param>
+		/// <param name="owner">The owner Id of the paper</param>
+		/// <param name="notes">The array of notebook Id list</param>
+		public bool RequestOfflineData(int section, int owner, int[] notes)
+		{
+			return Request(() => { return mClientV1.ReqOfflineData(new OfflineDataInfo(section, owner, notes[0])); }, () => { return mClientV2.ReqOfflineData(section, owner, notes[0]); });
         }
 
         /// <summary>
@@ -700,6 +709,9 @@ namespace Neosmartpen.Net
         {
 			if (Protocol == Protocols.V1)
 				mClientV1.OnDisconnected();
+            else
+                mClientV2.OnDisconnected();
+
             onDisconnected();
         }
 
@@ -725,6 +737,28 @@ namespace Neosmartpen.Net
                 requestToV2();
             }
         }
+        public delegate bool RequestDeleReturnBool();
+        private bool Request(RequestDeleReturnBool requestToV1, RequestDeleReturnBool requestToV2)
+        {
+            if ( PenClient == null || !PenClient.Alive || Protocol == -1 )
+            {
+                throw new RequestIsUnreached();
+            }
+
+            if ( Protocol == Protocols.V1 )
+            {
+                if (requestToV1 == null) throw new UnavailableRequest();
+
+                return requestToV1();
+            }
+            else
+            {
+                if (requestToV2 == null) throw new UnavailableRequest();
+
+                return requestToV2();
+            }
+        }
+
 
         #endregion
 		
