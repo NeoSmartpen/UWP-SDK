@@ -13,9 +13,6 @@ namespace Neosmartpen.Net
 {
     internal class PenClientParserV1 : IPenClientParser, OfflineWorkResponseHandler
 	{
-		[System.Runtime.InteropServices.DllImport("Kernel32.dll")]
-		private static extern bool GetDiskFreeSpace(string lpRootPathName, ref ulong lpSectorsPerCluster, ref ulong lpBytesPerSector, ref ulong lpNumberOfFreeClusters, ref ulong lpTotalNumberOfClusters );
-
 		public enum Cmd : byte
 		{
 			A_PenOnState = 0x01,
@@ -1084,13 +1081,6 @@ namespace Neosmartpen.Net
 		/// <returns>true if the request is accepted; otherwise, false.</returns>
 		public bool ReqOfflineData(OfflineDataInfo note)
 		{
-			ulong freeCapacity = 0;
-			if (GetAvailableCapacity(ref freeCapacity))
-			{
-				if (freeCapacity < 50) // 50MB
-					return false;
-			}
-
 			mOfflineworker.Put(note);
 
 			return true;
@@ -1795,20 +1785,6 @@ namespace Neosmartpen.Net
 			bf = null;
 
 			return true;
-		}
-
-
-		/// <summary>
-		/// Get Free Capacity For local folder
-		/// </summary>
-		/// <param name="capacity">get capaticy for MB</param>
-		/// <returns></returns>
-		private bool GetAvailableCapacity(ref ulong capacity)
-		{
-			ulong sectionPerCluster = 0, bytesPerSection = 0, freeClusters = 0, totalClusters = 0;
-			var ret = GetDiskFreeSpace(ApplicationData.Current.LocalFolder.Path, ref sectionPerCluster, ref bytesPerSection, ref freeClusters, ref totalClusters);
-			capacity = ((sectionPerCluster * bytesPerSection * freeClusters) / 1024) / 1024;
-			return ret;
 		}
 	}
 }
