@@ -131,6 +131,7 @@ namespace Neosmartpen.Net
 		public string MacAddress { get; private set; }
 
 		public short DeviceType { get; private set; }
+		public int PressureSensorType { get; private set; }
 
 		/// <summary>
 		/// Gets the maximum level of force sensor.
@@ -198,6 +199,7 @@ namespace Neosmartpen.Net
 						DeviceType = packet.GetShort();
 						MaxForce = -1;
 						MacAddress = BitConverter.ToString(packet.GetBytes(6)).Replace("-", "");
+						PressureSensorType = packet.CheckMoreData() ? packet.GetByte() : 0;
 
 						bool isMG = isF121MG(MacAddress);
 						if (isMG && DeviceName.Equals(F121) && SubName.Equals("Mbest_smartpenS"))
