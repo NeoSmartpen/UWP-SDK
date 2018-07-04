@@ -265,8 +265,11 @@ Please contact following to get more information:
 - Global: _globalbiz@neolab.net
 - Korea: _koreabiz@neolab.net
 
+## Opensource Library
 
-### MarkerMetro.Unity.Ionic.Zlib (https://github.com/MarkerMetro/MarkerMetro.Unity.Ionic.Zlib/blob/master/LICENSE)
+Please refer to the details of the open source library used below.
+
+### 1. MarkerMetro.Unity.Ionic.Zlib (https://github.com/MarkerMetro/MarkerMetro.Unity.Ionic.Zlib/blob/master/LICENSE)
 
 The MIT License (MIT)
 
