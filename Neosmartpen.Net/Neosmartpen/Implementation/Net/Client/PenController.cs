@@ -600,7 +600,7 @@ namespace Neosmartpen.Net
 
 				byte[] profileNameBytes = Encoding.UTF8.GetBytes(profileName);
 				if (profileNameBytes.Length > PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME)
-					new ArgumentOutOfRangeException("profileName", $"profileName byte length must be {PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME} or less");
+					throw new ArgumentOutOfRangeException("profileName", $"profileName byte length must be {PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME} or less");
 
 				byte[][] keysBytes = new byte[keys.Length][];
 				for(int i = 0; i < keys.Length; ++i)
@@ -679,9 +679,9 @@ namespace Neosmartpen.Net
 				byte[] profileNameBytes = Encoding.UTF8.GetBytes(profileName);
 				//byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
 				if (profileNameBytes.Length > PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME)
-					new ArgumentOutOfRangeException("profileName", $"profileName byte length must be {PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME} or less");
+                    throw new ArgumentOutOfRangeException("profileName", $"profileName byte length must be {PenProfile.LIMIT_BYTE_LENGTH_PROFILE_NAME} or less");
 				else if (password.Length != PenProfile.LIMIT_BYTE_LENGTH_PASSWORD)
-					new ArgumentOutOfRangeException("password", $"password byte length must be {PenProfile.LIMIT_BYTE_LENGTH_PASSWORD}");
+                    throw new ArgumentOutOfRangeException("password", $"password byte length must be {PenProfile.LIMIT_BYTE_LENGTH_PASSWORD}");
 
 				byte[][] keysBytes = new byte[keys.Length][];
 				for(int i = 0; i < keys.Length; ++i)

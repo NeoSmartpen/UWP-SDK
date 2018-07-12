@@ -7,7 +7,7 @@ namespace Neosmartpen.Net
 		internal PenProfileDeleteValueEventArgs()
 		{
 			Type = PenProfileType.DeleteValue;
-			Result = ResultType.Successs;
+			Result = ResultType.Success;
 		}
 		internal PenProfileDeleteValueEventArgs(string profileName) : this()
 		{

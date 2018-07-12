@@ -7,7 +7,7 @@ namespace Neosmartpen.Net
 		internal PenProfileReadValueEventArgs()
 		{
 			Type = PenProfileType.ReadValue;
-			Result = ResultType.Successs;
+			Result = ResultType.Success;
 		}
 
 		internal PenProfileReadValueEventArgs(string profileName):this()

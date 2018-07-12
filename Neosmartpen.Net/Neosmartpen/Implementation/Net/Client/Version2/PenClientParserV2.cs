@@ -710,10 +710,10 @@ namespace Neosmartpen.Net
 							if (eventArgs != null)
 								PenController.onPenProfileReceived(eventArgs);
 							else
-								PenController.onPenProfileReceived(new PenProfileReceivedEventArgs(PenProfileReceivedEventArgs.ResultType.Falied));
+								PenController.onPenProfileReceived(new PenProfileReceivedEventArgs(PenProfileReceivedEventArgs.ResultType.Failed));
 						}
 						else
-							PenController.onPenProfileReceived(new PenProfileReceivedEventArgs(PenProfileReceivedEventArgs.ResultType.Falied));
+							PenController.onPenProfileReceived(new PenProfileReceivedEventArgs(PenProfileReceivedEventArgs.ResultType.Failed));
 					}
 					break;
 				#endregion

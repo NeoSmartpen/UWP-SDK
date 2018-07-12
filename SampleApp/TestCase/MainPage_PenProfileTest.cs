@@ -120,7 +120,7 @@ namespace SampleApp
 			{
 				_controller.CreateProfile(name, password);
 				autoResetEvent.WaitOne();
-				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Falied || lastArgs.Status != PenProfile.PROFILE_STATUS_FAILURE)
+				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Failed || lastArgs.Status != PenProfile.PROFILE_STATUS_FAILURE)
 				{
 					return false;
 				}
@@ -141,7 +141,7 @@ namespace SampleApp
 			{
 				_controller.CreateProfile(name, password);
 				autoResetEvent.WaitOne();
-				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Falied || lastArgs.Status != PenProfile.PROFILE_STATUS_FAILURE)
+				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Failed || lastArgs.Status != PenProfile.PROFILE_STATUS_FAILURE)
 				{
 					return false;
 				}
@@ -166,7 +166,7 @@ namespace SampleApp
 			{
 				_controller.CreateProfile(name, password);
 				autoResetEvent.WaitOne();
-				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Falied || lastArgs.Status != PenProfile.PROFILE_STATUS_FAILURE)
+				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Failed || lastArgs.Status != PenProfile.PROFILE_STATUS_FAILURE)
 				{
 					return false;
 				}
@@ -187,7 +187,7 @@ namespace SampleApp
 			{
 				_controller.CreateProfile(name, password);
 				autoResetEvent.WaitOne();
-				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Falied || lastArgs.Status != PenProfile.PROFILE_STATUS_FAILURE)
+				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Failed || lastArgs.Status != PenProfile.PROFILE_STATUS_FAILURE)
 				{
 					return false;
 				}
@@ -208,7 +208,7 @@ namespace SampleApp
 			{
 				_controller.CreateProfile(name, password);
 				autoResetEvent.WaitOne();
-				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Falied || lastArgs.Status != PenProfile.PROFILE_STATUS_NO_PERMISSION)
+				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Failed || lastArgs.Status != PenProfile.PROFILE_STATUS_NO_PERMISSION)
 				{
 					return false;
 				}
@@ -228,7 +228,7 @@ namespace SampleApp
 			{
 				_controller.CreateProfile(name, password);
 				autoResetEvent.WaitOne();
-				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Falied || lastArgs.Status != PenProfile.PROFILE_STATUS_SUCCESS)
+				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Failed || lastArgs.Status != PenProfile.PROFILE_STATUS_SUCCESS)
 				{
 					return false;
 				}
@@ -247,7 +247,7 @@ namespace SampleApp
 			{
 				_controller.CreateProfile(name, password);
 				autoResetEvent.WaitOne();
-				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Falied || lastArgs.Status != PenProfile.PROFILE_STATUS_EXIST_PROFILE_ALREADY)
+				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Failed || lastArgs.Status != PenProfile.PROFILE_STATUS_EXIST_PROFILE_ALREADY)
 				{
 					return false;
 				}
@@ -278,7 +278,7 @@ namespace SampleApp
 			{
 				_controller.GetProfileInfo(name);
 				autoResetEvent.WaitOne();
-				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Falied || lastArgs.Status != PenProfile.PROFILE_STATUS_FAILURE)
+				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Failed || lastArgs.Status != PenProfile.PROFILE_STATUS_FAILURE)
 				{
 					return false;
 				}
@@ -302,7 +302,7 @@ namespace SampleApp
 			{
 				_controller.GetProfileInfo(name);
 				autoResetEvent.WaitOne();
-				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Falied || lastArgs.Status != PenProfile.PROFILE_STATUS_NO_EXIST_PROFILE)
+				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Failed || lastArgs.Status != PenProfile.PROFILE_STATUS_NO_EXIST_PROFILE)
 				{
 					return false;
 				}
@@ -319,7 +319,7 @@ namespace SampleApp
 			{
 				_controller.GetProfileInfo(name);
 				autoResetEvent.WaitOne();
-				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Falied || lastArgs.Status != PenProfile.PROFILE_STATUS_SUCCESS)
+				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Failed || lastArgs.Status != PenProfile.PROFILE_STATUS_SUCCESS)
 				{
 					return false;
 				}
@@ -350,7 +350,7 @@ namespace SampleApp
 			{
 				_controller.WriteProfileValues(name, password, keys, data);
 				autoResetEvent.WaitOne();
-				if (lastArgs.Result != PenProfileReceivedEventArgs.ResultType.Falied)
+				if (lastArgs.Result != PenProfileReceivedEventArgs.ResultType.Failed)
 					return false;
 			}
 			catch (ArgumentNullException)
@@ -369,7 +369,7 @@ namespace SampleApp
 			{
 				_controller.WriteProfileValues(name, password, keys, data);
 				autoResetEvent.WaitOne();
-				if (lastArgs.Result != PenProfileReceivedEventArgs.ResultType.Falied)
+				if (lastArgs.Result != PenProfileReceivedEventArgs.ResultType.Failed)
 					return false;
 			}
 			catch (ArgumentNullException)
@@ -388,7 +388,7 @@ namespace SampleApp
 			{
 				_controller.WriteProfileValues(name, password, keys, data);
 				autoResetEvent.WaitOne();
-				if (lastArgs.Result != PenProfileReceivedEventArgs.ResultType.Falied)
+				if (lastArgs.Result != PenProfileReceivedEventArgs.ResultType.Failed)
 					return false;
 			}
 			catch (ArgumentNullException)
@@ -407,7 +407,7 @@ namespace SampleApp
 			{
 				_controller.WriteProfileValues(name, password, keys, data);
 				autoResetEvent.WaitOne();
-				if (lastArgs.Result != PenProfileReceivedEventArgs.ResultType.Falied)
+				if (lastArgs.Result != PenProfileReceivedEventArgs.ResultType.Failed)
 					return false;
 			}
 			catch (ArgumentNullException)
@@ -431,7 +431,7 @@ namespace SampleApp
 				_controller.WriteProfileValues(name, password, keys, data);
 				autoResetEvent.WaitOne();
 				var args = lastArgs as PenProfileWriteValueEventArgs;
-				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Falied || args.Data[0].Status != PenProfile.PROFILE_STATUS_NO_EXIST_PROFILE)
+				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Failed || args.Data[0].Status != PenProfile.PROFILE_STATUS_NO_EXIST_PROFILE)
 					return false;
 			}
 			catch (ArgumentOutOfRangeException)
@@ -456,7 +456,7 @@ namespace SampleApp
 				_controller.WriteProfileValues(name, password, keys, data);
 				autoResetEvent.WaitOne();
 				var args = lastArgs as PenProfileWriteValueEventArgs;
-				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Falied)
+				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Failed)
 					return false;
 				foreach(var d in args.Data)
 				{
@@ -480,7 +480,7 @@ namespace SampleApp
 				_controller.WriteProfileValues(name, password, keys, data);
 				autoResetEvent.WaitOne();
 				var args = lastArgs as PenProfileWriteValueEventArgs;
-				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Falied)
+				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Failed)
 					return false;
 				foreach(var d in args.Data)
 				{
@@ -516,7 +516,7 @@ namespace SampleApp
 			{
 				_controller.ReadProfileValues(name, keys);
 				autoResetEvent.WaitOne();
-				if (lastArgs.Result != PenProfileReceivedEventArgs.ResultType.Falied)
+				if (lastArgs.Result != PenProfileReceivedEventArgs.ResultType.Failed)
 					return false;
 			}
 			catch (ArgumentNullException)
@@ -535,7 +535,7 @@ namespace SampleApp
 			{
 				_controller.ReadProfileValues(name, keys);
 				autoResetEvent.WaitOne();
-				if (lastArgs.Result != PenProfileReceivedEventArgs.ResultType.Falied)
+				if (lastArgs.Result != PenProfileReceivedEventArgs.ResultType.Failed)
 					return false;
 			}
 			catch (ArgumentNullException)
@@ -557,7 +557,7 @@ namespace SampleApp
 				_controller.ReadProfileValues(name, keys);
 				autoResetEvent.WaitOne();
 				var args = lastArgs as PenProfileReadValueEventArgs;
-				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Falied || args.Data[0].Status != PenProfile.PROFILE_STATUS_FAILURE)
+				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Failed || args.Data[0].Status != PenProfile.PROFILE_STATUS_FAILURE)
 					return false;
 			}
 			catch (ArgumentOutOfRangeException)
@@ -578,7 +578,7 @@ namespace SampleApp
 				_controller.ReadProfileValues(name, keys);
 				autoResetEvent.WaitOne();
 				var args = lastArgs as PenProfileReadValueEventArgs;
-				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Falied || args.Data[0].Status != PenProfile.PROFILE_STATUS_NO_EXIST_KEY)
+				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Failed || args.Data[0].Status != PenProfile.PROFILE_STATUS_NO_EXIST_KEY)
 					return false;
 			}
 			catch (Exception exp)
@@ -594,7 +594,7 @@ namespace SampleApp
 			{
 				_controller.ReadProfileValues(name, keys);
 				autoResetEvent.WaitOne();
-				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Falied)
+				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Failed)
 					return false;
 				var args = lastArgs as PenProfileReadValueEventArgs;
 				if (args.Data.Count != testKeys.Length)
@@ -635,7 +635,7 @@ namespace SampleApp
 			{
 				_controller.DeleteProfileValues(name, password, keys);
 				autoResetEvent.WaitOne();
-				if (lastArgs.Result != PenProfileReceivedEventArgs.ResultType.Falied)
+				if (lastArgs.Result != PenProfileReceivedEventArgs.ResultType.Failed)
 					return false;
 			}
 			catch (ArgumentNullException)
@@ -654,7 +654,7 @@ namespace SampleApp
 			{
 				_controller.DeleteProfileValues(name, password, keys);
 				autoResetEvent.WaitOne();
-				if (lastArgs.Result != PenProfileReceivedEventArgs.ResultType.Falied)
+				if (lastArgs.Result != PenProfileReceivedEventArgs.ResultType.Failed)
 					return false;
 			}
 			catch (ArgumentNullException)
@@ -673,7 +673,7 @@ namespace SampleApp
 			{
 				_controller.DeleteProfileValues(name, password, keys);
 				autoResetEvent.WaitOne();
-				if (lastArgs.Result != PenProfileReceivedEventArgs.ResultType.Falied)
+				if (lastArgs.Result != PenProfileReceivedEventArgs.ResultType.Failed)
 					return false;
 			}
 			catch (ArgumentNullException)
@@ -696,7 +696,7 @@ namespace SampleApp
 			{
 				_controller.DeleteProfileValues(name, password, keys);
 				autoResetEvent.WaitOne();
-				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Falied)
+				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Failed)
 					return false;
 				var args = lastArgs as PenProfileDeleteValueEventArgs;
 				foreach (var v in args.Data)
@@ -731,7 +731,7 @@ namespace SampleApp
 			{
 				_controller.DeleteProfile(name, password);
 				autoResetEvent.WaitOne();
-				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Falied || lastArgs.Status != PenProfile.PROFILE_STATUS_FAILURE)
+				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Failed || lastArgs.Status != PenProfile.PROFILE_STATUS_FAILURE)
 					return false;
 			}
 			catch(ArgumentNullException)
@@ -750,7 +750,7 @@ namespace SampleApp
 			{
 				_controller.DeleteProfile(name, password);
 				autoResetEvent.WaitOne();
-				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Falied || lastArgs.Status != PenProfile.PROFILE_STATUS_FAILURE)
+				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Failed || lastArgs.Status != PenProfile.PROFILE_STATUS_FAILURE)
 					return false;
 			}
 			catch(ArgumentNullException)
@@ -769,7 +769,7 @@ namespace SampleApp
 			{
 				_controller.DeleteProfile(name, password);
 				autoResetEvent.WaitOne();
-				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Falied || lastArgs.Status != PenProfile.PROFILE_STATUS_NO_PERMISSION)
+				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Failed || lastArgs.Status != PenProfile.PROFILE_STATUS_NO_PERMISSION)
 					return false;
 			}
 			catch(Exception exp)
@@ -785,7 +785,7 @@ namespace SampleApp
 			{
 				_controller.DeleteProfile(name, password);
 				autoResetEvent.WaitOne();
-				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Falied || lastArgs.Status != PenProfile.PROFILE_STATUS_SUCCESS)
+				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Failed || lastArgs.Status != PenProfile.PROFILE_STATUS_SUCCESS)
 					return false;
 			}
 			catch(Exception exp)
@@ -799,7 +799,7 @@ namespace SampleApp
 			{
 				_controller.DeleteProfile(name, password);
 				autoResetEvent.WaitOne();
-				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Falied || lastArgs.Status != PenProfile.PROFILE_STATUS_NO_EXIST_PROFILE)
+				if (lastArgs.Result == PenProfileReceivedEventArgs.ResultType.Failed || lastArgs.Status != PenProfile.PROFILE_STATUS_NO_EXIST_PROFILE)
 					return false;
 			}
 			catch(Exception exp)

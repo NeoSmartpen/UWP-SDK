@@ -283,7 +283,7 @@ namespace SampleApp
 		private PenProfileReceivedEventArgs lastArgs;
 		private void Mcontroller_PenProfileReceived(IPenClient sender, PenProfileReceivedEventArgs args)
 		{
-			if (args.Result == PenProfileReceivedEventArgs.ResultType.Falied)
+			if (args.Result == PenProfileReceivedEventArgs.ResultType.Failed)
 			{
 				OutputConsole += "PenProfile Failed";
 				return;
