@@ -1,17 +1,17 @@
-﻿using System;
+﻿using Neosmartpen.Net.Encryption;
+using Neosmartpen.Net.Filter;
+using Neosmartpen.Net.Support;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Reflection;
 using System.Text;
-using Neosmartpen.Net.Support;
 using Windows.Storage;
-using Neosmartpen.Net.Filter;
-using Neosmartpen.Net.Encryption;
 
 namespace Neosmartpen.Net
 {
-	internal class PenClientParserV2 : IPenClientParser
+    internal class PenClientParserV2 : IPenClientParser
 	{
 		public class Const
 		{
@@ -167,7 +167,7 @@ namespace Neosmartpen.Net
 		private FilterForPaper dotFilterForPaper = null;
 		private FilterForPaper offlineFilterForPaper = null;
 
-		private bool isConnectWrite = false;
+        private bool isConnectWrite = false;
 
 		private AES256Chiper aesChiper;
 
@@ -221,7 +221,13 @@ namespace Neosmartpen.Net
 					{
 						byte reason = packet.GetByte();
 						Debug.Write(" => SHUTDOWN_EVENT : {0}", reason.ToString());
-					}
+
+                        if (reason == 2)
+                        {
+                            // 업데이트를 위해 파워가 꺼지면 업데이트 완료 콜백
+                            PenController.onReceiveFirmwareUpdateResult(new SimpleResultEventArgs(true));
+                        }
+                    }
 					break;
 
 				case Cmd.LOW_BATTERY_EVENT:
@@ -336,11 +342,19 @@ namespace Neosmartpen.Net
 
 						switch (stype)
 						{
-							case SettingType.AutoPowerOffTime:
+                            case SettingType.Timestamp:
+                                PenController.onPenTimestampSetupResponse(new SimpleResultEventArgs(result));
+                                break;
+                                
+                            case SettingType.AutoPowerOffTime:
 								PenController.onPenAutoShutdownTimeSetupResponse(new SimpleResultEventArgs(result));
 								break;
 
-							case SettingType.AutoPowerOn:
+                            case SettingType.PenCapOff:
+                                PenController.onPenCapPowerOnOffSetupResponse(new SimpleResultEventArgs(result));
+                                break;
+
+                            case SettingType.AutoPowerOn:
 								PenController.onPenAutoPowerOnSetupResponse(new SimpleResultEventArgs(result));
 								break;
 
@@ -352,26 +366,42 @@ namespace Neosmartpen.Net
 								PenController.onPenHoverSetupResponse(new SimpleResultEventArgs(result));
 								break;
 
-							case SettingType.LedColor:
+                            case SettingType.OfflineData:
+                                PenController.onPenOfflineDataSetupResponse(new SimpleResultEventArgs(result));
+                                break;
+
+                            case SettingType.LedColor:
 								PenController.onPenColorSetupResponse(new SimpleResultEventArgs(result));
-								break;
-
-							case SettingType.OfflineData:
-								PenController.onPenOfflineDataSetupResponse(new SimpleResultEventArgs(result));
-								break;
-
-							case SettingType.PenCapOff:
-								PenController.onPenCapPowerOnOffSetupResponse(new SimpleResultEventArgs(result));
 								break;
 
 							case SettingType.Sensitivity:
 								PenController.onPenSensitivitySetupResponse(new SimpleResultEventArgs(result));
 								break;
 
-							case SettingType.Timestamp:
-								PenController.onPenTimestampSetupResponse(new SimpleResultEventArgs(result));
-								break;
-						}
+                            case SettingType.UsbMode:
+                                PenController.onUsbModeSetupResponse(new SimpleResultEventArgs(result));
+                                break;
+
+                            case SettingType.DownSampling:
+                                PenController.onPenDownSamplingSetupResponse(new SimpleResultEventArgs(result));
+                                break;
+
+                            case SettingType.BtLocalName:
+                                PenController.onPenBtLocalNameSetupResponse(new SimpleResultEventArgs(result));
+                                break;
+
+                            case SettingType.FscSensitivity:
+                                PenController.onPenFscSensitivitySetupResponse(new SimpleResultEventArgs(result));
+                                break;
+
+                            case SettingType.DataTransmissionType:
+                                PenController.onPenDataTransmissionTypeSetupResponse(new SimpleResultEventArgs(result));
+                                break;
+
+                            case SettingType.BeepAndLight:
+                                PenController.onPenBeepAndLightSetupResponse(new SimpleResultEventArgs(result));
+                                break;
+                        }
 					}
 					break;
 				#endregion
@@ -482,7 +512,15 @@ namespace Neosmartpen.Net
 
 						bool isCompressed = packet.GetByte() == 1;
 
-						PenController.onStartOfflineDownload();
+                        if (mTotalOfflineStroke == 0)
+                        {
+                            PenController.onFinishedOfflineDownload(new SimpleResultEventArgs(false));
+                        }
+                        else
+                        {
+                            PenController.onStartOfflineDownload();
+                        }
+ 
 					}
 					break;
 
@@ -736,7 +774,8 @@ namespace Neosmartpen.Net
 				#endregion
 
 				case Cmd.ONLINE_DATA_RESPONSE:
-					break;
+                    PenController.onAvailableNoteAdded();
+                    break;
 
 
 
@@ -1494,7 +1533,7 @@ namespace Neosmartpen.Net
 			return Send(bf);
 		}
 
-		public enum SettingType : byte { Timestamp = 1, AutoPowerOffTime = 2, PenCapOff = 3, AutoPowerOn = 4, Beep = 5, Hover = 6, OfflineData = 7, LedColor = 8, Sensitivity = 9 };
+		public enum SettingType : byte { Timestamp = 1, AutoPowerOffTime = 2, PenCapOff = 3, AutoPowerOn = 4, Beep = 5, Hover = 6, OfflineData = 7, LedColor = 8, Sensitivity = 9, UsbMode = 10, DownSampling = 11, BtLocalName = 12, FscSensitivity = 13, DataTransmissionType = 14, BeepAndLight = 16 };
 
 		private bool RequestChangeSetting(SettingType stype, object value)
 		{
@@ -1525,12 +1564,29 @@ namespace Neosmartpen.Net
 				case SettingType.Beep:
 				case SettingType.Hover:
 				case SettingType.OfflineData:
-					bf.PutShort(2).Put((byte)stype).Put((byte)((bool)value ? 1 : 0));
+                case SettingType.DownSampling:
+                    bf.PutShort(2).Put((byte)stype).Put((byte)((bool)value ? 1 : 0));
 					break;
 				case SettingType.Sensitivity:
 					bf.PutShort(2).Put((byte)stype).Put((byte)((short)value));
 					break;
-			}
+                case SettingType.UsbMode:
+                    bf.PutShort(2).Put((byte)stype).Put((byte)value);
+                    break;
+                case SettingType.BtLocalName:
+                    byte[] StrByte = Encoding.UTF8.GetBytes((string)value);
+                    bf.PutShort(18).Put((byte)stype).Put(16).Put(StrByte, 16);
+                    break;
+                case SettingType.FscSensitivity:
+                    bf.PutShort(2).Put((byte)stype).Put((byte)((short)value));
+                    break;
+                case SettingType.DataTransmissionType:
+                    bf.PutShort(2).Put((byte)stype).Put((byte)value);
+                    break;
+                case SettingType.BeepAndLight:
+                    bf.PutShort(2).Put((byte)stype).Put((byte)0);
+                    break;
+            }
 
 			bf.Put(Const.PK_ETX, false);
 
@@ -1627,7 +1683,68 @@ namespace Neosmartpen.Net
 			return RequestChangeSetting(SettingType.Sensitivity, step);
 		}
 
-		public bool IsSupportPenProfile()
+        /// <summary>
+        /// Sets the status of usb mode property that determine if usb mode is disk or bulk.
+        /// You can choose between Disk mode, which is used as a removable disk, and Bulk mode, which is capable of high volume data communication, when connected with usb
+        /// </summary>
+        /// <param name="mode">enum of UsbMode</param>
+        /// <returns>true if the request is accepted; otherwise, false.</returns>
+        public bool ReqSetupUsbMode(UsbMode mode)
+        {
+            return RequestChangeSetting(SettingType.UsbMode, mode);
+        }
+
+        /// <summary>
+        /// Sets the status of the down sampling property.
+        /// Downsampling is a function of avoiding unnecessary data communication by omitting coordinates at the same position.
+        /// </summary>
+        /// <param name="enable">true if you want to enable down sampling, otherwise false.</param>
+        /// <returns>true if the request is accepted; otherwise, false.</returns>
+        public bool ReqSetupDownSampling(bool enable)
+        {
+            return RequestChangeSetting(SettingType.DownSampling, enable);
+        }
+
+        /// <summary>
+        /// Sets the local name of the bluetooth device property.
+        /// </summary>
+        /// <param name="btLocalName">Bluetooth local name to set</param>
+        /// <returns>true if the request is accepted; otherwise, false.</returns>
+        public bool ReqSetupBtLocalName(string btLocalName)
+        {
+            return RequestChangeSetting(SettingType.BtLocalName, btLocalName);
+        }
+
+        /// <summary>
+        /// Sets the value of the pen's sensitivity property that controls the force sensor(c-type) of pen.
+        /// </summary>
+        /// <param name="level">the value of sensitivity. (0~4, 0 means maximum sensitivity)</param>
+        /// <returns>true if the request is accepted; otherwise, false.</returns>
+        public bool ReqSetupPenFscSensitivity(short step)
+        {
+            return RequestChangeSetting(SettingType.FscSensitivity, step);
+        }
+
+        /// <summary>
+        /// Sets the status of data transmission type property that determine if data transmission type is event or request-response.
+        /// </summary>
+        /// <param name="type">enum of DataTransmissionType</param>
+        /// <returns>true if the request is accepted; otherwise, false.</returns>
+        public bool ReqSetupDataTransmissionType(DataTransmissionType type)
+        {
+            return RequestChangeSetting(SettingType.DataTransmissionType, type);
+        }
+
+        /// <summary>
+        /// Request Beeps and light on.
+        /// </summary>
+        /// <returns>true if the request is accepted; otherwise, false.</returns>
+        public bool ReqBeepAndLight()
+        {
+            return RequestChangeSetting(SettingType.BeepAndLight, null);
+        }
+
+        public bool IsSupportPenProfile()
 		{
 			string[] temp = ProtocolVersion.Split('.');
 			float ver = 0f;
@@ -1840,13 +1957,14 @@ namespace Neosmartpen.Net
 			Send(bf);
 		}
 
-		/// <summary>
-		/// Request to remove offline data in device.
-		/// </summary>
-		/// <param name="section">The Section Id of the paper</param>
-		/// <param name="owner">The Owner Id of the paper</param>
-		/// <returns>true if the request is accepted; otherwise, false.</returns>
-		public bool ReqRemoveOfflineData(int section, int owner, int[] notes)
+        /// <summary>
+        /// Request to remove offline data in device.
+        /// </summary>
+        /// <param name="section">The Section Id of the paper</param>
+        /// <param name="owner">The Owner Id of the paper</param>
+        /// <param name="notes">The Note Id's array of the paper</param>
+        /// <returns>true if the request is accepted; otherwise, false.</returns>
+        public bool ReqRemoveOfflineData(int section, int owner, int[] notes)
 		{
 			ByteUtil bf = new ByteUtil(Escape);
 
@@ -1890,7 +2008,8 @@ namespace Neosmartpen.Net
 				return;
 			}
 
-			IsUploading = true;
+            SwUpgradeFailCallbacked = false;
+            IsUploading = true;
 
 			mFwChunk = new Chunk(1024);
 
@@ -1934,29 +2053,44 @@ namespace Neosmartpen.Net
 			PenController.onStartFirmwareInstallation();
 		}
 
-		private void ResponseChunkRequest(int offset, bool status = true)
+        private bool SwUpgradeFailCallbacked = false;
+
+        private void ResponseChunkRequest(int offset, bool status = true)
 		{
-			byte[] data = null;
-
-			int index = (int)(offset / mFwChunk.GetChunksize());
-
-			Debug.WriteLine("[FileUploadWorker] ResponseChunkRequest upload => index : {0}", index);
-
 			ByteUtil bf = new ByteUtil(Escape);
 
-			if (!status || mFwChunk == null || !IsUploading || (data = mFwChunk.Get(index)) == null)
+			if (!status || mFwChunk == null || !IsUploading)
 			{
-				bf.Put(Const.PK_STX, false)
-				  .Put((byte)Cmd.FIRMWARE_PACKET_RESPONSE)
-				  .Put(1)
-				  .PutShort(0)
-				  .Put(Const.PK_ETX, false);
+                bf.Put(Const.PK_STX, false)
+                  .Put((byte)Cmd.FIRMWARE_PACKET_RESPONSE)
+                  .Put(0)
+                  .PutShort(14)
+                  .Put(1)
+                  .PutInt(offset)
+                  .Put(0)
+                  .PutNull(4)
+                  .PutNull(4)
+                  .Put(Const.PK_ETX, false);
 
-				IsUploading = false;
-			}
+                IsUploading = false;
+
+                Send(bf);
+
+                if (!SwUpgradeFailCallbacked)
+                {
+                    PenController.onReceiveFirmwareUpdateResult(new SimpleResultEventArgs(false));
+                    SwUpgradeFailCallbacked = true;
+                }
+            }
 			else
 			{
-				byte[] cdata = Ionic.Zlib.ZlibStream.CompressBuffer(data);
+                int index = (int)(offset / mFwChunk.GetChunksize());
+
+                Debug.WriteLine("[FileUploadWorker] ResponseChunkRequest upload => index : {0}", index);
+
+                byte[] data = mFwChunk.Get(index);
+
+                byte[] cdata = Ionic.Zlib.ZlibStream.CompressBuffer(data);
 
 				byte checksum = mFwChunk.GetChecksum(index);
 
@@ -1973,11 +2107,11 @@ namespace Neosmartpen.Net
 				  .PutInt(cdata.Length)
 				  .Put(cdata)
 				  .Put(Const.PK_ETX, false);
-			}
 
-			Send(bf);
+                Send(bf);
 
-			PenController.onReceiveFirmwareUpdateStatus(new ProgressChangeEventArgs(mFwChunk.GetChunkLength(), (int)index));
+                PenController.onReceiveFirmwareUpdateStatus(new ProgressChangeEventArgs(mFwChunk.GetChunkLength(), (int)index + 1));
+            }
 		}
 
 		/// <summary>

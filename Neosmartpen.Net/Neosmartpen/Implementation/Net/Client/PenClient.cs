@@ -97,7 +97,7 @@ namespace Neosmartpen.Net
                 // todo : disconnect
 				if (SocketError.GetStatus(exception.HResult) == SocketErrorStatus.Unknown)
 				{
-					throw;
+					//throw;
 				}
 			}
         }
@@ -130,7 +130,6 @@ namespace Neosmartpen.Net
         private void onDisconnect()
         {
 			Unbind();
-
             PenController.OnDisconnected();
         }
 

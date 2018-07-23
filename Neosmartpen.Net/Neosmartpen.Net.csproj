@@ -107,6 +107,7 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Neosmartpen\Implementation\Net\Client\DataTransmissionType.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Client\Event\ErrorDetectedEventArgs.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Client\Event\PenProfile\PenProfileCreateEventArgs.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Client\Event\PenProfile\PenProfileDeleteEventArgs.cs" />
@@ -118,6 +119,7 @@
     <Compile Include="Neosmartpen\Implementation\Net\Client\ImageProcessErrorInfo.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Client\ImageProcessingInfo.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Client\PenProfile.cs" />
+    <Compile Include="Neosmartpen\Implementation\Net\Client\UsbMode.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Encryption\AES256Chiper.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Encryption\PrivateKey.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Encryption\PublicKey.cs" />

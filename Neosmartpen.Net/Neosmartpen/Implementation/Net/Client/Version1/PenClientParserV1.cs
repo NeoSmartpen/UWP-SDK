@@ -440,11 +440,11 @@ namespace Neosmartpen.Net
 
 					int result = packet.GetByteToInt();
 
-					//System.Console.WriteLine( "[PenCommCore] A_OfflineDataResponse : {0}", result );
+					Debug.WriteLine( "[PenCommCore] A_OfflineDataResponse : {0}", result );
 
 					IsStartOfflineTask = false;
 
-                    PenController.onFinishedOfflineDownload(new SimpleResultEventArgs(result == 0x00));
+                    PenController.onFinishedOfflineDownload(new SimpleResultEventArgs(result == 0x01));
 
 					mOfflineworker.onFinishDownload();
 

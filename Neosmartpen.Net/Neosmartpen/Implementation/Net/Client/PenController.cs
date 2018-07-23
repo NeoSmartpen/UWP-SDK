@@ -164,13 +164,22 @@ namespace Neosmartpen.Net
 		}
 
         /// <summary>
-        /// Occurs when the pen's new sensitivity setting is applied
+        /// Occurs when the pen's new fsr sensitivity setting is applied
         /// </summary>
 		public event TypedEventHandler<IPenClient, SimpleResultEventArgs> SensitivityChanged;
 		internal void onPenSensitivitySetupResponse(SimpleResultEventArgs args)
 		{
 			SensitivityChanged?.Invoke(PenClient, args);
 		}
+
+        /// <summary>
+        /// Occurs when the pen's new fsc sensitivity setting is applied
+        /// </summary>
+        public event TypedEventHandler<IPenClient, SimpleResultEventArgs> FscSensitivityChanged;
+        internal void onPenFscSensitivitySetupResponse(SimpleResultEventArgs args)
+        {
+            FscSensitivityChanged?.Invoke(PenClient, args);
+        }
 
         /// <summary>
         /// Occurs when pen's RTC time is applied
@@ -180,6 +189,52 @@ namespace Neosmartpen.Net
 		{
 			RtcTimeChanged?.Invoke(PenClient, args);
 		}
+
+        /// <summary>
+        /// Occurs when pen's beep and light is applied
+        /// </summary>
+        public event TypedEventHandler<IPenClient, SimpleResultEventArgs> BeepAndLightChanged;
+        internal void onPenBeepAndLightSetupResponse(SimpleResultEventArgs args)
+        {
+            BeepAndLightChanged?.Invoke(PenClient, args);
+        }
+
+        /// <summary>
+        /// Occurs when the pen's new bt local name setting is applied
+        /// </summary>
+        public event TypedEventHandler<IPenClient, SimpleResultEventArgs> BtLocalNameChanged;
+        internal void onPenBtLocalNameSetupResponse(SimpleResultEventArgs args)
+        {
+            BtLocalNameChanged?.Invoke(PenClient, args);
+        }
+
+        /// <summary>
+        /// Occurs when the pen's new data transmission type setting is applied
+        /// </summary>
+        public event TypedEventHandler<IPenClient, SimpleResultEventArgs> DataTransmissionTypeChanged;
+        internal void onPenDataTransmissionTypeSetupResponse(SimpleResultEventArgs args)
+        {
+            DataTransmissionTypeChanged?.Invoke(PenClient, args);
+        }
+
+
+        /// <summary>
+        /// Occurs when the pen's new down sampling setting is applied
+        /// </summary>
+        public event TypedEventHandler<IPenClient, SimpleResultEventArgs> DownSamplingChanged;
+        internal void onPenDownSamplingSetupResponse(SimpleResultEventArgs args)
+        {
+            DownSamplingChanged?.Invoke(PenClient, args);
+        }
+
+        /// <summary>
+        /// Occurs when the pen's new usb mode setting is applied
+        /// </summary>
+        public event TypedEventHandler<IPenClient, SimpleResultEventArgs> UsbModeChanged;
+        internal void onUsbModeSetupResponse(SimpleResultEventArgs args)
+        {
+            UsbModeChanged?.Invoke(PenClient, args);
+        }
 
         /// <summary>
         /// Occurs when the pen's battery status changes
@@ -266,7 +321,11 @@ namespace Neosmartpen.Net
         /// Occurs when offline downloading starts
         /// </summary>
 		public event TypedEventHandler<IPenClient, object> OfflineDataDownloadStarted;
-		public event TypedEventHandler<IPenClient, PenProfileReceivedEventArgs> PenProfileReceived;
+
+        /// <summary>
+        /// Occurs when a response to an operation request for a pen profile is received
+        /// </summary>
+        public event TypedEventHandler<IPenClient, PenProfileReceivedEventArgs> PenProfileReceived;
 		internal void onPenProfileReceived(PenProfileReceivedEventArgs args)
 		{
 			PenProfileReceived?.Invoke(PenClient, args);
@@ -293,9 +352,9 @@ namespace Neosmartpen.Net
         /// </summary>
         /// <param name="oldone">old password</param>
         /// <param name="newone">new password</param>
-        public void SetPassword(string oldone, string newone = "")
+        public bool SetPassword(string oldone, string newone = "")
         {
-            Request(() => mClientV1.ReqSetUpPassword(oldone, newone), () => mClientV2.ReqSetUpPassword(oldone, newone));
+            return Request(() => { return mClientV1.ReqSetUpPassword(oldone, newone); }, () => { return mClientV2.ReqSetUpPassword(oldone, newone); });
         }
 
         /// <summary>
@@ -362,7 +421,7 @@ namespace Neosmartpen.Net
 
         public void SetHoverEnable(bool enable)
         {
-            Request(() => mClientV1.ReqPenStatus(), () => mClientV2.ReqPenStatus());
+            Request(() => mClientV1.ReqSetupHoverMode(enable), () => mClientV2.ReqSetupHoverMode(enable));
         }
 
         /// <summary>
@@ -390,6 +449,61 @@ namespace Neosmartpen.Net
         public void SetSensitivity(short step)
         {
             Request(() => mClientV1.ReqSetupPenSensitivity(step), () => mClientV2.ReqSetupPenSensitivity(step));
+        }
+
+        /// <summary>
+        /// Sets the status of usb mode property that determine if usb mode is disk or bulk.
+        /// You can choose between Disk mode, which is used as a removable disk, and Bulk mode, which is capable of high volume data communication, when connected with usb
+        /// </summary>
+        /// <param name="mode">enum of UsbMode</param>
+        public void SetUsbMode(UsbMode mode)
+        {
+            Request(null, () => mClientV2.ReqSetupUsbMode(mode));
+        }
+
+        /// <summary>
+        /// Sets the status of the down sampling property.
+        /// Downsampling is a function of avoiding unnecessary data communication by omitting coordinates at the same position.
+        /// </summary>
+        /// <param name="enable">true if you want to enable down sampling, otherwise false.</param>
+        public void SetDownSampling(bool enable)
+        {
+            Request(null, () => mClientV2.ReqSetupDownSampling(enable));
+        }
+
+        /// <summary>
+        /// Sets the local name of the bluetooth device property.
+        /// </summary>
+        /// <param name="btLocalName">Bluetooth local name to set</param>
+        public void SetBtLocalName(string btLocalName)
+        {
+            Request(null, () => mClientV2.ReqSetupBtLocalName(btLocalName));
+        }
+
+        /// <summary>
+        /// Sets the value of the pen's sensitivity property that controls the force sensor(c-type) of pen.
+        /// </summary>
+        /// <param name="step">the value of sensitivity. (0~4, 0 means maximum sensitivity)</param>
+        public void SetFscSensitivity(short step)
+        {
+            Request(null, () => mClientV2.ReqSetupPenFscSensitivity(step));
+        }
+
+        /// <summary>
+        /// Sets the status of data transmission type property that determine if data transmission type is event or request-response.
+        /// </summary>
+        /// <param name="mode">enum of DataTransmissionType</param>
+        public void SetDataTransmissionType(DataTransmissionType mode)
+        {
+            Request(null, () => mClientV2.ReqSetupDataTransmissionType(mode));
+        }
+
+        /// <summary>
+        /// Request Beeps and light on.
+        /// </summary>
+        public void RequestBeepAndLight()
+        {
+            Request(null, () => mClientV2.ReqBeepAndLight());
         }
 
         /// <summary>
@@ -438,6 +552,17 @@ namespace Neosmartpen.Net
             Request(() => mClientV1.ReqOfflineDataList(), () => mClientV2.ReqOfflineDataList());
         }
 
+        /// <summary>
+        /// Request to remove offline data in device.
+        /// </summary>
+        /// <param name="section">The Section Id of the paper</param>
+        /// <param name="owner">The Owner Id of the paper</param>
+        /// <param name="notes">The Note Id's array of the paper</param>
+        public void RequestRemoveOfflineData(int section, int owner, int[] notes)
+        {
+            Request(null, () => mClientV2.ReqRemoveOfflineData(section, owner, notes));
+        }
+
 		/// <summary>
 		/// Requests the transmission of offline data 
 		/// </summary>
@@ -477,7 +602,7 @@ namespace Neosmartpen.Net
         /// </summary>
         /// <param name="file">Represents a binary file of firmware</param>
         /// <param name="version">Version of firmware typed string</param>
-        public void RequestFirmwareInstallation(StorageFile file, string version = null)
+        public void RequestFirmwareInstallation(StorageFile file, string version)
         {
             Request(() => mClientV1.ReqPenSwUpgrade(file), () => { mClientV2.ReqPenSwUpgrade(file, version);  });
         }
@@ -737,7 +862,9 @@ namespace Neosmartpen.Net
                 requestToV2();
             }
         }
+
         public delegate bool RequestDeleReturnBool();
+
         private bool Request(RequestDeleReturnBool requestToV1, RequestDeleReturnBool requestToV2)
         {
             if ( PenClient == null || !PenClient.Alive || Protocol == -1 )
@@ -759,10 +886,9 @@ namespace Neosmartpen.Net
             }
         }
 
-
         #endregion
-		
-		public void SetPressureCalibrateFactor(int cPX1, int cPY1, int cPX2, int cPY2, int cPX3, int cPY3)
+
+        public void SetPressureCalibrateFactor(int cPX1, int cPY1, int cPX2, int cPY2, int cPX3, int cPY3)
 		{
 			Support.PressureCalibration.Instance.MakeFactor(cPX1, cPY1, cPX2, cPY2, cPX3, cPY3);
 		}

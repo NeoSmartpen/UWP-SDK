@@ -38,7 +38,7 @@ namespace Neosmartpen.Net.Bluetooth
 			DeleteLEAdvertisementWatcher();
 		}
 
-		StreamSocket streamSocket;
+		private StreamSocket streamSocket;
 
 		private SemaphoreSlim semaphreSlime = new SemaphoreSlim(1, 1);
 
