@@ -42,15 +42,28 @@ namespace Neosmartpen.Net
         {
             return BitConverter.ToInt32( GetBytes(4), 0 );
         }
+        public uint GetUInt()
+        {
+            return BitConverter.ToUInt32( GetBytes(4), 0 );
+        }
 
         public short GetShort()
         {
             return BitConverter.ToInt16( GetBytes(2), 0 );
         }
 
+		public ushort GetUShort()
+		{
+			return BitConverter.ToUInt16(GetBytes(2), 0);
+		}
+
         public long GetLong()
         {
             return BitConverter.ToInt64( GetBytes(8), 0 );
+        }
+        public ulong GetULong()
+        {
+            return BitConverter.ToUInt64( GetBytes(8), 0 );
         }
 
         public int GetByteToInt()

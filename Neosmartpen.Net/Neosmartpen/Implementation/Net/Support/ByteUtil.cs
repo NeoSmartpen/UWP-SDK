@@ -155,6 +155,11 @@ namespace Neosmartpen.Net.Support
             return BitConverter.ToInt16( GetBytes( 2 ), 0 );
         }
 
+		public ushort GetUShort()
+		{
+			return BitConverter.ToUInt16(GetBytes(2), 0);
+		}
+
         public long GetLong()
         {
             return BitConverter.ToInt64( GetBytes( 8 ), 0 );

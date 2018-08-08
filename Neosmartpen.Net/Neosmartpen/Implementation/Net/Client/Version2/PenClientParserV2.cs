@@ -130,7 +130,7 @@ namespace Neosmartpen.Net
 		/// </summary>
 		public string MacAddress { get; private set; }
 
-		public short DeviceType { get; private set; }
+		public ushort DeviceType { get; private set; }
 		public int PressureSensorType { get; private set; }
 
 		/// <summary>
@@ -196,7 +196,7 @@ namespace Neosmartpen.Net
 						FirmwareVersion = packet.GetString(16);
 						ProtocolVersion = packet.GetString(8);
 						SubName = packet.GetString(16);
-						DeviceType = packet.GetShort();
+						DeviceType = packet.GetUShort();
 						MaxForce = -1;
 						MacAddress = BitConverter.ToString(packet.GetBytes(6)).Replace("-", "");
 						PressureSensorType = packet.CheckMoreData() ? packet.GetByte() : 0;
@@ -622,8 +622,8 @@ namespace Neosmartpen.Net
 
 								int force = butil.GetShort();
 
-								int x = butil.GetShort();
-								int y = butil.GetShort();
+								int x = butil.GetUShort();
+								int y = butil.GetUShort();
 
 								int fx = butil.GetByte();
 								int fy = butil.GetByte();
@@ -1215,8 +1215,8 @@ namespace Neosmartpen.Net
 
 			int force = pk.GetShort();
 
-			int x = pk.GetShort();
-			int y = pk.GetShort();
+			int x = pk.GetUShort();
+			int y = pk.GetUShort();
 
 			int fx = pk.GetByte();
 			int fy = pk.GetByte();
@@ -1324,8 +1324,8 @@ namespace Neosmartpen.Net
 
 			int force = mPack.GetShort();
 
-			int x = mPack.GetShort();
-			int y = mPack.GetShort();
+			int x = mPack.GetUShort();
+			int y = mPack.GetUShort();
 
 			int fx = mPack.GetByte();
 			int fy = mPack.GetByte();
@@ -2352,7 +2352,7 @@ namespace Neosmartpen.Net
 
 					int result = result_size > 0 ? mBuffer.GetByteToInt() : -1;
 
-					int length = mBuffer.GetShort();
+					int length = mBuffer.GetUShort();
 
 					byte[] data = mBuffer.GetBytes();
 
