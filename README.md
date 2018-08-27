@@ -1,11 +1,9 @@
 Neo smartpen SDK for Windows Universal Platform(UWP)
 ===================
 
-## What is Neo smartpen
+## About Neo smartpen
 
-Neo smartpen is a pen designed to capture your handwritten notes into our digital app with our Ncode notebooks.
-
-You can see more information at http://neosmartpen.com
+The Neo smartpen is designed to seamlessly integrate the real and digital worlds by transforming what you write on paper - everything from sketches and designs to business meeting notes - to your iOS, Android and Windows devices. It works in tandem with N notebooks, powered by NeoLAB Convergence’s patented Ncode technology and the accompanying application, Neo Notes. Find out more at www.neosmartpen.com
 
 
 ## Introduction
@@ -19,14 +17,13 @@ Directory Structure:
  - NeosmartpenSDK_UWP\Neosmartpen.Net contains SDK project
  - NeosmartpenSDK_UWP\SampleApp contain Sample app project
 
-You can see pen protocol information at [Link](https://github.com/NeoSmartpen/Documentations)
-
+You can see pen protocol information at [here](https://github.com/NeoSmartpen/Documentations)
 
 
 ## Supported Neo smartpen
 
-- F110 (N2)
-- F50, F120
+- Neo smartpen N2(F110, F120)
+- Neo smartpen M1(F50)
 
 
 ## Requirements
@@ -218,18 +215,17 @@ private async void MController_OfflineDownloadFinished(IPenClient sender, Simple
 }
 ```
 
-### Ncode Coodinate Description
+### Ncode™ Coodinate Description
 
 + **Dot.X, Dot.Y**
-Coordinates of our NCode cell.( NCode's cell size is 2.371mm )
+Coordinates of our Ncode™ cell.( Ncode™'s cell size is 2.371mm )
 
-+ **How to get millimeter unit from NCode unit**
++ **How to get millimeter unit from Ncode™ unit**
 Dot.X x 2.371 = millimeter unit
 
 ## Give Feedback
 
-
-Please reports bugs or issues to [link](https://github.com/NeoSmartpen/UWPSDK/issues)
+Please report bugs or issues to [here](https://github.com/NeoSmartpen/UWPSDK/issues)
 
 
 ## Ncode™ SERVICE DEVELOPMENT GETTING STARTED GUIDE
@@ -238,7 +234,7 @@ Please reports bugs or issues to [link](https://github.com/NeoSmartpen/UWPSDK/is
  
 ## LICENSE
 
-NeoSmartpen SDK is Copyright (c) 2017 NeoLAB Convergence, Inc.
+Neo smartpen SDK is Copyright (c) 2017 NeoLAB Convergence, Inc.
 
 We provide two types of license for Pen SDK.
 
@@ -262,8 +258,8 @@ That does not require the source code open to be released, and technical support
 
 Please contact following to get more information:
 
-- Global: _globalbiz@neolab.net
-- Korea: _koreabiz@neolab.net
+- Global: _global1@neolab.net
+- Korea: _biz1@neolab.net
 
 ## Opensource Library
 
