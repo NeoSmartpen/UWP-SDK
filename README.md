@@ -42,7 +42,7 @@ You can see pen protocol information at [here](https://github.com/NeoSmartpen/Do
 
 At first, download the zip file containing the current version. You can unzip the archive and open NeosmartpenSDK_UWP.sln in Visual Studio 2015.
 
-[download](https://github.com/NeoSmartpen/UWPSDK/archive/master.zip)
+[download](https://github.com/NeoSmartpen/UWP-SDK/archive/master.zip)
 
 
 ## Using SDK library
@@ -53,7 +53,7 @@ Let's getting started using the API
 
 ## Api References
 
-SDK API references page : [References](https://neosmartpen.github.io/UWPSDK/docs)
+SDK API references page : [References](https://neosmartpen.github.io/UWP-SDK/docs)
 
 ## Sample Code
 
@@ -225,7 +225,7 @@ Dot.X x 2.371 = millimeter unit
 
 ## Give Feedback
 
-Please report bugs or issues to [here](https://github.com/NeoSmartpen/UWPSDK/issues)
+Please report bugs or issues to [here](https://github.com/NeoSmartpen/UWP-SDK/issues)
 
 
 ## Ncode™ SERVICE DEVELOPMENT GETTING STARTED GUIDE
