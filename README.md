@@ -3,7 +3,7 @@ Neo smartpen SDK for Windows Universal Platform(UWP)
 
 ## About Neo smartpen
 
-The Neo smartpen is designed to seamlessly integrate the real and digital worlds by transforming what you write on paper - everything from sketches and designs to business meeting notes - to your iOS, Android and Windows devices. It works in tandem with N notebooks, powered by NeoLAB Convergence’s patented Ncode technology and the accompanying application, Neo Notes. Find out more at www.neosmartpen.com
+The Neo smartpen is designed to seamlessly integrate the real and digital worlds by transforming what you write on paper - everything from sketches and designs to business meeting notes - to your iOS, Android and Windows devices. It works in tandem with N notebooks, powered by NeoLAB Convergence’s patented Ncode™ technology and the accompanying application, Neo Notes. Find out more at www.neosmartpen.com
 
 
 ## Introduction
