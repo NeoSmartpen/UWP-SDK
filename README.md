@@ -20,7 +20,7 @@ Directory Structure:
 You can see pen protocol information at [here](https://github.com/NeoSmartpen/Documentations)
 
 
-## Supported Neo smartpen
+## Supported models
 
 - Neo smartpen N2(F110, F120)
 - Neo smartpen M1(F50)
