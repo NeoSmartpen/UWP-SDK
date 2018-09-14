@@ -2,15 +2,18 @@ Neo smartpen SDK for Windows Universal Platform(UWP)
 ===================
 
 ## Universal Windows Platform(UWP) SDK 2.0 
+
 UWP SDK for Windows 10. This open-source library allows you to integrate the Neo smartpen - Neo smartpen N2 and M1 - into your Windows 10 app.  
 
 SDK was made to use Neo smartpen for Windows 10 (UWP). SDK library is built and published to [Nuget](https://www.nuget.org/packages/Neosmartpen.Net/)
 
 ## About Neo smartpen 
+
 The Neo smartpen is designed to seamlessly integrate the real and digital worlds by transforming what you write on paper - everything from sketches and designs to business meeting notes - to your iOS, Android and Windows devices. It works in tandem with N notebooks, powered by NeoLAB Convergence’s patented Ncode™ technology and the accompanying application, Neo Notes. Find out more at www.neosmartpen.com
  - Tutorial video - https://goo.gl/MQaVwY
  
 ## About Ncode™: service development guide 
+
 ‘Natural Handwriting’ technology based on Ncode™(Microscopic data patterns containing various types of data) is a handwriting stroke recovery technology that digitizes paper coordinates obtained by optical pen devices such as Neo smartpen. The coordinates then can be used to store handwriting stroke information, analyzed to extract meaning based on user preferences and serve as the basis for many other types of services. 
 
 Click the link below to view a beginners guide to Ncode technology. 
