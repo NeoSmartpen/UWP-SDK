@@ -4,6 +4,8 @@ Neo smartpen SDK for Windows Universal Platform(UWP)
 ## Universal Windows Platform(UWP) SDK 2.0 
 UWP SDK for Windows 10. This open-source library allows you to integrate the Neo smartpen - Neo smartpen N2 and M1 - into your Windows 10 app.  
 
+SDK was made to use Neo smartpen for Windows 10 (UWP). SDK library is built and published to Nuget
+
 ## About Neo smartpen 
 The Neo smartpen is designed to seamlessly integrate the real and digital worlds by transforming what you write on paper - everything from sketches and designs to business meeting notes - to your iOS, Android and Windows devices. It works in tandem with N notebooks, powered by NeoLAB Convergence’s patented Ncode™ technology and the accompanying application, Neo Notes. Find out more at www.neosmartpen.com
  - Tutorial video - https://goo.gl/MQaVwY
@@ -13,19 +15,6 @@ The Neo smartpen is designed to seamlessly integrate the real and digital worlds
 
 Click the link below to view a beginners guide to Ncode technology. 
 https://github.com/NeoSmartpen/Documentations/blob/master/Ncode™ Service Development Getting Started Guide v1.01.pdf 
-
-## Introduction
-
-SDK was made to use Neo smartpen for Windows 10 (UWP). SDK library is built and published to [Nuget](https://www.nuget.org/packages/Neosmartpen.Net/)
-
-This Repository is composed of SDK and sample app project. So you can use and test all SDK feature in sample app
-
-Directory Structure:
-
- - NeosmartpenSDK_UWP\Neosmartpen.Net contains SDK project
- - NeosmartpenSDK_UWP\SampleApp contain Sample app project
-
-You can see pen protocol information at [here](https://github.com/NeoSmartpen/Documentations)
 
 
 ## Requirements
@@ -224,19 +213,6 @@ private async void MController_OfflineDownloadFinished(IPenClient sender, Simple
 }
 ```
 
-### Ncode™ Coodinate Description
-
-+ **Dot.X, Dot.Y**
-Coordinates of our Ncode™ cell.( Ncode™'s cell size is 2.371mm )
-
-+ **How to get millimeter unit from Ncode™ unit**
-Dot.X x 2.371 = millimeter unit
-
-## Give Feedback
-
-Please report bugs or issues to [here](https://github.com/NeoSmartpen/UWP-SDK/issues)
-
- 
 ## LICENSE
 
 Copyright©2017 by NeoLAB Convergence, Inc. All page content is property of NeoLAB Convergence Inc. <https://neolab.net> 
@@ -290,3 +266,5 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+**Feel free to leave any comment or feedback [here](https://github.com/NeoSmartpen/UWP-SDK/issues)**
