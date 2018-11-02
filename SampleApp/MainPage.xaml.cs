@@ -426,6 +426,7 @@ namespace SampleApp
 			if (d == null)
 			{
 				await ShowMessage("Select Offline Data Item");
+                return;
 			}
 
 			_controller?.RequestOfflineData(d.Section, d.Owner, d.Note);

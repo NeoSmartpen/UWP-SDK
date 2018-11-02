@@ -592,6 +592,8 @@ namespace Neosmartpen.Net
 
 						ByteUtil butil = new ByteUtil(strData);
 
+                        int checksumErrorCount = 0;
+
 						for (int i = 0; i < strCount; i++)
 						{
 							int pageId = butil.GetInt();
@@ -641,9 +643,14 @@ namespace Neosmartpen.Net
 
 								if (dotChecksum != checksum)
 								{
-									//SendOfflinePacketResponse(packetId, false);
-									//result.Clear();
-									//return;
+                                    // 체크섬 에러 3번 이상이면 에러로 전송 종료
+                                    if (checksumErrorCount++ > 1)
+                                    {
+                                        PenController.onReceiveOfflineStrokes(new OfflineStrokeReceivedEventArgs(mTotalOfflineStroke, mReceivedOfflineStroke, result.ToArray()));
+                                        PenController.onFinishedOfflineDownload(new SimpleResultEventArgs(false));
+                                        return;
+                                    }
+
 									continue;
 								}
 
@@ -673,6 +680,7 @@ namespace Neosmartpen.Net
 						SendOfflinePacketResponse(packetId);
 
 						offlineDataPacketRetryCount = 0;
+
 						PenController.onReceiveOfflineStrokes(new OfflineStrokeReceivedEventArgs(mTotalOfflineStroke, mReceivedOfflineStroke, result.ToArray()));
 
 						if (location == 2)

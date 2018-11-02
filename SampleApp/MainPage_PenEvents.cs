@@ -131,6 +131,7 @@ namespace SampleApp
         private async void MController_OfflineDownloadFinished(IPenClient sender, SimpleResultEventArgs args)
         {
             _controller.RequestOfflineDataList();
+            ShowToast(args.Result ? "Offline data download is complete." : "Offline data download failed.");
             await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => _progressDialog.Hide());
         }
 
