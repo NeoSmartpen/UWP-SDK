@@ -646,7 +646,7 @@ namespace Neosmartpen.Net
                                     // 체크섬 에러 3번 이상이면 에러로 전송 종료
                                     if (checksumErrorCount++ > 1)
                                     {
-                                        PenController.onReceiveOfflineStrokes(new OfflineStrokeReceivedEventArgs(mTotalOfflineStroke, mReceivedOfflineStroke, result.ToArray()));
+                                        result.Clear();
                                         PenController.onFinishedOfflineDownload(new SimpleResultEventArgs(false));
                                         return;
                                     }
