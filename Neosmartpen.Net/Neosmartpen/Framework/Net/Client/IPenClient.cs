@@ -26,22 +26,11 @@ namespace Neosmartpen.Net
             get;
         }
 
-        StreamSocket Socket
-        {
-            get;
-        }
-
-		/// <summary>
-		/// To bind connected socket instance to PenClient
-		/// </summary>
-		/// <param name="socket">StreamSocket instance</param>
-		/// <param name="name">it can be setted, if you want name a IPenClient</param>
-		void Bind(StreamSocket socket);
-
         /// <summary>
         /// unbind a socket instance
         /// </summary>
-        void Unbind();
+		System.Threading.Tasks.Task Unbind();
+
 
         /// <summary>
         /// To write data to stream

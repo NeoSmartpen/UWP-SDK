@@ -487,7 +487,7 @@ namespace Neosmartpen.Net.Bluetooth
 				}
 
 				// mac address를 안쓰고 virtual mac address를 쓴이유는 advertisement는 굉장히 많이 들어오는 값이기 떄문에 좀더 빠르게 검색하기 위해
-				if (penList.Exists(x => x.virtualMacAddress == args.BluetoothAddress))
+				if (penList.Exists(x => x.VirtualMacAddress == args.BluetoothAddress))
 					return;
 
 				BluetoothLEDevice bleDevice = await BluetoothLEDevice.FromBluetoothAddressAsync(args.BluetoothAddress);

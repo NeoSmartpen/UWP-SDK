@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using Windows.Networking.Sockets;
 using Windows.Storage.Streams;
 
@@ -14,7 +15,7 @@ namespace Neosmartpen.Net
 
         public string Name
         {
-            get;set;
+            get; set;
         }
 
         public StreamSocket Socket
@@ -24,11 +25,11 @@ namespace Neosmartpen.Net
 
         public PenClient(IPenController penctrl)
         {
-			PenController = penctrl;
-		}
+            PenController = penctrl;
+        }
 
-		public void Bind(StreamSocket socket)
-		{
+        public void Bind(StreamSocket socket)
+        {
             try
             {
                 Socket = socket;
@@ -44,7 +45,7 @@ namespace Neosmartpen.Net
 
                 ReadSocket(mDataReader);
             }
-            catch ( Exception ex )
+            catch (Exception ex)
             {
                 Debug.WriteLine("Exception : " + ex.Message);
 
@@ -56,23 +57,23 @@ namespace Neosmartpen.Net
                         throw;
                 }
             }
-		}
-
-        public void Unbind()
-        { 
-			Socket?.Dispose();
-			mDataWriter?.Dispose();
-			mDataReader?.Dispose();
-
-			Socket = null;
-			mDataWriter = null;
-			mDataReader = null;
         }
 
-		public bool Alive
-		{
-			get
-			{
+        public async Task Unbind()
+        {
+            Socket?.Dispose();
+            mDataWriter?.Dispose();
+            mDataReader?.Dispose();
+
+            Socket = null;
+            mDataWriter = null;
+            mDataReader = null;
+        }
+
+        public bool Alive
+        {
+            get
+            {
                 return mDataReader != null && mDataWriter != null;
             }
             internal set { }
@@ -80,35 +81,38 @@ namespace Neosmartpen.Net
 
         public IPenController PenController
         {
-            get;set;
+            get; set;
         }
 
         private async void WriteSocket(byte[] data)
-		{
-			// todo check
-			mDataWriter.WriteBytes(data);
+        {
+            // todo check
+            mDataWriter.WriteBytes(data);
 
-			try
-			{
-				await mDataWriter.StoreAsync();
-			}
-			catch ( Exception exception )
-			{
+            try
+            {
+                await mDataWriter.StoreAsync();
+            }
+            catch (Exception exception)
+            {
                 // todo : disconnect
-				if (SocketError.GetStatus(exception.HResult) == SocketErrorStatus.Unknown)
-				{
-					//throw;
-				}
-			}
+                if (SocketError.GetStatus(exception.HResult) == SocketErrorStatus.Unknown)
+                {
+                    //throw;
+                }
+            }
         }
 
         private async void ReadSocket(DataReader dataReader)
-		{
+        {
             try
-			{
+            {
+                if (mDataReader == null)
+                    return;
+
                 uint size = await dataReader.LoadAsync(BufferSize);
 
-                if ( size <= 0 )
+                if (size <= 0)
                 {
                     throw new Exception();
                 }
@@ -120,23 +124,22 @@ namespace Neosmartpen.Net
                 PenController.OnDataReceived(data);
 
                 ReadSocket(dataReader);
-			}
-			catch
-			{
+            }
+            catch
+            {
                 onDisconnect();
             }
-		}
+        }
 
         private void onDisconnect()
         {
-			Unbind();
             PenController.OnDisconnected();
         }
 
-		public void Write(byte[] data)
-		{
-			WriteSocket(data);
-		}
+        public void Write(byte[] data)
+        {
+            WriteSocket(data);
+        }
 
         public void Read()
         {

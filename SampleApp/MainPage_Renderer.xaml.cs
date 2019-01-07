@@ -13,7 +13,8 @@ namespace SampleApp
     public sealed partial class MainPage : Page
     {
 		private static readonly int[] THICKNESS_LEVEL = { 1, 2, 5, 9, 18 };
-        private CanvasRenderTarget _canvasCurrent, _canvasArchived;
+
+        private CanvasRenderTarget _canvasCursor, _canvasCurrent, _canvasArchived;
 
         private CanvasStrokeStyle _canvasStrokeStyle;
 
@@ -84,6 +85,7 @@ namespace SampleApp
 
             args.DrawingSession.DrawImage(_canvasArchived, originPointX, originPointY);
             args.DrawingSession.DrawImage(_canvasCurrent, originPointX, originPointY);
+            args.DrawingSession.DrawImage(_canvasCursor, originPointX, originPointY);
             args.DrawingSession.Flush();
         }
 
@@ -109,9 +111,11 @@ namespace SampleApp
 
             CanvasDevice device = CanvasDevice.GetSharedDevice();
 
+            _canvasCursor = new CanvasRenderTarget(device, docWidth, docHeight, sender.Dpi);
             _canvasCurrent = new CanvasRenderTarget(device, docWidth, docHeight, sender.Dpi);
             _canvasArchived = new CanvasRenderTarget(device, docWidth, docHeight, sender.Dpi);
 
+            ClearCanvas(_canvasCursor, Colors.Transparent);
             ClearCanvas(_canvasCurrent, Colors.Transparent);
             ClearCanvas(_canvasArchived);
 
@@ -145,15 +149,25 @@ namespace SampleApp
                 CurrPage = dot.Page;
             }
 
-            if (_stroke == null)
+            // 커서 레이어를 지운다.
+            ClearCanvas(_canvasCursor, Colors.Transparent);
+
+            if (dot.DotType == DotTypes.PEN_HOVER)
             {
-                _stroke = new Stroke(dot.Section, dot.Owner, dot.Note, dot.Page);
+                DrawCursor(_canvasCursor, dot);
             }
+            else
+            {
+                if (_stroke == null)
+                {
+                    _stroke = new Stroke(dot.Section, dot.Owner, dot.Note, dot.Page);
+                }
 
-            _stroke.Add(dot);
+                _stroke.Add(dot);
 
-            // 임시 획을 그린다.
-            DrawStroke(_canvasCurrent, _stroke.Count > 1 ? _stroke.GetRange(_stroke.Count - 2, 2): _stroke.GetRange(_stroke.Count - 1, 1));
+                // 임시 획을 그린다.
+                DrawStroke(_canvasCurrent, _stroke.Count > 1 ? _stroke.GetRange(_stroke.Count - 2, 2) : _stroke.GetRange(_stroke.Count - 1, 1));
+            }
 
             if (dot.DotType == DotTypes.PEN_UP)
             {
@@ -166,6 +180,21 @@ namespace SampleApp
                 _stroke.Clear();
                 _stroke = null;
             }
+        }
+        private void DrawCursor(CanvasRenderTarget target, Dot dot)
+        {
+            float offsetX = _currentPaperInfo.OffsetX * _scale * Pixel2DotScaleFactor;
+            float offsetY = _currentPaperInfo.OffsetY * _scale * Pixel2DotScaleFactor;
+
+            using (CanvasDrawingSession drawSession = target.CreateDrawingSession())
+            {
+                float x = (dot.X * _scale) - (offsetX);
+                float y = (dot.Y * _scale) - (offsetY);
+
+                drawSession.DrawCircle(x, y, 3, Colors.Red, 1);
+            }
+
+            drawableCanvas.Invalidate();
         }
 
         private void DrawStroke(CanvasRenderTarget target, List<Dot> dots)

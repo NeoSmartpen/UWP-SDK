@@ -45,7 +45,7 @@ namespace Neosmartpen.Net
             lockHandleRequest = new AutoResetEvent( false );
             lockHandleProcess = new AutoResetEvent( false );
 
-            base.SetupFileSystem();
+            //base.SetupFileSystem();
 
 			tOfflineRequestThread = Task.Factory.StartNew(RequestNote);
             

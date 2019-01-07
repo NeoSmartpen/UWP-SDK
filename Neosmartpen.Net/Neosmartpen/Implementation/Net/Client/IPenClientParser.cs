@@ -6,6 +6,6 @@
 
 		void ParsePacket(Packet packet);
 
-        PenController PenController { get; }
+        IPenClient PenClient { get; }
     }
 }
