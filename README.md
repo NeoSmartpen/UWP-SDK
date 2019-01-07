@@ -1,32 +1,23 @@
 Neo smartpen SDK for Windows Universal Platform(UWP)
 ===================
 
-## What is Neo smartpen
+## Universal Windows Platform(UWP) SDK 2.0 
 
-Neo smartpen is a pen designed to capture your handwritten notes into our digital app with our Ncode notebooks.
-
-You can see more information at http://neosmartpen.com
-
-
-## Introduction
+UWP SDK for Windows 10. This open-source library allows you to integrate the Neo smartpen - Neo smartpen N2 and M1 - into your Windows 10 app.  
 
 SDK was made to use Neo smartpen for Windows 10 (UWP). SDK library is built and published to [Nuget](https://www.nuget.org/packages/Neosmartpen.Net/)
 
-This Repository is composed of SDK and sample app project. So you can use and test all SDK feature in sample app
+## About Neo smartpen 
 
-Directory Structure:
+The Neo smartpen is designed to seamlessly integrate the real and digital worlds by transforming what you write on paper - everything from sketches and designs to business meeting notes - to your iOS, Android and Windows devices. It works in tandem with N notebooks, powered by NeoLAB Convergence’s patented Ncode™ technology and the accompanying application, Neo Notes. Find out more at www.neosmartpen.com
+ - Tutorial video - https://goo.gl/MQaVwY
+ 
+## About Ncode™: service development guide 
 
- - NeosmartpenSDK_UWP\Neosmartpen.Net contains SDK project
- - NeosmartpenSDK_UWP\SampleApp contain Sample app project
+‘Natural Handwriting’ technology based on Ncode™(Microscopic data patterns containing various types of data) is a handwriting stroke recovery technology that digitizes paper coordinates obtained by optical pen devices such as Neo smartpen. The coordinates then can be used to store handwriting stroke information, analyzed to extract meaning based on user preferences and serve as the basis for many other types of services. 
 
-You can see pen protocol information at [Link](https://github.com/NeoSmartpen/Documentations)
-
-
-
-## Supported Neo smartpen
-
-- F110 (N2)
-- F50, F120
+Click the link below to view a beginners guide to Ncode technology. 
+[https://github.com/NeoSmartpen/Documentations/blob/master/Ncode™ Service Development Getting Started Guide v1.01.pdf](https://github.com/NeoSmartpen/Documentations/blob/master/Ncode%E2%84%A2%20Service%20Development%20Getting%20Started%20Guide%20v1.01.pdf)
 
 
 ## Requirements
@@ -41,11 +32,18 @@ You can see pen protocol information at [Link](https://github.com/NeoSmartpen/Do
 
  - MarkerMrtro.Unity.Ionic.Zlib
 
+## Supported models
+
+- Neo smartpen N2(F110, F120)
+- Neo smartpen M1(F50)
+
+
+
 ## Getting Started Sample App
 
 At first, download the zip file containing the current version. You can unzip the archive and open NeosmartpenSDK_UWP.sln in Visual Studio 2015.
 
-[download](https://github.com/NeoSmartpen/UWPSDK/archive/master.zip)
+[download](https://github.com/NeoSmartpen/UWP-SDK/archive/master.zip)
 
 
 ## Using SDK library
@@ -56,7 +54,7 @@ Let's getting started using the API
 
 ## Api References
 
-SDK API references page : [References](https://neosmartpen.github.io/UWPSDK/docs)
+SDK API references page : [References](https://neosmartpen.github.io/UWP-SDK/docs)
 
 ## Sample Code
 
@@ -218,52 +216,31 @@ private async void MController_OfflineDownloadFinished(IPenClient sender, Simple
 }
 ```
 
-### Ncode Coodinate Description
-
-+ **Dot.X, Dot.Y**
-Coordinates of our NCode cell.( NCode's cell size is 2.371mm )
-
-+ **How to get millimeter unit from NCode unit**
-Dot.X x 2.371 = millimeter unit
-
-## Give Feedback
-
-
-Please reports bugs or issues to [link](https://github.com/NeoSmartpen/UWPSDK/issues)
-
-
-## Ncode™ SERVICE DEVELOPMENT GETTING STARTED GUIDE
-
-<< [https://github.com/NeoSmartpen/Documentations/blob/master/Ncode™ Service Development Getting Started Guide v1.01.pdf](https://github.com/NeoSmartpen/Documentations/blob/master/Ncode%E2%84%A2%20Service%20Development%20Getting%20Started%20Guide%20v1.01.pdf) >>
- 
 ## LICENSE
 
-NeoSmartpen SDK is Copyright (c) 2017 NeoLAB Convergence, Inc.
+Copyright©2017 by NeoLAB Convergence, Inc. All page content is property of NeoLAB Convergence Inc. <https://neolab.net> 
 
-We provide two types of license for Pen SDK.
+### GPL License v3 - for non-commercial purpose
+    
+For non-commercial use, follow the terms of the GNU General Public License. 
 
-### 1. GPL license v3
-    
-This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. 
-    
+GPL License v3 is a free software: you can run, copy, redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation. 
+
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. 
-    
-You should have received a copy of the GNU General Public License along with this program. 
-    
-If not, see <http://www.gnu.org/licenses/>.
-    
-*ps: normally, 3rd party developer can inquiry via the github issue column, but depending on the situation of internal, the answer may be delayed somewhat.
+
+You should have received a copy of the GNU General Public License along with the program. If not, see <https://www.gnu.org/licenses/>. 
 
 
+### Commercial license - for commercial purpose 
 
-### 2. Commercial license
+For commercial use, it is not necessary or required to open up your source code. Technical support from NeoLAB Convergence, inc is available upon your request. 
 
-That does not require the source code open to be released, and technical support is available.
+Please contact our support team via email for the terms and conditions of this license. 
 
-Please contact following to get more information:
+- Global: _global1@neolab.net
+- Korea: _biz1@neolab.net
 
-- Global: _globalbiz@neolab.net
-- Korea: _koreabiz@neolab.net
+
 
 ## Opensource Library
 
@@ -292,3 +269,6 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+**Feel free to leave any comment or feedback [here](https://github.com/NeoSmartpen/UWP-SDK/issues)**
