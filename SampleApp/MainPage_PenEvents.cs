@@ -131,6 +131,7 @@ namespace SampleApp
         private async void MController_OfflineDownloadFinished(IPenClient sender, SimpleResultEventArgs args)
         {
             _controller.RequestOfflineDataList();
+            ShowToast(args.Result ? "Offline data download is complete." : "Offline data download failed.");
             await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => _progressDialog.Hide());
         }
 
@@ -283,7 +284,7 @@ namespace SampleApp
 		private PenProfileReceivedEventArgs lastArgs;
 		private void Mcontroller_PenProfileReceived(IPenClient sender, PenProfileReceivedEventArgs args)
 		{
-			if (args.Result == PenProfileReceivedEventArgs.ResultType.Falied)
+			if (args.Result == PenProfileReceivedEventArgs.ResultType.Failed)
 			{
 				OutputConsole += "PenProfile Failed";
 				return;

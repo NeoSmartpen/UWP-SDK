@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2042
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neosmartpen.Net", "Neosmartpen.Net\Neosmartpen.Net.csproj", "{0F14F4F1-6E37-4223-A462-88FE411263B9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleApp", "SampleApp\SampleApp.csproj", "{B35C27C4-E28D-420A-A91E-5A2C7CF1D432}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neosmartpen.UnitTest", "Neosmartpen.UnitTest\Neosmartpen.UnitTest.csproj", "{FF15D9F8-71F9-4C97-A7BB-9CEC970C72F0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -55,8 +57,31 @@ Global
 		{B35C27C4-E28D-420A-A91E-5A2C7CF1D432}.Release|x86.ActiveCfg = Release|x86
 		{B35C27C4-E28D-420A-A91E-5A2C7CF1D432}.Release|x86.Build.0 = Release|x86
 		{B35C27C4-E28D-420A-A91E-5A2C7CF1D432}.Release|x86.Deploy.0 = Release|x86
+		{FF15D9F8-71F9-4C97-A7BB-9CEC970C72F0}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{FF15D9F8-71F9-4C97-A7BB-9CEC970C72F0}.Debug|ARM.ActiveCfg = Debug|ARM
+		{FF15D9F8-71F9-4C97-A7BB-9CEC970C72F0}.Debug|ARM.Build.0 = Debug|ARM
+		{FF15D9F8-71F9-4C97-A7BB-9CEC970C72F0}.Debug|ARM.Deploy.0 = Debug|ARM
+		{FF15D9F8-71F9-4C97-A7BB-9CEC970C72F0}.Debug|x64.ActiveCfg = Debug|x64
+		{FF15D9F8-71F9-4C97-A7BB-9CEC970C72F0}.Debug|x64.Build.0 = Debug|x64
+		{FF15D9F8-71F9-4C97-A7BB-9CEC970C72F0}.Debug|x64.Deploy.0 = Debug|x64
+		{FF15D9F8-71F9-4C97-A7BB-9CEC970C72F0}.Debug|x86.ActiveCfg = Debug|x86
+		{FF15D9F8-71F9-4C97-A7BB-9CEC970C72F0}.Debug|x86.Build.0 = Debug|x86
+		{FF15D9F8-71F9-4C97-A7BB-9CEC970C72F0}.Debug|x86.Deploy.0 = Debug|x86
+		{FF15D9F8-71F9-4C97-A7BB-9CEC970C72F0}.Release|Any CPU.ActiveCfg = Release|x86
+		{FF15D9F8-71F9-4C97-A7BB-9CEC970C72F0}.Release|ARM.ActiveCfg = Release|ARM
+		{FF15D9F8-71F9-4C97-A7BB-9CEC970C72F0}.Release|ARM.Build.0 = Release|ARM
+		{FF15D9F8-71F9-4C97-A7BB-9CEC970C72F0}.Release|ARM.Deploy.0 = Release|ARM
+		{FF15D9F8-71F9-4C97-A7BB-9CEC970C72F0}.Release|x64.ActiveCfg = Release|x64
+		{FF15D9F8-71F9-4C97-A7BB-9CEC970C72F0}.Release|x64.Build.0 = Release|x64
+		{FF15D9F8-71F9-4C97-A7BB-9CEC970C72F0}.Release|x64.Deploy.0 = Release|x64
+		{FF15D9F8-71F9-4C97-A7BB-9CEC970C72F0}.Release|x86.ActiveCfg = Release|x86
+		{FF15D9F8-71F9-4C97-A7BB-9CEC970C72F0}.Release|x86.Build.0 = Release|x86
+		{FF15D9F8-71F9-4C97-A7BB-9CEC970C72F0}.Release|x86.Deploy.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {580453BC-2D55-4E5F-ADDB-D9D7705BDA90}
 	EndGlobalSection
 EndGlobal

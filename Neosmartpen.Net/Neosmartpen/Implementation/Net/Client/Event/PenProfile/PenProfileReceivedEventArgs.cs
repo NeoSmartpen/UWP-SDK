@@ -11,8 +11,8 @@
 		public ResultType Result { get; internal set; }
 		public enum ResultType
 		{
-			Successs, 
-			Falied
+			Success, 
+			Failed
 		}
 		public string ProfileName { get; internal set; }
 		public int Status { get; internal set; }

@@ -102,9 +102,6 @@ namespace SampleApp
         {
             this.InitializeComponent();
 
-			//ApplicationView.PreferredLaunchViewSize = new Size(1024, 1024);
-			//ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.PreferredLaunchViewSize;
-
 			currentProfileType = PenProfileType.NONE;
 			cbPenProfileType.ItemsSource = Enum.GetValues(typeof(PenProfileType)).Cast<PenProfileType>().Where(x => x != PenProfileType.NONE).ToList();
 			cbPenProfileType.SelectedIndex = 0;
@@ -331,8 +328,6 @@ namespace SampleApp
             }
             catch ( Exception ex )
             {
-                //ShowToast("오류가 발생했습니다.");
-
                 Debug.WriteLine(ex.Message);
                 Debug.WriteLine(ex.StackTrace);
 
@@ -426,6 +421,7 @@ namespace SampleApp
 			if (d == null)
 			{
 				await ShowMessage("Select Offline Data Item");
+                return;
 			}
 
 			_controller?.RequestOfflineData(d.Section, d.Owner, d.Note);

@@ -5,7 +5,7 @@
 		internal PenProfileCreateEventArgs()
 		{
 			Type = PenProfileType.Create;
-			Result = ResultType.Successs;
+			Result = ResultType.Success;
 		}
 		internal PenProfileCreateEventArgs(string profileName, int status) : this()
 		{

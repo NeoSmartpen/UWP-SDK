@@ -7,7 +7,7 @@ namespace Neosmartpen.Net
 		internal PenProfileWriteValueEventArgs()
 		{
 			Type = PenProfileType.WriteValue;
-			Result = ResultType.Successs;
+			Result = ResultType.Success;
 		}
 		internal PenProfileWriteValueEventArgs(string profileName) : this()
 		{
