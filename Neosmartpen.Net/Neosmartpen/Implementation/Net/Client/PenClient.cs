@@ -127,12 +127,13 @@ namespace Neosmartpen.Net
             }
             catch
             {
-                onDisconnect();
+                await onDisconnect();
             }
         }
 
-        private void onDisconnect()
+        private async Task onDisconnect()
         {
+            await Unbind();
             PenController.OnDisconnected();
         }
 

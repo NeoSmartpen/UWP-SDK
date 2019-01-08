@@ -22,10 +22,10 @@ namespace Neosmartpen.Net.Bluetooth
 		// sample
 		//Bluetooth#Bluetooth00:09:dd:42:7b:a0-9c:7b:d2:ff:fb:5b#RFCOMM:00000000:{00001101-0000-1000-8000-00805f9b34fb}
 		//BluetoothLE#BluetoothLE00:09:dd:42:7b:a0-d4:00:9c:d4:c2:18
-		protected static readonly uint ClassOfDeviceV1 = 0x0500;
-		protected static readonly uint ClassOfDeviceV2 = 0x2510;
-		protected static readonly Guid ServiceUuidV1 = new Guid(0x18f1, 0x00, 0x1000, 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB);
-		protected static readonly Guid ServiceUuidV2 = new Guid(0x19f1, 0x00, 0x1000, 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB);
+		public static readonly uint ClassOfDeviceV1 = 0x0500;
+        public static readonly uint ClassOfDeviceV2 = 0x2510;
+        public static readonly Guid ServiceUuidV1 = new Guid(0x18f1, 0x00, 0x1000, 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB);
+        public static readonly Guid ServiceUuidV2 = new Guid(0x19f1, 0x00, 0x1000, 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB);
 		private readonly string ALLOWED_MAC_PREFIX = "9C:7B:D";
 
 		public BluetoothPenClient(IPenController penctrl) : base(penctrl)
@@ -115,7 +115,7 @@ namespace Neosmartpen.Net.Bluetooth
 				await streamSocket.ConnectAsync(bluetoothDevice.HostName, chatService.ConnectionServiceName);
 
 				// 여기가 좀 지저분함
-				(this.PenController as Neosmartpen.Net.PenController).Protocol = bluetoothDevice.ClassOfDevice.RawValue == ClassOfDeviceV1 ? Protocols.V1 : Protocols.V2;
+				PenController.Protocol = bluetoothDevice.ClassOfDevice.RawValue == ClassOfDeviceV1 ? Protocols.V1 : Protocols.V2;
 
 				await Task.Delay(200);
 
@@ -267,8 +267,8 @@ namespace Neosmartpen.Net.Bluetooth
 				rssi = (int)value;
 			}
 
-			PenInformation penInfo = new PenInformation(info);
-			penInfo.MacAddress = macAddress;
+            PenInformation penInfo = new PenInformation(info);
+            penInfo.MacAddress = macAddress;
 			penInfo.Rssi = rssi;
 			return penInfo;
 		}

@@ -19,7 +19,7 @@
 		/// <summary>
 		/// Get Protocol version
 		/// </summary>
-		int Protocol { get; }
+		int Protocol { get; set; }
         /// <summary>
         /// Fired when a connection is made, override to handle in your own code. 
         /// </summary>
