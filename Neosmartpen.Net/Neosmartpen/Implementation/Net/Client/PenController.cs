@@ -8,6 +8,7 @@ namespace Neosmartpen.Net
     public class PenController : IPenController, IPenControllerEvent
     {
         private object objectLock = new object();
+
         private PenClientParserV1 mClientV1;
         private PenClientParserV2 mClientV2;
 
@@ -656,7 +657,7 @@ namespace Neosmartpen.Net
             Request(() => mClientV1.ReqSetupPenBeep(enable), () => mClientV2.ReqSetupPenBeep(enable));
         }
 
-        public void SetHoverEnable(bool enable)
+        private void SetHoverEnable(bool enable)
         {
             Request(() => mClientV1.ReqSetupHoverMode(enable), () => mClientV2.ReqSetupHoverMode(enable));
         }
@@ -778,8 +779,6 @@ namespace Neosmartpen.Net
 
             Request(() => mClientV1.ReqAddUsingNote(section, owner), () => mClientV2.ReqAddUsingNote(section, owner));
         }
-
-        //public bool RequestOfflineDataList(int section, int owner, int note);
 
         /// <summary>
         /// Requests the list of Offline data

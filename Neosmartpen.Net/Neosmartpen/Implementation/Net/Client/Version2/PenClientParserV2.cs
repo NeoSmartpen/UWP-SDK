@@ -156,12 +156,8 @@ namespace Neosmartpen.Net
 
 		private int mCurSection = -1, mCurOwner = -1, mCurNote = -1, mCurPage = -1;
 
-		//private Packet mPrevPacket = null;
-
 		private int mTotalOfflineStroke = -1, mReceivedOfflineStroke = 0, mTotalOfflineDataSize = -1;
 		private int PenMaxForce = 0;
-
-		//private Dot previousDot = null;
 
 		private bool reCheckPassword = false;
 		private string newPassword;
@@ -184,7 +180,7 @@ namespace Neosmartpen.Net
 		{
 			Cmd cmd = (Cmd)packet.Cmd;
 
-			Debug.WriteLine("Cmd : {0}", cmd.ToString());
+			//Debug.WriteLine("Cmd : {0}", cmd.ToString());
 
 			isConnectWrite = true;
 			switch (cmd)
