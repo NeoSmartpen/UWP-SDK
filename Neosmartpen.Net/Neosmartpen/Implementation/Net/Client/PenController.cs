@@ -656,7 +656,7 @@ namespace Neosmartpen.Net
             Request(() => mClientV1.ReqSetupPenBeep(enable), () => mClientV2.ReqSetupPenBeep(enable));
         }
 
-        public void SetHoverEnable(bool enable)
+        private void SetHoverEnable(bool enable)
         {
             Request(() => mClientV1.ReqSetupHoverMode(enable), () => mClientV2.ReqSetupHoverMode(enable));
         }
