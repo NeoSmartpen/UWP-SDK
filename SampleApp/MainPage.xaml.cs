@@ -284,7 +284,6 @@ namespace SampleApp
                 return;
             }
 
-			//tbMacAddress.Text = selected.MacAddress;
 			CurrentMacAddress = selected.MacAddress;
         }
 
@@ -315,10 +314,6 @@ namespace SampleApp
 
                     case "cbBeepSound":
                         _controller?.SetBeepSoundEnable(enable);
-                        break;
-
-                    case "cbHover":
-                        _controller?.SetHoverEnable(enable);
                         break;
 
                     case "cbOfflineData":
