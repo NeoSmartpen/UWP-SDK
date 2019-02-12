@@ -2274,7 +2274,7 @@ namespace Neosmartpen.Net
         internal void onDisconnected()
         {
             PressureCalibration.Instance.Clear();
-            PenClient.Unbind();
+            PenClient?.Unbind();
             Disconnected?.Invoke(PenClient, new object());
         }
 
