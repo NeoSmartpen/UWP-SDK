@@ -74,8 +74,9 @@ namespace Neosmartpen.Net.Bluetooth
 		{
 			try
 			{
-				// lock try 블럭 안으로 이동
-				await semaphreSlime.WaitAsync();
+                // lock try 블럭 안으로 이동
+                await semaphreSlime.WaitAsync();
+
 				if (Alive)
 				{
 					return false;
@@ -90,7 +91,7 @@ namespace Neosmartpen.Net.Bluetooth
 				// 소켓을 멤버 변수로 가지고 있게끔
 				streamSocket = new StreamSocket();
 
-				//BluetoothDevice bluetoothDevice = await BluetoothDevice.FromIdAsync(penInfomation.deviceInformation.Id);
+				//BluetoothDevice bluetoothDevice = await BluetoothDevice.FromIdAsync(penInformation.deviceInformation.Id);
 				// le의 deviceinformation id를 이용해 BluetoothDevice를 가져올 수 없기 때문에 이런식으로 우회함
 				BluetoothDevice bluetoothDevice = await BluetoothDevice.FromBluetoothAddressAsync(penInformation.BluetoothAddress);
 
@@ -99,9 +100,10 @@ namespace Neosmartpen.Net.Bluetooth
 					return false;
 				}
 
-				var rfcommServices = await bluetoothDevice.GetRfcommServicesForIdAsync(RfcommServiceId.SerialPort, BluetoothCacheMode.Uncached);
+                //var rfcommServices = await bluetoothDevice.GetRfcommServicesForIdAsync(RfcommServiceId.SerialPort, BluetoothCacheMode.Uncached);
+                var rfcommServices = await bluetoothDevice.GetRfcommServicesForIdAsync(RfcommServiceId.FromUuid(RfcommServiceId.SerialPort.Uuid), BluetoothCacheMode.Uncached);
 
-				RfcommDeviceService chatService = null;
+                RfcommDeviceService chatService = null;
 
 				if (rfcommServices.Services.Count > 0)
 				{
@@ -115,7 +117,7 @@ namespace Neosmartpen.Net.Bluetooth
 				await streamSocket.ConnectAsync(bluetoothDevice.HostName, chatService.ConnectionServiceName);
 
 				// 여기가 좀 지저분함
-				PenController.Protocol = bluetoothDevice.ClassOfDevice.RawValue == ClassOfDeviceV2 ? Protocols.V2 : Protocols.V1;
+				PenController.Protocol = penInformation.Protocol == Protocols.V2 || bluetoothDevice.ClassOfDevice.RawValue == ClassOfDeviceV2 ? Protocols.V2 : Protocols.V1;
 
 				await Task.Delay(200);
 
