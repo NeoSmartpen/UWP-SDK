@@ -2,6 +2,7 @@
 using Neosmartpen.Net.Filter;
 using Neosmartpen.Net.Support;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO.Compression;
@@ -99,7 +100,10 @@ namespace Neosmartpen.Net
 		private readonly string F121 = "NWP-F121";
 		private readonly string F121MG = "NWP-F121MG";
 
-		public PenClientParserV2()
+        public static readonly float FW_UPDATE_CANCEL_BUG_FIX_FIRMWARE_VERSION = 1.04f;
+        public static readonly string FW_UPDATE_CANCEL_BUG_DEVICE_NAME  = "NWP-F51";
+
+        public PenClientParserV2()
 		{
             dotFilterForPaper = new FilterForPaper(SendDotReceiveEvent);
 			offlineFilterForPaper = new FilterForPaper(AddOfflineFilteredDot);
@@ -710,7 +714,6 @@ namespace Neosmartpen.Net
 					{
 						int status = packet.GetByteToInt();
 						int offset = packet.GetInt();
-
 						ResponseChunkRequest(offset, status != 3);
 					}
 					break;
@@ -780,8 +783,6 @@ namespace Neosmartpen.Net
 				case Cmd.ONLINE_DATA_RESPONSE:
                     onAvailableNoteAdded();
                     break;
-
-
 
 				default:
 					break;
@@ -1966,11 +1967,29 @@ namespace Neosmartpen.Net
 			return Send(bf);
 		}
 
-		#endregion
+        #endregion
 
-		#region firmware
+        #region firmware
 
-		private Chunk mFwChunk;
+        public bool hasBugInFirmwareUpdate()
+        {
+            string[] temp = FirmwareVersion.Split('.');
+            float ver = 0f;
+            try
+            {
+                ver = FloatConverter.ToSingle(temp[0] + "." + temp[1]);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.StackTrace);
+            }
+            if (FW_UPDATE_CANCEL_BUG_DEVICE_NAME == DeviceName && ver < FW_UPDATE_CANCEL_BUG_FIX_FIRMWARE_VERSION)
+                return true;
+            else
+                return false;
+        }
+
+        private ChunkEx mFwChunk;
 
 		private bool IsUploading = false;
 
@@ -1990,7 +2009,7 @@ namespace Neosmartpen.Net
             SwUpgradeFailCallbacked = false;
             IsUploading = true;
 
-			mFwChunk = new Chunk(1024);
+			mFwChunk = new ChunkEx(1024);
 
 			bool loaded = await mFwChunk.Load(filepath);
 
@@ -2001,10 +2020,7 @@ namespace Neosmartpen.Net
 
 			int file_size = mFwChunk.GetFileSize();
 
-			short chunk_count = (short)mFwChunk.GetChunkLength();
-			short chunk_size = (short)mFwChunk.GetChunksize();
-
-			byte[] StrVersionByte = Encoding.UTF8.GetBytes(version);
+            byte[] StrVersionByte = Encoding.UTF8.GetBytes(version);
 
 			string deviceName = DeviceName;
 			if (deviceName.Equals(F121MG))
@@ -2012,7 +2028,7 @@ namespace Neosmartpen.Net
 
 			byte[] StrDeviceByte = Encoding.UTF8.GetBytes(deviceName);
 
-			Debug.WriteLine("[FileUploadWorker] file upload => filesize : {0}, packet count : {1}, packet size {2}", file_size, chunk_count, chunk_size);
+			Debug.WriteLine("[FileUploadWorker] file upload => filesize : {0}, packet size {1}", file_size, mFwChunk.GetChunksize());
 
 			ByteUtil bf = new ByteUtil(Escape);
 
@@ -2022,7 +2038,7 @@ namespace Neosmartpen.Net
 			  .Put(StrDeviceByte, 16)
 			  .Put(StrVersionByte, 16)
 			  .PutInt(file_size)
-			  .PutInt(chunk_size)
+			  .PutInt(mFwChunk.GetChunksize())
 			  .Put(1)
 			  .Put(mFwChunk.GetTotalChecksum())
 			  .Put(Const.PK_ETX, false);
@@ -2053,7 +2069,8 @@ namespace Neosmartpen.Net
 
                 IsUploading = false;
 
-                Send(bf);
+                if (!hasBugInFirmwareUpdate())
+                    Send(bf);
 
                 if (!SwUpgradeFailCallbacked)
                 {
@@ -2063,17 +2080,12 @@ namespace Neosmartpen.Net
             }
 			else
 			{
-                int index = (int)(offset / mFwChunk.GetChunksize());
+                Debug.WriteLine("[FileUploadWorker] ResponseChunkRequest upload => offset : {0} / {1}", offset, mFwChunk.GetFileSize());
 
-                Debug.WriteLine("[FileUploadWorker] ResponseChunkRequest upload => index : {0}", index);
-
-                byte[] data = mFwChunk.Get(index);
-
-                byte[] cdata = Ionic.Zlib.ZlibStream.CompressBuffer(data);
-
-				byte checksum = mFwChunk.GetChecksum(index);
-
-				short dataLength = (short)(cdata.Length + 14);
+                byte[] data = mFwChunk.Get(offset);
+                byte[] compressedData = Ionic.Zlib.ZlibStream.CompressBuffer(data);
+				byte checksum = ChunkEx.CalcChecksum(data);
+				short dataLength = (short)(compressedData.Length + 14);
 
 				bf.Put(Const.PK_STX, false)
 				  .Put((byte)Cmd.FIRMWARE_PACKET_RESPONSE)
@@ -2083,13 +2095,12 @@ namespace Neosmartpen.Net
 				  .PutInt(offset)
 				  .Put(checksum)
 				  .PutInt(data.Length)
-				  .PutInt(cdata.Length)
-				  .Put(cdata)
+				  .PutInt(compressedData.Length)
+				  .Put(compressedData)
 				  .Put(Const.PK_ETX, false);
-
                 Send(bf);
 
-                onReceiveFirmwareUpdateStatus(new ProgressChangeEventArgs(mFwChunk.GetChunkLength(), (int)index + 1));
+                onReceiveFirmwareUpdateStatus(new ProgressChangeEventArgs(mFwChunk.GetChunkLength(), (int)(offset / mFwChunk.GetChunksize()) + 1));
             }
 		}
 

@@ -105,6 +105,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Neosmartpen\Framework\Net\Data\Pds.cs" />
+    <Compile Include="Neosmartpen\Implementation\Net\Client\ChunkEx.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Client\DataTransmissionType.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Client\Event\ErrorDetectedEventArgs.cs" />
     <Compile Include="Neosmartpen\Implementation\Net\Client\Event\PdsReceivedEventArgs.cs" />
