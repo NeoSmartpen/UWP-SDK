@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
-using Microsoft.Graphics.Canvas;
-using Microsoft.Graphics.Canvas.Geometry;
-using Microsoft.Graphics.Canvas.UI.Xaml;
+﻿using Microsoft.Graphics.Canvas.UI.Xaml;
 using Neosmartpen.Net;
+using System;
+using System.Collections.Generic;
 using Windows.UI;
 using Windows.UI.Xaml.Controls;
 
@@ -14,13 +11,13 @@ namespace SampleApp
     {
 		private static readonly int[] THICKNESS_LEVEL = { 1, 2, 5, 9, 18 };
 
-        private CanvasRenderTarget _canvasCursor, _canvasCurrent, _canvasArchived;
+        private CachedDrawableStroke _currentStroke;
 
-        private CanvasStrokeStyle _canvasStrokeStyle;
+        private List<CachedDrawableStroke> _strokes;
 
-        private Stroke _stroke;
+        private Dot _cursorDot;
 
-        private float _scale;
+        private float _scale = 0f;
 
         public const float Pixel2DotScaleFactor = 600f / 72f / 56f;
 
@@ -28,6 +25,8 @@ namespace SampleApp
 		public int _thickness;
 
         public PaperInformation _currentPaperInfo;
+
+        private object _renderLock = new object();
 
         public void InitRenderer()
         {
@@ -49,21 +48,7 @@ namespace SampleApp
 
             cbPaperInfo.SelectedIndex = 0;
 
-            initStrokesStyle();
-        }
-
-        private void initStrokesStyle()
-        {
-            _canvasStrokeStyle = new CanvasStrokeStyle();
-            _canvasStrokeStyle.TransformBehavior = CanvasStrokeTransformBehavior.Fixed;
-            _canvasStrokeStyle.StartCap = CanvasCapStyle.Round;
-            _canvasStrokeStyle.EndCap = CanvasCapStyle.Round;
-            _canvasStrokeStyle.DashStyle = CanvasDashStyle.Solid;
-            _canvasStrokeStyle.DashCap = CanvasCapStyle.Round;
-            _canvasStrokeStyle.LineJoin = CanvasLineJoin.Round;
-            
-            _color = Colors.Black;
-			ChangeThinknessLevel(0);
+            _strokes = new List<CachedDrawableStroke>();
         }
 
 		private void ChangeThinknessLevel(int index)
@@ -75,18 +60,46 @@ namespace SampleApp
 
 		private void drawableCanvas_Draw(CanvasControl sender, CanvasDrawEventArgs args)
         {
-            if (_canvasCurrent == null || _canvasArchived == null)
+            lock (_renderLock)
             {
-                return;
+                args.DrawingSession.Clear(Colors.LightGray);
+
+                if (_scale <= 0f)
+                    return;
+
+                float docWidth = _currentPaperInfo.Width * Pixel2DotScaleFactor * _scale;
+                float docHeight = _currentPaperInfo.Height * Pixel2DotScaleFactor * _scale;
+
+                float originPointX = (float)(sender.Size.Width - docWidth) / 2f;
+                float originPointY = (float)(sender.Size.Height - docHeight) / 2f;
+
+                args.DrawingSession.FillRectangle(originPointX, originPointY, docWidth, docHeight, Colors.White);
+
+                float offsetX = _currentPaperInfo.OffsetX * _scale * Pixel2DotScaleFactor;
+                float offsetY = _currentPaperInfo.OffsetY * _scale * Pixel2DotScaleFactor;
+
+                if (_currentStroke != null)
+                {
+                    _currentStroke.Draw(args.DrawingSession, _scale, -offsetX + originPointX, -offsetY + originPointY);
+                }
+
+                if (_strokes != null && _strokes.Count > 0)
+                {
+                    foreach (var st in _strokes)
+                    {
+                        st.Draw(args.DrawingSession, _scale, -offsetX + originPointX, -offsetY + originPointY);
+                    }
+                }
+
+                if (_cursorDot != null)
+                {
+                    float x = (_cursorDot.X * _scale) - (offsetX) + originPointX;
+                    float y = (_cursorDot.Y * _scale) - (offsetY) + originPointY;
+                    args.DrawingSession.DrawCircle(x, y, 3, Colors.Red, 1);
+                }
+
+                args.DrawingSession.Flush();
             }
-
-            float originPointX = (float)(sender.Size.Width - _canvasCurrent.Size.Width) / 2f;
-            float originPointY = (float)(sender.Size.Height - _canvasCurrent.Size.Height) / 2f;
-
-            args.DrawingSession.DrawImage(_canvasArchived, originPointX, originPointY);
-            args.DrawingSession.DrawImage(_canvasCurrent, originPointX, originPointY);
-            args.DrawingSession.DrawImage(_canvasCursor, originPointX, originPointY);
-            args.DrawingSession.Flush();
         }
 
         private void drawableCanvas_SizeChanged(object sender, Windows.UI.Xaml.SizeChangedEventArgs e)
@@ -96,268 +109,93 @@ namespace SampleApp
 
         private void drawableCanvas_CreateResources(CanvasControl sender, Microsoft.Graphics.Canvas.UI.CanvasCreateResourcesEventArgs args)
         {
-            if (_currentPaperInfo == null)
+            lock (_renderLock)
             {
-                return;
+                if (_currentPaperInfo == null)
+                {
+                    return;
+                }
+
+                _scale = Math.Min(
+                    ((float)sender.Size.Width) / (_currentPaperInfo.Width * Pixel2DotScaleFactor),
+                    ((float)sender.Size.Height) / (_currentPaperInfo.Height * Pixel2DotScaleFactor)
+                );
+
+                drawableCanvas.Invalidate();
             }
+        }
 
-            _scale = Math.Min(
-                ((float)sender.Size.Width) / (_currentPaperInfo.Width * Pixel2DotScaleFactor),
-                ((float)sender.Size.Height) / (_currentPaperInfo.Height * Pixel2DotScaleFactor)
-            );
+        private async void MController_OfflineStrokeReceived(IPenClient sender, OfflineStrokeReceivedEventArgs args)
+        {
+            foreach (Stroke stroke in args.Strokes)
+                _strokes.Add(new CachedDrawableStroke(_color, _thickness, stroke));
 
-            float docWidth = _currentPaperInfo.Width * Pixel2DotScaleFactor * _scale;
-            float docHeight = _currentPaperInfo.Height * Pixel2DotScaleFactor * _scale;
-
-            CanvasDevice device = CanvasDevice.GetSharedDevice();
-
-            _canvasCursor = new CanvasRenderTarget(device, docWidth, docHeight, sender.Dpi);
-            _canvasCurrent = new CanvasRenderTarget(device, docWidth, docHeight, sender.Dpi);
-            _canvasArchived = new CanvasRenderTarget(device, docWidth, docHeight, sender.Dpi);
-
-            ClearCanvas(_canvasCursor, Colors.Transparent);
-            ClearCanvas(_canvasCurrent, Colors.Transparent);
-            ClearCanvas(_canvasArchived);
+            await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => {
+                _progressDialog.Update(args.AmountDone, args.Total);
+            });
 
             drawableCanvas.Invalidate();
         }
-        private async void MController_OfflineStrokeReceived(IPenClient sender, OfflineStrokeReceivedEventArgs args)
-        {
-            await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => {
 
-                foreach (Stroke stroke in args.Strokes)
-                {
-                    DrawStroke(_canvasArchived, stroke);
-                }
-
-                _progressDialog.Update(args.AmountDone, args.Total);
-            });
-        }
-
-        int CurrNote = -1, CurrPage = -1;
+        private int CurrNote = -1, CurrPage = -1;
 
         private void ProcessDot(Dot dot)
         {
-            if ( dot.Note != CurrNote || dot.Page != CurrPage)
+            lock (_renderLock)
             {
-                ClearCanvas(_canvasCurrent, Colors.Transparent);
-                ClearCanvas(_canvasArchived);
-
-                drawableCanvas.Invalidate();
-
-                CurrNote = dot.Note;
-                CurrPage = dot.Page;
-            }
-
-            // 커서 레이어를 지운다.
-            ClearCanvas(_canvasCursor, Colors.Transparent);
-
-            if (dot.DotType == DotTypes.PEN_HOVER)
-            {
-                DrawCursor(_canvasCursor, dot);
-            }
-            else
-            {
-                if (_stroke == null)
+                if (dot.Note != CurrNote || dot.Page != CurrPage)
                 {
-                    _stroke = new Stroke(dot.Section, dot.Owner, dot.Note, dot.Page);
+                    _strokes.Clear();
+
+                    CurrNote = dot.Note;
+                    CurrPage = dot.Page;
                 }
 
-                _stroke.Add(dot);
-
-                // 임시 획을 그린다.
-                DrawStroke(_canvasCurrent, _stroke.Count > 1 ? _stroke.GetRange(_stroke.Count - 2, 2) : _stroke.GetRange(_stroke.Count - 1, 1));
-            }
-
-            if (dot.DotType == DotTypes.PEN_UP)
-            {
-                // 최종 획을 그린다.
-                DrawStroke(_canvasArchived, _stroke);
-
-                // 모든 임시 획들을 지운다.
-                ClearCanvas(_canvasCurrent, Colors.Transparent);
-
-                _stroke.Clear();
-                _stroke = null;
-            }
-        }
-        private void DrawCursor(CanvasRenderTarget target, Dot dot)
-        {
-            float offsetX = _currentPaperInfo.OffsetX * _scale * Pixel2DotScaleFactor;
-            float offsetY = _currentPaperInfo.OffsetY * _scale * Pixel2DotScaleFactor;
-
-            using (CanvasDrawingSession drawSession = target.CreateDrawingSession())
-            {
-                float x = (dot.X * _scale) - (offsetX);
-                float y = (dot.Y * _scale) - (offsetY);
-
-                drawSession.DrawCircle(x, y, 3, Colors.Red, 1);
-            }
-
-            drawableCanvas.Invalidate();
-        }
-
-        private void DrawStroke(CanvasRenderTarget target, List<Dot> dots)
-        {
-            float offsetX = _currentPaperInfo.OffsetX * _scale * Pixel2DotScaleFactor;
-            float offsetY = _currentPaperInfo.OffsetY * _scale * Pixel2DotScaleFactor;
-
-            DrawToCanvas(target, dots, _scale, -offsetX, -offsetY, _color, _canvasStrokeStyle, _thickness);
-
-            drawableCanvas.Invalidate();
-        }
-
-        private void DrawToCanvas(CanvasRenderTarget crt, List<Dot> dots, float scale, float offsetX, float offsetY, Color color, CanvasStrokeStyle canvasStrokeStyle, float thickness = 1f)
-        {
-            if (crt == null)
-            {
-                return;
-            }
-
-            if (dots == null || dots.Count == 0)
-            {
-                return;
-            }
-
-            using (CanvasDrawingSession drawSession = crt.CreateDrawingSession())
-            {
-                if (dots.Count <= 2)
+                if (dot.DotType == DotTypes.PEN_HOVER)
                 {
-                    float p = (float)dots[dots.Count-1].Force / 1023 * thickness;
-
-                    if (dots.Count == 1) // 점찍기
-                    {
-                        drawSession.FillCircle(dots[0].X * scale + offsetX, dots[0].Y * scale + offsetY, p, color);
-                    }
-                    else if (dots.Count == 2) // 선그리기
-                    {
-                        drawSession.DrawLine(dots[0].X * scale + offsetX, dots[0].Y * scale + offsetY, dots[1].X * scale + offsetX, dots[1].Y * scale + offsetY, color, p, canvasStrokeStyle);
-                    }
+                    _cursorDot = dot;
                 }
                 else
                 {
-                    thickness /= 2;
-
-                    float x0, x1, x2, x3, y0, y1, y2, y3, p0, p1, p2, p3;
-                    float vx01, vy01, vx21, vy21;
-                    float norm;
-                    float n_x0, n_y0, n_x2, n_y2;
-
-                    x0 = dots[0].X * scale + offsetX + 0.1f;
-                    y0 = dots[0].Y * scale + offsetY;
-                    // TODO Change MaxForce
-                    p0 = (float)dots[0].Force / 1023 * thickness;
-
-                    x1 = dots[1].X * scale + offsetX + 0.1f;
-                    y1 = dots[1].Y * scale + offsetY;
-                    p1 = (float)dots[1].Force / 1023 * thickness;
-
-                    vx01 = x1 - x0;
-                    vy01 = y1 - y0;
-                    // instead of dividing tangent/norm by two, we multiply norm by 2
-                    norm = (float)System.Math.Sqrt(vx01 * vx01 + vy01 * vy01 + 0.0001f) * 2f;
-                    //vx01 = vx01 / norm * scaled_pen_thickness * p0;
-                    //vy01 = vy01 / norm * scaled_pen_thickness * p0;
-                    vx01 = vx01 / norm * p0;
-                    vy01 = vy01 / norm * p0;
-                    n_x0 = vy01;
-                    n_y0 = -vx01;
-
-                    CanvasPathBuilder pathBuilder;
-
-                    int count = dots.Count;
-
-                    for (int i = 2; i < count; ++i)
+                    if (_currentStroke == null)
                     {
-                        x3 = dots[i].X * scale + offsetX + 0.1f;
-                        y3 = dots[i].Y * scale + offsetY;
-                        p3 = (float)dots[i].Force / 1023 * thickness;
-
-                        x2 = (x1 + x3) / 2.0f;
-                        y2 = (y1 + y3) / 2.0f;
-                        p2 = (p1 + p3) / 2.0f;
-                        vx21 = x1 - x2;
-                        vy21 = y1 - y2;
-                        norm = (float)System.Math.Sqrt(vx21 * vx21 + vy21 * vy21 + 0.0001f) * 2.0f;
-                        vx21 = vx21 / norm * p2;
-                        vy21 = vy21 / norm * p2;
-                        n_x2 = -vy21;
-                        n_y2 = vx21;
-
-                        pathBuilder = new CanvasPathBuilder(drawableCanvas);
-                        pathBuilder.BeginFigure(x0 + n_x0, y0 + n_y0);
-                        // The + boundary of the stroke
-                        pathBuilder.AddCubicBezier(new Vector2(x1 + n_x0, y1 + n_y0), new Vector2(x1 + n_x2, y1 + n_y2), new Vector2(x2 + n_x2, y2 + n_y2));
-                        // round out the cap
-                        pathBuilder.AddCubicBezier(new Vector2(x2 + n_x2 - vx21, y2 + n_y2 - vy21), new Vector2(x2 - n_x2 - vx21, y2 - n_y2 - vy21), new Vector2(x2 - n_x2, y2 - n_y2));
-                        // THe - boundary of the stroke
-                        pathBuilder.AddCubicBezier(new Vector2(x1 - n_x2, y1 - n_y2), new Vector2(x1 - n_x0, y1 - n_y0), new Vector2(x0 - n_x0, y0 - n_y0));
-                        // round out the other cap
-                        pathBuilder.AddCubicBezier(new Vector2(x0 - n_x0 - vx01, y0 - n_y0 - vy01), new Vector2(x0 + n_x0 - vx01, y0 + n_y0 - vy01), new Vector2(x0 + n_x0, y0 + n_y0));
-                        pathBuilder.EndFigure(CanvasFigureLoop.Open);
-                        drawSession.DrawGeometry(CanvasGeometry.CreatePath(pathBuilder), color, p2);
-
-                        x0 = x2;
-                        y0 = y2;
-                        p0 = p2;
-                        x1 = x3;
-                        y1 = y3;
-                        p1 = p3;
-                        vx01 = -vx21;
-                        vy01 = -vy21;
-                        n_x0 = n_x2;
-                        n_y0 = n_y2;
+                        _currentStroke = new CachedDrawableStroke(_color, _thickness);
                     }
 
-                    x2 = dots[count - 1].X * scale + offsetX + 0.1f;
-                    y2 = dots[count - 1].Y * scale + offsetY;
-                    p2 = dots[count - 1].Force / 1023 * thickness;
-
-                    vx21 = x1 - x2;
-                    vy21 = y1 - y2;
-                    norm = (float)System.Math.Sqrt(vx21 * vx21 + vy21 * vy21 + 0.0001f) * 2f;
-                    //vx21 = vx21 / norm * scaled_pen_thickness * p2;
-                    //vy21 = vy21 / norm * scaled_pen_thickness * p2;
-                    vx21 = vx21 / norm * p2;
-                    vy21 = vy21 / norm * p2;
-                    n_x2 = -vy21;
-                    n_y2 = vx21;
-
-                    pathBuilder = new CanvasPathBuilder(drawableCanvas);
-                    pathBuilder.BeginFigure(x0 + n_x0, y0 + n_y0);
-                    pathBuilder.AddCubicBezier(new Vector2(x1 + n_x0, y1 + n_y0), new Vector2(x1 + n_x2, y1 + n_y2), new Vector2(x2 + n_x2, y2 + n_y2));
-                    pathBuilder.AddCubicBezier(new Vector2(x2 + n_x2 - vx21, y2 + n_y2 - vy21), new Vector2(x2 - n_x2 - vx21, y2 - n_y2 - vy21), new Vector2(x2 - n_x2, y2 - n_y2));
-                    pathBuilder.AddCubicBezier(new Vector2(x1 - n_x2, y1 - n_y2), new Vector2(x1 - n_x0, y1 - n_y0), new Vector2(x0 - n_x0, y0 - n_y0));
-                    pathBuilder.AddCubicBezier(new Vector2(x0 - n_x0 - vx01, y0 - n_y0 - vy01), new Vector2(x0 + n_x0 - vx01, y0 + n_y0 - vy01), new Vector2(x0 + n_x0, y0 + n_y0));
-                    pathBuilder.EndFigure(CanvasFigureLoop.Open);
-                    drawSession.DrawGeometry(CanvasGeometry.CreatePath(pathBuilder), color, p2);
+                    _currentStroke.Add(dot);
                 }
-            }
-        }
 
-        private void ClearCanvas(CanvasRenderTarget crt, Color? color = null)
-        {
-            using (CanvasDrawingSession canvasDrawSession = crt.CreateDrawingSession())
-            {
-                canvasDrawSession.Clear(color ?? Colors.White);
+                if (dot.DotType == DotTypes.PEN_UP)
+                {
+                    _strokes.Add(_currentStroke);
+                    _currentStroke = null;
+                }
+
+                drawableCanvas.Invalidate();
             }
         }
 
         private void cbPaperInfo_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            PaperInformation info = e.AddedItems[0] as PaperInformation;
-
-            _currentPaperInfo = info;
-
-            drawableCanvas_CreateResources(drawableCanvas, null);
+            lock (_renderLock)
+            {
+                PaperInformation info = e.AddedItems[0] as PaperInformation;
+                _currentPaperInfo = info;
+                drawableCanvas_CreateResources(drawableCanvas, null);
+            }
         }
 
         private void btnClear_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
-            ClearCanvas(_canvasCurrent, Colors.Transparent);
-            ClearCanvas(_canvasArchived);
-
-            drawableCanvas.Invalidate();
+            lock (_renderLock)
+            {
+                foreach (var st in _strokes)
+                {
+                    st.Dispose();
+                }
+                _strokes.Clear();
+                drawableCanvas.Invalidate();
+            }
         }
 
         public class PaperInformation

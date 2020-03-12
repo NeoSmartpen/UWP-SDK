@@ -147,23 +147,16 @@
 									<ComboBoxItem Content="40" />
 								</ComboBox>
 
-								<TextBlock Grid.Row="1" TextWrapping="Wrap" Text="FSR Step" VerticalAlignment="Center" />
-								<ComboBox x:Name="cbFSRStep" Grid.Column="1" Grid.Row="1" Margin="0,4,0,4" HorizontalAlignment="Stretch" SelectionChanged="cbFSRStep_SelectionChanged" Tag="CanControl">
-									<ComboBoxItem Content="1" />
-									<ComboBoxItem Content="2" />
-									<ComboBoxItem Content="3" />
-									<ComboBoxItem Content="4" />
-								</ComboBox>
-								<TextBlock Grid.Row="2" TextWrapping="Wrap" Text="Color" VerticalAlignment="Center" />
-								<ComboBox x:Name="cbColor" Grid.Column="1" Grid.Row="2" ItemsSource="{x:Bind colors, Mode=OneWay}" Margin="0,0,0,0" HorizontalAlignment="Stretch" SelectionChanged="cbColor_SelectionChanged" Tag="CanControl">
+								<TextBlock Grid.Row="1" TextWrapping="Wrap" Text="Color" VerticalAlignment="Center" />
+								<ComboBox x:Name="cbColor" Grid.Column="1" Grid.Row="1" ItemsSource="{x:Bind colors, Mode=OneWay}" Margin="0,0,0,0" HorizontalAlignment="Stretch" SelectionChanged="cbColor_SelectionChanged" Tag="CanControl">
 									<ComboBox.ItemTemplate>
 										<DataTemplate x:DataType="local:NColor">
 											<TextBlock Text="{Binding Name}"/>
 										</DataTemplate>
 									</ComboBox.ItemTemplate>
 								</ComboBox>
-								<TextBlock Grid.Row="3" TextWrapping="Wrap" Text="Thickness" VerticalAlignment="Center" />
-								<Slider Grid.Row="3" Grid.Column="1" Minimum="1" Maximum="5" ValueChanged="SliderThickness_ValueChanged"/>
+								<TextBlock Grid.Row="2" TextWrapping="Wrap" Text="Thickness" VerticalAlignment="Center" />
+								<Slider Grid.Row="2" Grid.Column="1" Minimum="1" Maximum="5" ValueChanged="SliderThickness_ValueChanged"/>
 							</Grid>
 							<StackPanel>
 								<CheckBox x:Name="cbPenCapPowerControl" Content="Pen Cap Power Control" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Checked="cbControl_Checked" Unchecked="cbControl_Unchecked" Tag="CanControl"/>

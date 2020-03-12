@@ -1,30 +1,30 @@
-﻿using System;
+﻿using Neosmartpen.Net;
+using Neosmartpen.Net.Bluetooth;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using Neosmartpen.Net;
-using Neosmartpen.Net.Bluetooth;
+using System.Runtime.CompilerServices;
 using Windows.Data.Xml.Dom;
 using Windows.Foundation;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.UI.Notifications;
 using Windows.UI.Popups;
-using Windows.UI.Xaml.Controls;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Media;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
 namespace SampleApp
 {
-	/// <summary>
-	/// An empty page that can be used on its own or navigated to within a Frame.
-	/// </summary>
-	public sealed partial class MainPage : Page, INotifyPropertyChanged
+    /// <summary>
+    /// An empty page that can be used on its own or navigated to within a Frame.
+    /// </summary>
+    public sealed partial class MainPage : Page, INotifyPropertyChanged
 	{
 		private ProgressDialog _progressDialog = new ProgressDialog();
 		private StorageFile mFile;
@@ -96,7 +96,9 @@ namespace SampleApp
 		public string ProfileValue { get { return profileValue; } set { profileValue = value; NotifyPropertyChanged(); } }
 		public string outputConsole { get; set; }
 		public string OutputConsole { get { return outputConsole; } set { outputConsole = value + Environment.NewLine; NotifyPropertyChanged(); } }
-		#endregion
+        #endregion
+
+        public static string stVal1 = "test";
 
         public MainPage()
         {
@@ -110,9 +112,17 @@ namespace SampleApp
 			InitColor();
             InitRenderer();
 
-			CurrentMacAddress = string.Empty;
+            CurrentMacAddress = string.Empty;
 			CurrentStatus = AppStatus.Disconnected;
 			ClearKeyValuePenProfile();
+        }
+
+        private static void Sum(IAsyncAction workitem)
+        {
+            int i = 0;
+            while (i <= 1000)
+                Debug.WriteLine(i++);
+
         }
 
 		public void InitColor()
@@ -209,20 +219,20 @@ namespace SampleApp
 			{
 				lvDevices.Items.Clear();
 
-				_client.StartWatcher();
+                _client.StartLEAdvertisementWatcher();
 
 				IsSearching = true;
 			}
 			else
 			{
-				_client.StopWatcher();
-			}
+                _client.StopLEAdvertisementWatcher();
+            }
         }
 
 
         private async void btnSearchPaired_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
-            _client.StopWatcher();
+            _client.StopLEAdvertisementWatcher();
 
             (sender as Button).IsEnabled = false;
 
@@ -446,6 +456,7 @@ namespace SampleApp
             await _client.UnPairing(selected);
             lvDevices.Items.Remove(lvDevices.SelectedItem);
         }
+
 		private void SliderThickness_ValueChanged(object sender, Windows.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
 		{
 			var slider = sender as Slider;
