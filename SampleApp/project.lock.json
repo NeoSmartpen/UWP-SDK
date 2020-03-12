@@ -2,15 +2,6 @@
   "version": 3,
   "targets": {
     "UAP,Version=v10.0.14393": {
-      "MarkerMetro.Unity.Ionic.Zlib/2.0.0.14": {
-        "type": "package",
-        "compile": {
-          "lib/netcore45/Ionic.ZLib.dll": {}
-        },
-        "runtime": {
-          "lib/netcore45/Ionic.ZLib.dll": {}
-        }
-      },
       "Microsoft.CSharp/4.0.1": {
         "type": "package",
         "dependencies": {
@@ -2174,23 +2165,10 @@
       },
       "Neosmartpen.Net/1.0.0": {
         "type": "project",
-        "framework": "UAP,Version=v10.0.10586",
-        "dependencies": {
-          "MarkerMetro.Unity.Ionic.Zlib": "2.0.0.14",
-          "Microsoft.NETCore.UniversalWindowsPlatform": "5.2.2"
-        }
+        "framework": "Unsupported,Version=v0.0"
       }
     },
     "UAP,Version=v10.0.14393/win10-arm": {
-      "MarkerMetro.Unity.Ionic.Zlib/2.0.0.14": {
-        "type": "package",
-        "compile": {
-          "lib/netcore45/Ionic.ZLib.dll": {}
-        },
-        "runtime": {
-          "lib/netcore45/Ionic.ZLib.dll": {}
-        }
-      },
       "Microsoft.CSharp/4.0.1": {
         "type": "package",
         "dependencies": {
@@ -4451,23 +4429,10 @@
       },
       "Neosmartpen.Net/1.0.0": {
         "type": "project",
-        "framework": "UAP,Version=v10.0.10586",
-        "dependencies": {
-          "MarkerMetro.Unity.Ionic.Zlib": "2.0.0.14",
-          "Microsoft.NETCore.UniversalWindowsPlatform": "5.2.2"
-        }
+        "framework": "Unsupported,Version=v0.0"
       }
     },
     "UAP,Version=v10.0.14393/win10-arm-aot": {
-      "MarkerMetro.Unity.Ionic.Zlib/2.0.0.14": {
-        "type": "package",
-        "compile": {
-          "lib/netcore45/Ionic.ZLib.dll": {}
-        },
-        "runtime": {
-          "lib/netcore45/Ionic.ZLib.dll": {}
-        }
-      },
       "Microsoft.CSharp/4.0.1": {
         "type": "package",
         "dependencies": {
@@ -6764,23 +6729,10 @@
       },
       "Neosmartpen.Net/1.0.0": {
         "type": "project",
-        "framework": "UAP,Version=v10.0.10586",
-        "dependencies": {
-          "MarkerMetro.Unity.Ionic.Zlib": "2.0.0.14",
-          "Microsoft.NETCore.UniversalWindowsPlatform": "5.2.2"
-        }
+        "framework": "Unsupported,Version=v0.0"
       }
     },
     "UAP,Version=v10.0.14393/win10-x64": {
-      "MarkerMetro.Unity.Ionic.Zlib/2.0.0.14": {
-        "type": "package",
-        "compile": {
-          "lib/netcore45/Ionic.ZLib.dll": {}
-        },
-        "runtime": {
-          "lib/netcore45/Ionic.ZLib.dll": {}
-        }
-      },
       "Microsoft.CSharp/4.0.1": {
         "type": "package",
         "dependencies": {
@@ -9050,23 +9002,10 @@
       },
       "Neosmartpen.Net/1.0.0": {
         "type": "project",
-        "framework": "UAP,Version=v10.0.10586",
-        "dependencies": {
-          "MarkerMetro.Unity.Ionic.Zlib": "2.0.0.14",
-          "Microsoft.NETCore.UniversalWindowsPlatform": "5.2.2"
-        }
+        "framework": "Unsupported,Version=v0.0"
       }
     },
     "UAP,Version=v10.0.14393/win10-x64-aot": {
-      "MarkerMetro.Unity.Ionic.Zlib/2.0.0.14": {
-        "type": "package",
-        "compile": {
-          "lib/netcore45/Ionic.ZLib.dll": {}
-        },
-        "runtime": {
-          "lib/netcore45/Ionic.ZLib.dll": {}
-        }
-      },
       "Microsoft.CSharp/4.0.1": {
         "type": "package",
         "dependencies": {
@@ -11372,23 +11311,10 @@
       },
       "Neosmartpen.Net/1.0.0": {
         "type": "project",
-        "framework": "UAP,Version=v10.0.10586",
-        "dependencies": {
-          "MarkerMetro.Unity.Ionic.Zlib": "2.0.0.14",
-          "Microsoft.NETCore.UniversalWindowsPlatform": "5.2.2"
-        }
+        "framework": "Unsupported,Version=v0.0"
       }
     },
     "UAP,Version=v10.0.14393/win10-x86": {
-      "MarkerMetro.Unity.Ionic.Zlib/2.0.0.14": {
-        "type": "package",
-        "compile": {
-          "lib/netcore45/Ionic.ZLib.dll": {}
-        },
-        "runtime": {
-          "lib/netcore45/Ionic.ZLib.dll": {}
-        }
-      },
       "Microsoft.CSharp/4.0.1": {
         "type": "package",
         "dependencies": {
@@ -13658,23 +13584,10 @@
       },
       "Neosmartpen.Net/1.0.0": {
         "type": "project",
-        "framework": "UAP,Version=v10.0.10586",
-        "dependencies": {
-          "MarkerMetro.Unity.Ionic.Zlib": "2.0.0.14",
-          "Microsoft.NETCore.UniversalWindowsPlatform": "5.2.2"
-        }
+        "framework": "Unsupported,Version=v0.0"
       }
     },
     "UAP,Version=v10.0.14393/win10-x86-aot": {
-      "MarkerMetro.Unity.Ionic.Zlib/2.0.0.14": {
-        "type": "package",
-        "compile": {
-          "lib/netcore45/Ionic.ZLib.dll": {}
-        },
-        "runtime": {
-          "lib/netcore45/Ionic.ZLib.dll": {}
-        }
-      },
       "Microsoft.CSharp/4.0.1": {
         "type": "package",
         "dependencies": {
@@ -15980,30 +15893,11 @@
       },
       "Neosmartpen.Net/1.0.0": {
         "type": "project",
-        "framework": "UAP,Version=v10.0.10586",
-        "dependencies": {
-          "MarkerMetro.Unity.Ionic.Zlib": "2.0.0.14",
-          "Microsoft.NETCore.UniversalWindowsPlatform": "5.2.2"
-        }
+        "framework": "Unsupported,Version=v0.0"
       }
     }
   },
   "libraries": {
-    "MarkerMetro.Unity.Ionic.Zlib/2.0.0.14": {
-      "sha512": "n81L/LXsSWn40fu8Kr8VAyCyCZt0Jj/jUbAQxcaXnRi7TWXTPePj+vhq3ykwn84VJ3qiAINatbcwnz/UrGjwfA==",
-      "type": "package",
-      "path": "markermetro.unity.ionic.zlib/2.0.0.14",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "lib/Ionic.ZLib.dll",
-        "lib/net35/Ionic.ZLib.dll",
-        "lib/netcore45/Ionic.ZLib.dll",
-        "lib/windowsphone8/Ionic.ZLib.dll",
-        "markermetro.unity.ionic.zlib.2.0.0.14.nupkg.sha512",
-        "markermetro.unity.ionic.zlib.nuspec"
-      ]
-    },
     "Microsoft.CSharp/4.0.1": {
       "sha512": "17h8b5mXa87XYKrrVqdgZ38JefSUqLChUQpXgSnpzsM0nDOhE40FTeNWOJ/YmySGV6tG6T8+hjz6vxbknHJr6A==",
       "type": "package",
@@ -22437,5 +22331,70 @@
         "#import": []
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "NU1201",
+      "level": "Error",
+      "message": "Neosmartpen.Net 프로젝트가 uap10.0.14393(UAP,Version=v10.0.14393)과(와) 호환되지 않습니다. Neosmartpen.Net 프로젝트는 다음을 지원합니다. uap10.0.15063(UAP,Version=v10.0.15063)",
+      "libraryId": "Neosmartpen.Net",
+      "targetGraphs": [
+        "UAP,Version=v10.0.14393"
+      ]
+    },
+    {
+      "code": "NU1201",
+      "level": "Error",
+      "message": "Neosmartpen.Net 프로젝트가 uap10.0.14393(UAP,Version=v10.0.14393) / win10-arm과(와) 호환되지 않습니다. Neosmartpen.Net 프로젝트는 다음을 지원합니다. uap10.0.15063(UAP,Version=v10.0.15063)",
+      "libraryId": "Neosmartpen.Net",
+      "targetGraphs": [
+        "UAP,Version=v10.0.14393/win10-arm"
+      ]
+    },
+    {
+      "code": "NU1201",
+      "level": "Error",
+      "message": "Neosmartpen.Net 프로젝트가 uap10.0.14393(UAP,Version=v10.0.14393) / win10-arm-aot과(와) 호환되지 않습니다. Neosmartpen.Net 프로젝트는 다음을 지원합니다. uap10.0.15063(UAP,Version=v10.0.15063)",
+      "libraryId": "Neosmartpen.Net",
+      "targetGraphs": [
+        "UAP,Version=v10.0.14393/win10-arm-aot"
+      ]
+    },
+    {
+      "code": "NU1201",
+      "level": "Error",
+      "message": "Neosmartpen.Net 프로젝트가 uap10.0.14393(UAP,Version=v10.0.14393) / win10-x64과(와) 호환되지 않습니다. Neosmartpen.Net 프로젝트는 다음을 지원합니다. uap10.0.15063(UAP,Version=v10.0.15063)",
+      "libraryId": "Neosmartpen.Net",
+      "targetGraphs": [
+        "UAP,Version=v10.0.14393/win10-x64"
+      ]
+    },
+    {
+      "code": "NU1201",
+      "level": "Error",
+      "message": "Neosmartpen.Net 프로젝트가 uap10.0.14393(UAP,Version=v10.0.14393) / win10-x64-aot과(와) 호환되지 않습니다. Neosmartpen.Net 프로젝트는 다음을 지원합니다. uap10.0.15063(UAP,Version=v10.0.15063)",
+      "libraryId": "Neosmartpen.Net",
+      "targetGraphs": [
+        "UAP,Version=v10.0.14393/win10-x64-aot"
+      ]
+    },
+    {
+      "code": "NU1201",
+      "level": "Error",
+      "message": "Neosmartpen.Net 프로젝트가 uap10.0.14393(UAP,Version=v10.0.14393) / win10-x86과(와) 호환되지 않습니다. Neosmartpen.Net 프로젝트는 다음을 지원합니다. uap10.0.15063(UAP,Version=v10.0.15063)",
+      "libraryId": "Neosmartpen.Net",
+      "targetGraphs": [
+        "UAP,Version=v10.0.14393/win10-x86"
+      ]
+    },
+    {
+      "code": "NU1201",
+      "level": "Error",
+      "message": "Neosmartpen.Net 프로젝트가 uap10.0.14393(UAP,Version=v10.0.14393) / win10-x86-aot과(와) 호환되지 않습니다. Neosmartpen.Net 프로젝트는 다음을 지원합니다. uap10.0.15063(UAP,Version=v10.0.15063)",
+      "libraryId": "Neosmartpen.Net",
+      "targetGraphs": [
+        "UAP,Version=v10.0.14393/win10-x86-aot"
+      ]
+    }
+  ]
 }

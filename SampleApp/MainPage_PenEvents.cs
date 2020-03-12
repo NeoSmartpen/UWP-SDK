@@ -1,7 +1,6 @@
 ﻿using Neosmartpen.Net;
 using Neosmartpen.Net.Bluetooth;
 using System;
-using System.Diagnostics;
 using System.Linq;
 using Windows.UI.Xaml.Controls;
 
@@ -12,7 +11,7 @@ namespace SampleApp
 		private static readonly string PEN_PROFILE_TEST_NAME = "neolab_t";
 		private static readonly byte[] PEN_PROFILE_TEST_PASSWORD = { 0x3E, 0xD5, 0x95, 0x25, 0x06, 0xF7, 0x83, 0xDD };
 
-        private BluetoothPenClient _client;
+        private GenericBluetoothPenClient _client;
 
         private PenController _controller;
 		private void InitPenClient()
@@ -22,13 +21,12 @@ namespace SampleApp
 
             // Create BluetoothPenClient instance. and bind PenController.
             // BluetoothPenClient is implementation of bluetooth function.
-            _client = new BluetoothPenClient(_controller);
+            _client = new GenericBluetoothPenClient(_controller);
 
-			// bluetooth watcher event
-			_client.onAddPenController += MClient_onAddPenController;
-			_client.onRemovePenController += MClient_onRemovePenController;
-			_client.onStopSearch += MClient_onStopSearch;
-			_client.onUpdatePenController += MClient_onUpdatePenController;
+            // bluetooth advertisement event
+            _client.onStopSearch += _client_onStopSearch;
+            _client.onUpdatePenController += _client_onUpdatePenController;
+            _client.onAddPenController += _client_onAddPenController;
 
 			// pen controller event
             _controller.PenStatusReceived += MController_PenStatusReceived;
@@ -60,56 +58,42 @@ namespace SampleApp
 			_controller.PenProfileReceived += Mcontroller_PenProfileReceived;
 		}
 
-		#region Watcher Event
-		private async void MClient_onUpdatePenController(BluetoothPenClient sender, PenUpdateInformation args)
-		{
-			await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
-			{
-				var item = lvDevices.Items.Where(p => (p as PenInformation)?.Id == args.Id);
-				if (item != null)
-				{
-					PenInformation penInformation = item as PenInformation;
-					if (penInformation != null)
-					{
-						penInformation.Update(args);
-					}
-				}
-			});
-		}
+        #region Bluetooth Advertisement Event
 
-		private async void MClient_onStopSearch(BluetoothPenClient sender, Windows.Devices.Bluetooth.BluetoothError args)
-		{
-			Debug.WriteLine("Watcher finidhed");
-			await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => IsSearching = false );
-		}
+        private async void _client_onAddPenController(IPenClient sender, PenInformation args)
+        {
+            await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => lvDevices.Items.Add(args));
+        }
 
-		private async void MClient_onRemovePenController(BluetoothPenClient sender, PenUpdateInformation args)
-		{
-			await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
-			{
-				var item = lvDevices.Items.Where(p => (p as PenInformation)?.Id == args.Id);
-				if (item != null)
-				{
-					PenInformation penInformation = item as PenInformation;
-					if (penInformation != null)
-					{
-						lvDevices.Items.Remove(penInformation);
-					}
-				}
-			});
-		}
+        private async void _client_onUpdatePenController(IPenClient sender, PenUpdateInformation args)
+        {
+            await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            {
+                var item = lvDevices.Items.Where(p => (p as PenInformation)?.Id == args.Id);
+                if (item != null)
+                {
+                    PenInformation penInformation = item as PenInformation;
+                    if (penInformation != null)
+                    {
+                        penInformation.Update(args);
+                    }
+                }
+            });
+        }
 
-		private async void MClient_onAddPenController(BluetoothPenClient sender, PenInformation args)
-		{
-			await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => lvDevices.Items.Add(args) );
-		}
+        private async void _client_onStopSearch(IPenClient sender, Windows.Devices.Bluetooth.BluetoothError args)
+        {
+            await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => IsSearching = false);
+        }
 		#endregion
 
 		#region Pen Event 
 		private async void MController_FirmwareInstallationStarted(IPenClient sender, object args)
         {
-            _progressDialog.Title = "Firmware Installation";
-            await _progressDialog.ShowAsync();
+            await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () => {
+                _progressDialog.Title = "Firmware Installation";
+                await _progressDialog.ShowAsync();
+            });
         }
 
         private async void MController_FirmwareInstallationFinished(IPenClient sender, SimpleResultEventArgs args)
@@ -124,8 +108,10 @@ namespace SampleApp
 
         private async void MController_OfflineDataDownloadStarted(IPenClient sender, object args)
         {
-            _progressDialog.Title = "Offline Data Downloading";
-            await _progressDialog.ShowAsync();
+            await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () => {
+                _progressDialog.Title = "Offline Data Downloading";
+                await _progressDialog.ShowAsync();
+            });
         }
 
         private async void MController_OfflineDownloadFinished(IPenClient sender, SimpleResultEventArgs args)
@@ -180,105 +166,121 @@ namespace SampleApp
             _controller?.RequestPenStatus();
         }
 
-        private void MController_PenStatusReceived(IPenClient sender, PenStatusReceivedEventArgs args)
+        private async void MController_PenStatusReceived(IPenClient sender, PenStatusReceivedEventArgs args)
         {
-			if (isTest)
-				return;
-            cbPenCapPowerControl.IsChecked = args.PenCapPower;
-            
-            foreach ( ComboBoxItem item in cbAutoPoweroffTime.Items )
-            {
-                short numValue = -1; 
-                    
-                bool result = Int16.TryParse(item.Content as string, out numValue);
+            await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => {
 
-                if ( args.AutoShutdownTime == numValue)
+                if (isTest)
+                    return;
+
+                cbPenCapPowerControl.IsChecked = args.PenCapPower;
+
+                foreach (ComboBoxItem item in cbAutoPoweroffTime.Items)
                 {
-                    cbAutoPoweroffTime.SelectedItem = item;
-                    continue;
+                    short numValue = -1;
+
+                    bool result = Int16.TryParse(item.Content as string, out numValue);
+
+                    if (args.AutoShutdownTime == numValue)
+                    {
+                        cbAutoPoweroffTime.SelectedItem = item;
+                        continue;
+                    }
                 }
-            }
 
-            cbPowerOnByPenTip.IsChecked = args.AutoPowerOn;
-            cbBeepSound.IsChecked = args.Beep;
-            cbOfflineData.IsChecked = args.UseOfflineData;
+                cbPowerOnByPenTip.IsChecked = args.AutoPowerOn;
+                cbBeepSound.IsChecked = args.Beep;
+                cbOfflineData.IsChecked = args.UseOfflineData;
 
-            pbPower.Maximum = 100;
-            pbPower.Value = args.Battery;
-            pbStorage.Maximum = 100;
-            pbStorage.Value = args.UsedMem;
-            cbFSRStep.SelectedIndex = args.PenSensitivity - 1;
-			if (sender.PenController?.Protocol == Protocols.V1)
-			{
-				txtPenName.Text = args.ModelName;
-			}
+                pbPower.Maximum = 100;
+                pbPower.Value = args.Battery;
+                pbStorage.Maximum = 100;
+                pbStorage.Value = args.UsedMem;
+
+                if (sender.PenController?.Protocol == Protocols.V1)
+                {
+                    txtPenName.Text = args.ModelName;
+                }
+            });
         }
 
-        private void MController_OfflineDataListReceived(IPenClient sender, OfflineDataListReceivedEventArgs args)
+        private async void MController_OfflineDataListReceived(IPenClient sender, OfflineDataListReceivedEventArgs args)
         {
-            lvOfflineDataList.Items.Clear();
+            await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => {
+                lvOfflineDataList.Items.Clear();
 
-            foreach ( var item in args.OfflineNotes )
-            {
-                lvOfflineDataList.Items.Add(item);
-            }
+                foreach (var item in args.OfflineNotes)
+                {
+                    lvOfflineDataList.Items.Add(item);
+                }
+            });
         }
 
-        private void MController_PasswordRequested(IPenClient sender, PasswordRequestedEventArgs args)
+        private async void MController_PasswordRequested(IPenClient sender, PasswordRequestedEventArgs args)
         {
-            ShowPasswordForm( args.RetryCount, args.ResetCount );
+            await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => {
+                ShowPasswordForm(args.RetryCount, args.ResetCount);
+            });
 
             //you can input password immediately, please refer to below code.
             //mController.InputPassword("0000");
         }
 
-        private void MController_DotReceived(IPenClient sender, DotReceivedEventArgs args)
+        private async void MController_DotReceived(IPenClient sender, DotReceivedEventArgs args)
         {
-			ProcessDot(args.Dot);
+            await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => {
+                ProcessDot(args.Dot);
+            });
         }
 
-        private void MController_Authenticated(IPenClient sender, object args)
+        private async void MController_Authenticated(IPenClient sender, object args)
         {
             _controller.RequestPenStatus();
             _controller.AddAvailableNote();
             _controller.RequestOfflineDataList();
 
-            // MController_Connected에 있으니 비밀번호 입력창이 뜰때 연결끊김
-            // 펜 세팅값으로 넣어줘야 할듯
-            cbColor.SelectedIndex = cbColor.Items.Count - 1;
-			CurrentStatus = AppStatus.Connected;
+            await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => {
+                // MController_Connected에 있으니 비밀번호 입력창이 뜰때 연결끊김
+                // 펜 세팅값으로 넣어줘야 할듯
+                cbColor.SelectedIndex = cbColor.Items.Count - 1;
+                CurrentStatus = AppStatus.Connected;
 
-            ShowToast("Device is connected");
+                ShowToast("Device is connected");
+            });
         }
 
         private async void MController_Disconnected(IPenClient sender, object args)
         {
-            ToggleControls(this.Content, false);
-
             await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => {
+                ToggleControls(this.Content, false);
+                CurrentStatus = AppStatus.Disconnected;
                 _progressDialog?.Hide();
             });
 
-			CurrentStatus = AppStatus.Disconnected;
- 
             ShowToast("Device is disconnected");
         }
 
-        private void MController_Connected(IPenClient sender, ConnectedEventArgs args)
+        public float MaxForce = 0f;
+
+        private async void MController_Connected(IPenClient sender, ConnectedEventArgs args)
 		{
-			ToggleControls(this.Content, true);
+            MaxForce = args.MaxForce;
 
-			if (sender.PenController?.Protocol == Protocols.V1)
-			{
-				textBox.Text = String.Format("Firmware Version : {0}", args.FirmwareVersion);
-			}
-			else
-			{
-				textBox.Text = String.Format("Mac : {0}\r\n\r\nName : {1}\r\n\r\nSubName : {2}\r\n\r\nFirmware Version : {3}\r\n\r\nProtocol Version : {4}", args.MacAddress, args.DeviceName, args.SubName, args.FirmwareVersion, args.ProtocolVersion);
-				txtPenName.Text = args.SubName;
-			}
+            await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => {
+                ToggleControls(this.Content, true);
 
-			_client.StopWatcher();
+                if (sender.PenController?.Protocol == Protocols.V1)
+                {
+                    textBox.Text = String.Format("Firmware Version : {0}", args.FirmwareVersion);
+                }
+                else
+                {
+                    textBox.Text = String.Format("Mac : {0}\r\n\r\nName : {1}\r\n\r\nSubName : {2}\r\n\r\nFirmware Version : {3}\r\n\r\nProtocol Version : {4}", args.MacAddress, args.DeviceName, args.SubName, args.FirmwareVersion, args.ProtocolVersion);
+                    txtPenName.Text = args.SubName;
+                }
+            });
+
+            _client.StopLEAdvertisementWatcher();
 		}
 
 		private PenProfileReceivedEventArgs lastArgs;
