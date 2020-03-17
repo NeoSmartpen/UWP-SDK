@@ -62,15 +62,15 @@ SDK API references page : [References](https://neosmartpen.github.io/UWP-SDK/doc
 
 SDK handle data and commucation with peer device in other thread. So if you want data get from pen to appear in UI,  than you have to execute in UI thread.
 
-#### Create BluetoothPenClient and PenController instance
+#### Create GenericBluetoothPenClient and PenController instance
 ```cs
 // create PenController instance.
 // PenController control all pen event method
-PenController controller = new PenController();
+var controller = new PenController();
 
-// Create BluetoothPenClient instance. and bind PenController.
-// BluetoothPenClient is implementation of bluetooth function.
-BluetoothPenClient client = new GenericBluetoothPenClient(_controller);
+// Create GenericBluetoothPenClient instance. and bind PenController.
+// GenericBluetoothPenClient is implementation of bluetooth function.
+var client = new GenericBluetoothPenClient(controller);
 ```
 #### Find Bluetooth Devices
 
@@ -110,7 +110,7 @@ private void onStopSearch(IPenClient sender, Windows.Devices.Bluetooth.Bluetooth
 
 ```cs
 // penInfomation is PenInformation class object what can be obtained from find device method
-bool result = await _client.Connect(penInfomation);
+bool result = await client.Connect(penInfomation);
 ```
 
 #### After Connection is established.
