@@ -1,14 +1,19 @@
 var searchData=
 [
-  ['read',['Read',['../interface_neosmartpen_1_1_net_1_1_i_pen_client.html#a18d944e4165b3f4a41ee656e9111f8b8',1,'Neosmartpen.Net.IPenClient.Read()'],['../class_neosmartpen_1_1_net_1_1_pen_client.html#ad50b7cca334f5ce8bb0e7d5d49c3f026',1,'Neosmartpen.Net.PenClient.Read()']]],
-  ['requestfirmwareinstallation',['RequestFirmwareInstallation',['../class_neosmartpen_1_1_net_1_1_pen_controller.html#a0b10b2cb879d838660cb4e7ae3609a30',1,'Neosmartpen::Net::PenController']]],
-  ['requestisunreached',['RequestIsUnreached',['../class_neosmartpen_1_1_net_1_1_request_is_unreached.html',1,'Neosmartpen::Net']]],
-  ['requestofflinedata',['RequestOfflineData',['../class_neosmartpen_1_1_net_1_1_pen_controller.html#acf01f65c68b8de80d9e6014805dcf6c9',1,'Neosmartpen.Net.PenController.RequestOfflineData(int section, int owner, int note, bool deleteOnFinished=true, int[] pages=null)'],['../class_neosmartpen_1_1_net_1_1_pen_controller.html#ab42e9c2cc99b99d657ec09ed33e15b48',1,'Neosmartpen.Net.PenController.RequestOfflineData(int section, int owner, int[] notes)'],['../class_neosmartpen_1_1_net_1_1_pen_controller.html#a0f14ff8651b7cef336ed13d497e8859d',1,'Neosmartpen.Net.PenController.RequestOfflineData(int section, int owner)']]],
-  ['requestofflinedatalist',['RequestOfflineDataList',['../class_neosmartpen_1_1_net_1_1_pen_controller.html#a6793eb60dfd9e143f62e00725fc946aa',1,'Neosmartpen::Net::PenController']]],
-  ['requestpenstatus',['RequestPenStatus',['../class_neosmartpen_1_1_net_1_1_pen_controller.html#a892210a529592533a72c0b0ffdfbb719',1,'Neosmartpen::Net::PenController']]],
-  ['resetcount',['ResetCount',['../class_neosmartpen_1_1_net_1_1_password_requested_event_args.html#aadf56338857cdac404b8edb43164a89c',1,'Neosmartpen::Net::PasswordRequestedEventArgs']]],
-  ['result',['Result',['../class_neosmartpen_1_1_net_1_1_simple_result_event_args.html#a51a74f004391a6bef1d55c41013d6ffa',1,'Neosmartpen::Net::SimpleResultEventArgs']]],
-  ['retrycount',['RetryCount',['../class_neosmartpen_1_1_net_1_1_password_requested_event_args.html#a22cd176f679197032a742a6d75b252d5',1,'Neosmartpen::Net::PasswordRequestedEventArgs']]],
-  ['rssi',['Rssi',['../class_neosmartpen_1_1_net_1_1_bluetooth_1_1_pen_information.html#adb52a9071275a9ae0df9b711635e09ae',1,'Neosmartpen::Net::Bluetooth::PenInformation']]],
-  ['rtctimechanged',['RtcTimeChanged',['../class_neosmartpen_1_1_net_1_1_pen_controller.html#af64e0b0d2b6dcb3e523c3b6ceec9434a',1,'Neosmartpen::Net::PenController']]]
+  ['page_56',['Page',['../class_neosmartpen_1_1_net_1_1_dot.html#a9baa6f80653ddbc28694ab47e525fd75',1,'Neosmartpen.Net.Dot.Page()'],['../class_neosmartpen_1_1_net_1_1_stroke.html#aac0e1df533fbd9e27e081f5a6490a624',1,'Neosmartpen.Net.Stroke.Page()']]],
+  ['pairing_57',['Pairing',['../class_neosmartpen_1_1_net_1_1_bluetooth_1_1_bluetooth_pen_client.html#a91dad32c6544924cb796d3be2c98d1e0',1,'Neosmartpen::Net::Bluetooth::BluetoothPenClient']]],
+  ['passwordmaxretrycount_58',['PasswordMaxRetryCount',['../class_neosmartpen_1_1_net_1_1_pen_status_received_event_args.html#a7194e9bb56343320c07106feffb04db0',1,'Neosmartpen::Net::PenStatusReceivedEventArgs']]],
+  ['passwordrequestedeventargs_59',['PasswordRequestedEventArgs',['../class_neosmartpen_1_1_net_1_1_password_requested_event_args.html',1,'Neosmartpen::Net']]],
+  ['passwordretrycount_60',['PasswordRetryCount',['../class_neosmartpen_1_1_net_1_1_pen_status_received_event_args.html#af48ebf036de909db160f36f3c2f57a96',1,'Neosmartpen::Net::PenStatusReceivedEventArgs']]],
+  ['pencappower_61',['PenCapPower',['../class_neosmartpen_1_1_net_1_1_pen_status_received_event_args.html#a7611154b22b38009965857445750f1a5',1,'Neosmartpen::Net::PenStatusReceivedEventArgs']]],
+  ['penclient_62',['PenClient',['../interface_neosmartpen_1_1_net_1_1_i_pen_controller.html#a9201bf59a103cf5d22203d4a0e63b29d',1,'Neosmartpen::Net::IPenController']]],
+  ['pencolor_63',['PenColor',['../class_neosmartpen_1_1_net_1_1_pen_status_received_event_args.html#acabcfee0226297e13dd72d0330b98d58',1,'Neosmartpen::Net::PenStatusReceivedEventArgs']]],
+  ['pencontroller_64',['PenController',['../class_neosmartpen_1_1_net_1_1_bluetooth_1_1_generic_bluetooth_pen_client.html#aa8e5eac53d8f287488e6137f8b09aa70',1,'Neosmartpen.Net.Bluetooth.GenericBluetoothPenClient.PenController()'],['../class_neosmartpen_1_1_net_1_1_bluetooth_1_1_le_1_1_bluetooth_le_pen_client.html#a3be95cd2edbc8ceaa4fefd140872945a',1,'Neosmartpen.Net.Bluetooth.Le.BluetoothLePenClient.PenController()']]],
+  ['peninformation_65',['PenInformation',['../class_neosmartpen_1_1_net_1_1_bluetooth_1_1_pen_information.html',1,'Neosmartpen::Net::Bluetooth']]],
+  ['penrequestexception_66',['PenRequestException',['../class_neosmartpen_1_1_net_1_1_pen_request_exception.html',1,'Neosmartpen::Net']]],
+  ['pensensitivity_67',['PenSensitivity',['../class_neosmartpen_1_1_net_1_1_pen_status_received_event_args.html#a524bd90c0f819948d16e967cc6a45ae6',1,'Neosmartpen::Net::PenStatusReceivedEventArgs']]],
+  ['penstatusreceivedeventargs_68',['PenStatusReceivedEventArgs',['../class_neosmartpen_1_1_net_1_1_pen_status_received_event_args.html',1,'Neosmartpen::Net']]],
+  ['progresschangeeventargs_69',['ProgressChangeEventArgs',['../class_neosmartpen_1_1_net_1_1_progress_change_event_args.html',1,'Neosmartpen::Net']]],
+  ['protocol_70',['Protocol',['../interface_neosmartpen_1_1_net_1_1_i_pen_controller.html#ab451f491b1a6ff04426f80f6d0bdf99e',1,'Neosmartpen::Net::IPenController']]],
+  ['protocolversion_71',['ProtocolVersion',['../class_neosmartpen_1_1_net_1_1_connected_event_args.html#a6583d17bc34f2d002030302e0c3ae622',1,'Neosmartpen::Net::ConnectedEventArgs']]]
 ];

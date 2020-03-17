@@ -1,9 +1,6 @@
 var searchData=
 [
-  ['bluetooth',['Bluetooth',['../namespace_neosmartpen_1_1_net_1_1_bluetooth.html',1,'Neosmartpen::Net']]],
-  ['client',['Client',['../namespace_neosmartpen_1_1_net_1_1_client.html',1,'Neosmartpen::Net']]],
-  ['name',['Name',['../class_neosmartpen_1_1_net_1_1_bluetooth_1_1_pen_information.html#adb462b281a26087cf5319bb5f2bfc58b',1,'Neosmartpen::Net::Bluetooth::PenInformation']]],
-  ['neosmartpen',['Neosmartpen',['../namespace_neosmartpen.html',1,'']]],
-  ['net',['Net',['../namespace_neosmartpen_1_1_net.html',1,'Neosmartpen']]],
-  ['note',['Note',['../class_neosmartpen_1_1_net_1_1_dot.html#a24c54817d705b3f1c86c0675e79a688f',1,'Neosmartpen.Net.Dot.Note()'],['../class_neosmartpen_1_1_net_1_1_stroke.html#ac17163576bf79146ad4d03d1c454d3ed',1,'Neosmartpen.Net.Stroke.Note()']]]
+  ['macaddress_36',['MacAddress',['../class_neosmartpen_1_1_net_1_1_bluetooth_1_1_pen_information.html#a64d32ee2c3c68d396361e62057e5fb2e',1,'Neosmartpen.Net.Bluetooth.PenInformation.MacAddress()'],['../class_neosmartpen_1_1_net_1_1_connected_event_args.html#afa64778562c540da3e38dfb981f41159',1,'Neosmartpen.Net.ConnectedEventArgs.MacAddress()']]],
+  ['maxforce_37',['MaxForce',['../class_neosmartpen_1_1_net_1_1_connected_event_args.html#a85d762afc091aca8639e9266f9069eeb',1,'Neosmartpen.Net.ConnectedEventArgs.MaxForce()'],['../class_neosmartpen_1_1_net_1_1_pen_status_received_event_args.html#ad78dd76a33fc5f6942ff859cbf6ccb3b',1,'Neosmartpen.Net.PenStatusReceivedEventArgs.MaxForce()']]],
+  ['modelname_38',['ModelName',['../class_neosmartpen_1_1_net_1_1_pen_status_received_event_args.html#a4f1dee6b8f78fecf6e7040c6609aeb8d',1,'Neosmartpen::Net::PenStatusReceivedEventArgs']]]
 ];

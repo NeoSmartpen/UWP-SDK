@@ -1,11 +1,10 @@
 var searchData=
 [
-  ['tiltx',['TiltX',['../class_neosmartpen_1_1_net_1_1_dot.html#a5e240e8d795e3ab42841c879f937e1e5',1,'Neosmartpen::Net::Dot']]],
-  ['tilty',['TiltY',['../class_neosmartpen_1_1_net_1_1_dot.html#a2754f0599041fae4e4de264544728235',1,'Neosmartpen::Net::Dot']]],
-  ['timeend',['TimeEnd',['../class_neosmartpen_1_1_net_1_1_stroke.html#a2f700c23edeb9546e5c6c3a579370751',1,'Neosmartpen::Net::Stroke']]],
-  ['timeoffset',['TimeOffset',['../class_neosmartpen_1_1_net_1_1_pen_status_received_event_args.html#a8c7f98fb20f4f9bc397fbe7295051e6f',1,'Neosmartpen::Net::PenStatusReceivedEventArgs']]],
-  ['timestamp',['Timestamp',['../class_neosmartpen_1_1_net_1_1_dot.html#a4eda5194883886f95ce5719531fb12ea',1,'Neosmartpen.Net.Dot.Timestamp()'],['../class_neosmartpen_1_1_net_1_1_pen_status_received_event_args.html#a61e518c4dbd9b955c38be7b703be4d08',1,'Neosmartpen.Net.PenStatusReceivedEventArgs.Timestamp()']]],
-  ['timestart',['TimeStart',['../class_neosmartpen_1_1_net_1_1_stroke.html#a5be7acfe506f66ba9141c1e1ab69d995',1,'Neosmartpen::Net::Stroke']]],
-  ['total',['Total',['../class_neosmartpen_1_1_net_1_1_offline_stroke_received_event_args.html#a2bf79c5beeb79527e9772e4a3b4e2907',1,'Neosmartpen.Net.OfflineStrokeReceivedEventArgs.Total()'],['../class_neosmartpen_1_1_net_1_1_progress_change_event_args.html#acb6e0ca095ad57adaccc7e497782244a',1,'Neosmartpen.Net.ProgressChangeEventArgs.Total()']]],
-  ['twist',['Twist',['../class_neosmartpen_1_1_net_1_1_dot.html#a8fa2ce1a51aa4860cd5bb63ca5fa9253',1,'Neosmartpen::Net::Dot']]]
+  ['section_78',['Section',['../class_neosmartpen_1_1_net_1_1_dot.html#a92b4fbc89a8b90b998335308dd909882',1,'Neosmartpen.Net.Dot.Section()'],['../class_neosmartpen_1_1_net_1_1_stroke.html#a34c8bca487d255221b7fc8e4d10ca3bb',1,'Neosmartpen.Net.Stroke.Section()']]],
+  ['simpleresulteventargs_79',['SimpleResultEventArgs',['../class_neosmartpen_1_1_net_1_1_simple_result_event_args.html',1,'Neosmartpen::Net']]],
+  ['startleadvertisementwatcher_80',['StartLEAdvertisementWatcher',['../class_neosmartpen_1_1_net_1_1_bluetooth_1_1_generic_bluetooth_pen_client.html#a3ca0436cfbbd69e0e1fc00052774ed7b',1,'Neosmartpen.Net.Bluetooth.GenericBluetoothPenClient.StartLEAdvertisementWatcher()'],['../class_neosmartpen_1_1_net_1_1_bluetooth_1_1_le_1_1_bluetooth_le_pen_client.html#a77ef7fe011f3b33b417e96a376174cee',1,'Neosmartpen.Net.Bluetooth.Le.BluetoothLePenClient.StartLEAdvertisementWatcher()']]],
+  ['stopleadvertisementwatcher_81',['StopLEAdvertisementWatcher',['../class_neosmartpen_1_1_net_1_1_bluetooth_1_1_generic_bluetooth_pen_client.html#a49e8c5c8f98e6b4e93ec2e3d23e2db62',1,'Neosmartpen.Net.Bluetooth.GenericBluetoothPenClient.StopLEAdvertisementWatcher()'],['../class_neosmartpen_1_1_net_1_1_bluetooth_1_1_le_1_1_bluetooth_le_pen_client.html#aa9c2a76e023bc906a0f56c48fc8b1c05',1,'Neosmartpen.Net.Bluetooth.Le.BluetoothLePenClient.StopLEAdvertisementWatcher()']]],
+  ['stroke_82',['Stroke',['../class_neosmartpen_1_1_net_1_1_stroke.html',1,'Neosmartpen.Net.Stroke'],['../class_neosmartpen_1_1_net_1_1_stroke.html#ae5144dd98e73c1ea091c103ae8a89476',1,'Neosmartpen.Net.Stroke.Stroke()']]],
+  ['strokes_83',['Strokes',['../class_neosmartpen_1_1_net_1_1_offline_stroke_received_event_args.html#a46a15e7541f93f4955234d2a468773cd',1,'Neosmartpen::Net::OfflineStrokeReceivedEventArgs']]],
+  ['subname_84',['SubName',['../class_neosmartpen_1_1_net_1_1_connected_event_args.html#ab43706df351434fcba8897e30c314a40',1,'Neosmartpen::Net::ConnectedEventArgs']]]
 ];

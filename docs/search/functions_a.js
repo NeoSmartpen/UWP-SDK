@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['unbind',['Unbind',['../interface_neosmartpen_1_1_net_1_1_i_pen_client.html#af0cd813fc8f1d01c10bd96517c2a19ac',1,'Neosmartpen.Net.IPenClient.Unbind()'],['../class_neosmartpen_1_1_net_1_1_pen_client.html#a171d27254a4ba66bdb37078bb9126863',1,'Neosmartpen.Net.PenClient.Unbind()']]],
-  ['unpairing',['UnPairing',['../class_neosmartpen_1_1_net_1_1_bluetooth_1_1_bluetooth_pen_client.html#aaf598fbdb7bea776711053231dc5f2a6',1,'Neosmartpen::Net::Bluetooth::BluetoothPenClient']]]
+  ['unbind_146',['Unbind',['../interface_neosmartpen_1_1_net_1_1_i_pen_client.html#a575fcc86e54f622e447b47a90123e6ec',1,'Neosmartpen.Net.IPenClient.Unbind()'],['../class_neosmartpen_1_1_net_1_1_bluetooth_1_1_generic_bluetooth_pen_client.html#ad6b46f4be32726cd12a2f24b5c5f407c',1,'Neosmartpen.Net.Bluetooth.GenericBluetoothPenClient.Unbind()'],['../class_neosmartpen_1_1_net_1_1_bluetooth_1_1_le_1_1_bluetooth_le_pen_client.html#a45828029d27dd367172e7b1108ba64b1',1,'Neosmartpen.Net.Bluetooth.Le.BluetoothLePenClient.Unbind()']]],
+  ['unpairing_147',['UnPairing',['../class_neosmartpen_1_1_net_1_1_bluetooth_1_1_bluetooth_pen_client.html#aaf598fbdb7bea776711053231dc5f2a6',1,'Neosmartpen.Net.Bluetooth.BluetoothPenClient.UnPairing()'],['../class_neosmartpen_1_1_net_1_1_bluetooth_1_1_generic_bluetooth_pen_client.html#a6a34ff6072ca4d45e5d92e79c0dc8313',1,'Neosmartpen.Net.Bluetooth.GenericBluetoothPenClient.UnPairing()']]]
 ];

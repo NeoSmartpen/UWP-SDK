@@ -1,5 +1,7 @@
 var searchData=
 [
-  ['disconnected',['Disconnected',['../class_neosmartpen_1_1_net_1_1_pen_controller.html#a94f779dae557a9028873cbf0ddcdb73a',1,'Neosmartpen::Net::PenController']]],
-  ['dotreceived',['DotReceived',['../class_neosmartpen_1_1_net_1_1_pen_controller.html#ad1ece4e2d82b930ab57f82b2ba5d532d',1,'Neosmartpen::Net::PenController']]]
+  ['datatransmissiontypechanged_453',['DataTransmissionTypeChanged',['../class_neosmartpen_1_1_net_1_1_pen_client_parser_v1.html#a4a3318f8dcc98286b562f25bcd746a40',1,'Neosmartpen.Net.PenClientParserV1.DataTransmissionTypeChanged()'],['../class_neosmartpen_1_1_net_1_1_pen_client_parser_v2.html#a8e7f0b282335f4690b3ea26270e141c9',1,'Neosmartpen.Net.PenClientParserV2.DataTransmissionTypeChanged()']]],
+  ['disconnected_454',['Disconnected',['../class_neosmartpen_1_1_net_1_1_pen_client_parser_v1.html#ad4606f742f3ebb2ded84eb56db545938',1,'Neosmartpen.Net.PenClientParserV1.Disconnected()'],['../class_neosmartpen_1_1_net_1_1_pen_client_parser_v2.html#ac97e4042e592010001a309641c235a6e',1,'Neosmartpen.Net.PenClientParserV2.Disconnected()']]],
+  ['dotreceived_455',['DotReceived',['../class_neosmartpen_1_1_net_1_1_pen_client_parser_v1.html#a4783b2c73db0f07cfb19ea19abe89090',1,'Neosmartpen.Net.PenClientParserV1.DotReceived()'],['../class_neosmartpen_1_1_net_1_1_pen_client_parser_v2.html#ae12faee8715c0c06c1f40ac45622a455',1,'Neosmartpen.Net.PenClientParserV2.DotReceived()']]],
+  ['downsamplingchanged_456',['DownSamplingChanged',['../class_neosmartpen_1_1_net_1_1_pen_client_parser_v1.html#ab3f21f8e06d12a9667a1cab2d1b59505',1,'Neosmartpen.Net.PenClientParserV1.DownSamplingChanged()'],['../class_neosmartpen_1_1_net_1_1_pen_client_parser_v2.html#a02c530684976f38b9440a9eabe2c2e59',1,'Neosmartpen.Net.PenClientParserV2.DownSamplingChanged()']]]
 ];
