@@ -3,7 +3,7 @@ Neo smartpen SDK for Windows Universal Platform(UWP)
 
 ## Universal Windows Platform(UWP) SDK 2.0 
 
-UWP SDK for Windows 10. This open-source library allows you to integrate the Neo smartpen - Neo smartpen N2 and M1 - into your Windows 10 app.  
+UWP SDK for Windows 10. This library allows you to integrate the Neo smartpen into your app.
 
 SDK was made to use Neo smartpen for Windows 10 (UWP). SDK library is built and published to [Nuget](https://www.nuget.org/packages/Neosmartpen.Net/)
 
@@ -22,11 +22,11 @@ Click the link below to view a beginners guide to Ncode technology.
 
 ## Requirements
 
- - Visual Studio 2015
+ - Visual Studio 2017
  - Install the Universal Windows Platform tools provided by Microsoft
- - Min version [10.0; build 10586]
- - need to MarkerMrtro.Unity.Ionic.Zlib library (Nuget Package)
- - Standard Bluetooth Dongles ( Bluetooth Specification Version 2.1 + EDR or later with Microsoft Bluetooth stack )
+ - Min version [10.0; build 15063]
+ - Need to MarkerMrtro.Unity.Ionic.Zlib library (Nuget Package)
+ - Standard Bluetooth Dongles ( Bluetooth Specification Version 4.0 or later with Microsoft Bluetooth stack )
 
 ## Dependencies
 
@@ -34,22 +34,22 @@ Click the link below to view a beginners guide to Ncode technology.
 
 ## Supported models
 
-- Neo smartpen N2(F110, F120)
-- Neo smartpen M1(F50)
+- All models of Neo smartpen
 
 
+## Getting Started with Sample App
 
-## Getting Started Sample App
-
-At first, download the zip file containing the current version. You can unzip the archive and open NeosmartpenSDK_UWP.sln in Visual Studio 2015.
+At first, download the zip file containing the current version. You can unzip the archive and open NeosmartpenSDK_UWP.sln in Visual Studio 2017.
 
 [download](https://github.com/NeoSmartpen/UWP-SDK/archive/master.zip)
 
 
 ## Using SDK library
 
+Just install Neosmartpen.Net package in the Nuget
 
-Add the NeosmartpenSDK dll to you project and the MarkerMetro.Unity.Ionic.Zlib dll in the Nuget Package
+    Install-Package Neosmartpen.Net
+    
 Let's getting started using the API
 
 ## Api References
@@ -66,11 +66,11 @@ SDK handle data and commucation with peer device in other thread. So if you want
 ```cs
 // create PenController instance.
 // PenController control all pen event method
-PenController _controller = new PenController();
+PenController controller = new PenController();
 
 // Create BluetoothPenClient instance. and bind PenController.
 // BluetoothPenClient is implementation of bluetooth function.
-BluetoothPenClient _client = new BluetoothPenClient(_controller);
+BluetoothPenClient client = new GenericBluetoothPenClient(_controller);
 ```
 #### Find Bluetooth Devices
 
@@ -78,42 +78,32 @@ You can find bluetooth device using below methods. And get **PenInformation** ob
 
 ###### Find device
 ```cs
-List<PenInformation> penList = await _client.FindDevices();
+List<PenInformation> penList = await client.FindDevices();
 ```
-###### Using watcher
+###### Using LE Advertisement Watcher
 
 ```cs
 // bluetooth watcher event
-_client.onAddPenController += MClient_onAddPenController;
-_client.onRemovePenController += MClient_onRemovePenController;
-_client.onStopSearch += MClient_onStopSearch;
-_client.onUpdatePenController += MClient_onUpdatePenController;
+client.onStopSearch += onStopSearch;
+client.onUpdatePenController += onUpdatePenController;
+client.onAddPenController += onAddPenController;
 
 // start watcher
-_client.StartWatcher();
+client.StartLEAdvertisementWatcher();
 
 // Event that is called when a device is added by the watcher
-private async void MClient_onAddPenController(BluetoothPenClient sender, PenInformation args)
+private void onAddPenController(IPenClient sender, PenInformation args)
 {
-
 }
 
-// Event that is called when a device is updated 
-private async void MClient_onUpdatePenController(BluetoothPenClient sender, PenUpdateInformation args)
+// Event that is called when a device is updated
+private void onUpdatePenController(IPenClient sender, PenUpdateInformation args)
 {
-
-}
-
-// Event that is called when a device is removed
-private async void MClient_onRemovePenController(BluetoothPenClient sender, PenUpdateInformation args)
-{
-
 }
 
 // Event that is called when the watcher operation has been stopped
-private async void MClient_onStopSearch(BluetoothPenClient sender, Windows.Devices.Bluetooth.BluetoothError args)
+private void onStopSearch(IPenClient sender, Windows.Devices.Bluetooth.BluetoothError args)
 {
-
 }
 ```
 #### Connect with device
@@ -127,18 +117,18 @@ bool result = await _client.Connect(penInfomation);
 
 ```cs
 // add event in init method
-_controller.Connected += MController_Connected;
-_controller.PasswordRequested += MController_PasswordRequested;
-_controller.Authenticated += MController_Authenticated;
+controller.Connected += connected;
+controller.PasswordRequested += passwordRequested;
+controller.Authenticated += authenticated;
 
 // It is called when connection is established ( You cannot use function on your device without authentication )
-private void MController_Connected(IPenClient sender, ConnectedEventArgs args)
+private void connected(IPenClient sender, ConnectedEventArgs args)
 {
 	System.Diagnostics.Debug.WriteLine(String.Format("Mac : {0}\r\n\r\nName : {1}\r\n\r\nSubName : {2}\r\n\r\nFirmware Version : {3}\r\n\r\nProtocol Version : {4}", args.MacAddress, args.DeviceName, args.SubName, args.FirmwareVersion, args.ProtocolVersion));
 }
 
 // If your device is locked, it is called to input password.
-private void MController_PasswordRequested(IPenClient sender, PasswordRequestedEventArgs args)
+private void passwordRequested(IPenClient sender, PasswordRequestedEventArgs args)
 {
 	System.Diagnostics.Debug.WriteLine($"Retry Count : {args.RetryCount}, ResetCount :  {args.ResetCount }");
     _controller.InputPassword(password);
@@ -146,16 +136,15 @@ private void MController_PasswordRequested(IPenClient sender, PasswordRequestedE
 
 // If your pen is not locked, or authentication is passed, it will be called.
 // When it is called, You can use all function on your device.
-private void MController_Authenticated(IPenClient sender, object args)
+private void authenticated(IPenClient sender, object args)
 {
-
 }
 ```
 
 #### Handling a handwriting data from peer device
 ```cs
 // add event in init method
-_controller.DotReceived += MController_DotReceived;
+controller.DotReceived += dotReceived;
 
 // Identifier of note(paper) (it is consist of section and owner, note)
 int section = 1;
@@ -163,10 +152,10 @@ int owner = 1;
 int note = 102;
 
 // Requests to set your note type.
-_controller.AddAvailableNote(section, owner, note);
+controller.AddAvailableNote(section, owner, note);
 
 // event that is called when writing data is received
-private void MController_DotReceived(IPenClient sender, DotReceivedEventArgs args)
+private void dotReceived(IPenClient sender, DotReceivedEventArgs args)
 {
 // TODO : You should implements code using coordinate data.
 }
@@ -176,16 +165,14 @@ private void MController_DotReceived(IPenClient sender, DotReceivedEventArgs arg
 
 ```cs
 // add event in init method
-_controller.OfflineDataListReceived += MController_OfflineDataListReceived;
-
+controller.OfflineDataListReceived += offlineDataListReceived;
 
 // Request offline data list
-_controller.RequestOfflineDataList();
+controller.RequestOfflineDataList();
 
 // Event method to receive offline data list
-private void MController_OfflineDataListReceived(IPenClient sender, OfflineDataListReceivedEventArgs args)
+private void offlineDataListReceived(IPenClient sender, OfflineDataListReceivedEventArgs args)
 {
-
 }
 
 ```
@@ -193,26 +180,23 @@ private void MController_OfflineDataListReceived(IPenClient sender, OfflineDataL
 #### Downloading offline data in Smartpen's storage
 ```cs
 // add event in init method
-_controller.OfflineDataDownloadStarted += MController_OfflineDataDownloadStarted;
-_controller.OfflineStrokeReceived += MController_OfflineStrokeReceived;
-_controller.OfflineDownloadFinished += MController_OfflineDownloadFinished;
+controller.OfflineDataDownloadStarted += offlineDataDownloadStarted;
+controller.OfflineStrokeReceived += offlineStrokeReceived;
+controller.OfflineDownloadFinished += offlineDownloadFinished;
 
 // it is invoked when begins downloading offline data
-private async void MController_OfflineDataDownloadStarted(IPenClient sender, object args)
+private void offlineDataDownloadStarted(IPenClient sender, object args)
 {
-
 }
 
 // it is invoked when it obtained offline data ( it can be called several times )
-private async void MController_OfflineStrokeReceived(IPenClient sender, OfflineStrokeReceivedEventArgs args)
+private void offlineStrokeReceived(IPenClient sender, OfflineStrokeReceivedEventArgs args)
 {
-
 }
 
 // it is invoked when finished downloading
-private async void MController_OfflineDownloadFinished(IPenClient sender, SimpleResultEventArgs args)
+private void offlineDownloadFinished(IPenClient sender, SimpleResultEventArgs args)
 {
-
 }
 ```
 

@@ -1,0 +1,7 @@
+var searchData=
+[
+  ['batteryalarmreceived_448',['BatteryAlarmReceived',['../class_neosmartpen_1_1_net_1_1_pen_client_parser_v1.html#aa3020154f06c09d16cc18cbb071df956',1,'Neosmartpen.Net.PenClientParserV1.BatteryAlarmReceived()'],['../class_neosmartpen_1_1_net_1_1_pen_client_parser_v2.html#a88552a369192dac4a96ee2026c56fc7d',1,'Neosmartpen.Net.PenClientParserV2.BatteryAlarmReceived()']]],
+  ['beepandlightchanged_449',['BeepAndLightChanged',['../class_neosmartpen_1_1_net_1_1_pen_client_parser_v1.html#a494c62cceba01b7148db9604e8e08bb4',1,'Neosmartpen.Net.PenClientParserV1.BeepAndLightChanged()'],['../class_neosmartpen_1_1_net_1_1_pen_client_parser_v2.html#a40d6a8bb39d9cdac348db437d4bb0abe',1,'Neosmartpen.Net.PenClientParserV2.BeepAndLightChanged()']]],
+  ['beepsoundchanged_450',['BeepSoundChanged',['../class_neosmartpen_1_1_net_1_1_pen_client_parser_v1.html#a7384512d8a71c187f3151dbe9c626158',1,'Neosmartpen.Net.PenClientParserV1.BeepSoundChanged()'],['../class_neosmartpen_1_1_net_1_1_pen_client_parser_v2.html#aeec7b74e5227c6f964dc3d46073faf9c',1,'Neosmartpen.Net.PenClientParserV2.BeepSoundChanged()']]],
+  ['btlocalnamechanged_451',['BtLocalNameChanged',['../class_neosmartpen_1_1_net_1_1_pen_client_parser_v1.html#a81ba6d5cd1e2bfe1a2eb12c5b16cbab8',1,'Neosmartpen.Net.PenClientParserV1.BtLocalNameChanged()'],['../class_neosmartpen_1_1_net_1_1_pen_client_parser_v2.html#a1c90bfcab702c94944919764a5a46229',1,'Neosmartpen.Net.PenClientParserV2.BtLocalNameChanged()']]]
+];
