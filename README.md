@@ -24,7 +24,7 @@ Click the link below to view a beginners guide to Ncode technology.
 
  - Visual Studio 2017
  - Install the Universal Windows Platform tools provided by Microsoft
- - Min version [10.0; build 15063]
+ - Min version [10.0; build 19041]
  - Need to MarkerMrtro.Unity.Ionic.Zlib library (Nuget Package)
  - Standard Bluetooth Dongles ( Bluetooth Specification Version 4.0 or later with Microsoft Bluetooth stack )
 
